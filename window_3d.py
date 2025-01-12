@@ -15,7 +15,7 @@ class Window3D(Qt3DWindow):
 
     def __configure_camera(self):
         camera = self.camera()
-        camera.setPosition(QVector3D(0, 0, 40))
+        camera.setPosition(QVector3D(0, 0, 30))
         camera.setViewCenter(QVector3D(0, 0, 0))
 
         camController = QOrbitCameraController(self.rootEntity)
@@ -23,14 +23,15 @@ class Window3D(Qt3DWindow):
         camController.setLookSpeed(360)
         camController.setCamera(camera)
     
-    def addPolymer(self, polymer: Polymer):
+    def add_polymer(self, polymer: Polymer):
         for monomer in polymer:
             sphereMesh = QSphereMesh()
-            sphereMesh.setRadius(0.5)
+            sphereMesh.setRadius(0.3)
 
             sphereTransform = QTransform()
-            sphereTransform.setTranslation(QVector3D(*monomer))
+            sphereTransform.setTranslation(QVector3D(monomer[0] - 100, monomer[1] - 100, monomer[2] - 100))
 
             sphereEntity = QEntity(self.rootEntity)
             sphereEntity.addComponent(sphereMesh)
             sphereEntity.addComponent(sphereTransform)
+            sphereEntity.addComponent(self.material)
