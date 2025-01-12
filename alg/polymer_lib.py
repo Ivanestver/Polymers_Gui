@@ -1,5 +1,5 @@
-from field_lib import Field
-from config import axis_count, Direction, Axis, move_cell, DIMENTION
+from alg.config import axis_count, Direction, Axis, move_cell, DIMENTION
+from alg.field_lib import Field
 
 class Polymer:
     __number__ = 0

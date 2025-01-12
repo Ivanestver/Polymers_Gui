@@ -1,5 +1,5 @@
 from typing import Iterable
-from config import DIMENTION, axis_count, Direction, Axis, move_cell
+from alg.config import DIMENTION, axis_count, Direction, Axis, move_cell
 import numpy as np
 
 class Field:
