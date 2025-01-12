@@ -19,5 +19,8 @@ class MainWindow(QDialog):
         container.setMinimumSize(core.QSize(200, 100))
         container.setMaximumSize(screenSize)
 
-        self.ui.horizontalLayout.addWidget(container)
+        self.ui.mainLayout.addWidget(container)
+        self.ui.calculateBtn.clicked.connect(self.on_calc_btn_clicked)
 
+    def on_calc_btn_clicked(self):
+        pass
