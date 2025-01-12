@@ -1,6 +1,6 @@
 from PyQt6.QtGui import QVector3D
-from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController
-from PyQt6.Qt3DCore import QEntity
+from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QSphereMesh
+from PyQt6.Qt3DCore import QEntity, QTransform
 from alg.polymer_lib import Polymer
 
 class Window3D(Qt3DWindow):
@@ -24,4 +24,13 @@ class Window3D(Qt3DWindow):
         camController.setCamera(camera)
     
     def addPolymer(self, polymer: Polymer):
-        pass
+        for monomer in polymer:
+            sphereMesh = QSphereMesh()
+            sphereMesh.setRadius(0.5)
+
+            sphereTransform = QTransform()
+            sphereTransform.setTranslation(QVector3D(*monomer))
+
+            sphereEntity = QEntity(self.rootEntity)
+            sphereEntity.addComponent(sphereMesh)
+            sphereEntity.addComponent(sphereTransform)
