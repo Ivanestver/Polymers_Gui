@@ -41,6 +41,11 @@ class Polymer:
                 return i
         return -1
 
+    def get_monomer_by_idx(self, idx: int):
+        if (idx < 0 or idx >= len(self.__polymer)):
+            return None
+        return self.__polymer[idx]
+
     def calc_energy(self):
         u = 0.0
         last_point = self.__polymer[-1]

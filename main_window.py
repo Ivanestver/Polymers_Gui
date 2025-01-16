@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import QDialog, QWidget
-from PyQt6.QtGui import QVector3D
+from PyQt6.QtGui import QVector3D, QQuaternion
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.Qt3DCore as core3d
-from PyQt6.Qt3DExtras import QSphereMesh, QPhongMaterial, QOrbitCameraController
+from PyQt6.Qt3DExtras import QSphereMesh, QPhongMaterial, QOrbitCameraController, QConeMesh
 import PyQt6.QtCore as core
 from window_3d import Window3D
 from alg.polymers_copy import CalcAlg
@@ -23,6 +23,11 @@ class MainWindow(QDialog):
         self.ui.mainLayout.addWidget(container)
         self.ui.calculateBtn.clicked.connect(self.on_calc_btn_clicked)
 
+        self.ui.btnUp.clicked.connect(self.on_btn_up_clicked)
+        self.ui.btnLeft.clicked.connect(self.on_btn_left_clicked)
+        self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
+        self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
+
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
         polymers_count = self.ui.polymersCountSpinBox.value()
@@ -32,5 +37,19 @@ class MainWindow(QDialog):
         finished_polymers = calcAlg.calc()
         for polymer in finished_polymers:
             self.view.add_polymer(polymer)
-        
-        pass
+
+    def on_btn_up_clicked(self):
+        polymer = self.view.get_polymer(0)
+        polymer.setRotationX(polymer.rotationX() + 10)
+
+    def on_btn_down_clicked(self):
+        polymer = self.view.get_polymer(0)
+        polymer.setRotationX(polymer.rotationX() - 10)
+
+    def on_btn_left_clicked(self):
+        polymer = self.view.get_polymer(0)
+        polymer.setRotationY(polymer.rotationY() + 10)
+
+    def on_btn_right_clicked(self):
+        polymer = self.view.get_polymer(0)
+        polymer.setRotationY(polymer.rotationY() - 10)

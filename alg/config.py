@@ -14,8 +14,8 @@ class Direction(enum.Enum):
 def axis_count():
     return Axis.AXIS_COUNT.value
 
-DIMENTION = 200
-max_monomers_count = 200
+DIMENTION = 10
+max_monomers_count = 5
 
 def move_cell(cell, axis: Axis, direction: Direction):
     return tuple((cell[i] if i != axis.value else cell[i] + direction.value) % DIMENTION for i in range(len(cell)))
