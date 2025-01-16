@@ -1,10 +1,16 @@
 import sys
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QDialog
 from main_window import MainWindow
+from start_settings_window import StartSettingsWindow
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
-    app.exec()
-    sys.exit()
+    startSettingsWindow = StartSettingsWindow()
+    responce = startSettingsWindow.exec()
+    if responce == QDialog.DialogCode.Rejected:
+        sys.exit()
+    else:
+        main_window = MainWindow(startSettingsWindow.get_space_dimention())
+        main_window.show()
+        app.exec()
+        sys.exit()

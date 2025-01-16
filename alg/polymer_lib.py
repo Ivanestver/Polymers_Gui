@@ -1,5 +1,6 @@
-from alg.config import axis_count, Direction, Axis, move_cell, DIMENTION
+from alg.config import axis_count, Direction, Axis, move_cell
 from alg.field_lib import Field
+from space import Space
 
 class Polymer:
     __number__ = 0
@@ -70,9 +71,9 @@ class Polymer:
         return True
 
     def get_min_max_width_height(self):
-        min_width = DIMENTION
+        min_width = Space.space_dimention
         max_width = 0
-        min_height = DIMENTION
+        min_height = Space.space_dimention
         max_height = 0
 
         for monomer in self.__polymer:

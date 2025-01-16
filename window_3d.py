@@ -2,7 +2,6 @@ from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DCore import QEntity, QTransform
 from alg.polymer_lib import Polymer
-from alg.config import DIMENTION
 from space import Space
 from polymer_view import PolymerView
 
@@ -21,7 +20,7 @@ class Window3D(Qt3DWindow):
 
     def __configure_camera(self):
         camera = self.camera()
-        camera.setPosition(Space.global_zero - QVector3D(0, 0, DIMENTION))
+        camera.setPosition(Space.global_zero - QVector3D(0, 0, Space.space_dimention))
         camera.setViewCenter(Space.global_zero - QVector3D(0, 0, Space.global_zero.z()))
 
         camController = QOrbitCameraController(self.rootEntity)

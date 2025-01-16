@@ -1,5 +1,4 @@
 from PyQt6.QtGui import QVector3D
-from alg.config import DIMENTION
 
 class Space:
     up_vector = QVector3D(0, 1, 0)
@@ -11,4 +10,5 @@ class Space:
     forward_vector = QVector3D(0, 0, 1)
     backword_vector = QVector3D(0, 0, -1)
 
-    global_zero = QVector3D(DIMENTION / 2, DIMENTION / 2, DIMENTION / 2)
+    global_zero = QVector3D(0, 0, 0)
+    space_dimention = 0

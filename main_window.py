@@ -1,15 +1,17 @@
 from PyQt6.QtWidgets import QDialog, QWidget
-from PyQt6.QtGui import QVector3D, QQuaternion
 from uis.ui_main_window import Ui_MainWindow
-import PyQt6.Qt3DCore as core3d
-from PyQt6.Qt3DExtras import QSphereMesh, QPhongMaterial, QOrbitCameraController, QConeMesh
 import PyQt6.QtCore as core
 from window_3d import Window3D
 from alg.polymers_copy import CalcAlg
+from space import Space
+from PyQt6.QtGui import QVector3D
 
 class MainWindow(QDialog):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, space_dimention, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        Space.space_dimention = space_dimention
+        Space.global_zero = QVector3D(space_dimention / 2, space_dimention / 2, space_dimention / 2)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)

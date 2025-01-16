@@ -1,4 +1,5 @@
 import enum
+from space import Space
 
 class Axis(enum.Enum):
     X_AXIS = 0
@@ -14,8 +15,7 @@ class Direction(enum.Enum):
 def axis_count():
     return Axis.AXIS_COUNT.value
 
-DIMENTION = 10
 max_monomers_count = 5
 
 def move_cell(cell, axis: Axis, direction: Direction):
-    return tuple((cell[i] if i != axis.value else cell[i] + direction.value) % DIMENTION for i in range(len(cell)))
+    return tuple((cell[i] if i != axis.value else cell[i] + direction.value) % Space.space_dimention for i in range(len(cell)))

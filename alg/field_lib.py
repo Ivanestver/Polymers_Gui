@@ -1,10 +1,11 @@
 from typing import Iterable
-from alg.config import DIMENTION, axis_count, Direction, Axis, move_cell
+from alg.config import axis_count, Direction, Axis, move_cell
 import numpy as np
+from space import Space
 
 class Field:
     def __init__(self):
-        shape = tuple([DIMENTION for i in range(axis_count())])
+        shape = tuple([Space.space_dimention for i in range(axis_count())])
         self.__field = np.zeros(shape, dtype=int)
         
     def __set_cell_state(self, position_to_set: Iterable, state: int):
@@ -26,7 +27,7 @@ class Field:
         return item[coords[-1]] == 0
 
     def get_cell_within_borders(self, point):
-        return tuple((v % DIMENTION for v in point))
+        return tuple((v % Space.space_dimention for v in point))
 
     def get_available_cells(self, curr_pos):
         available_cells = []
@@ -39,7 +40,7 @@ class Field:
         return available_cells
     
     def define_start_position(self):
-        start_position = tuple([int(DIMENTION / 2) for i in range(axis_count())])
+        start_position = tuple([int(Space.space_dimention / 2) for i in range(axis_count())])
         while not self.is_free(start_position):
             available_cells = self.get_available_cells(start_position)
             if len(available_cells) != 0:
