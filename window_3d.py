@@ -77,3 +77,6 @@ class Window3D(Qt3DWindow):
     
     def get_polymer(self, i) -> PolymerView:
         return self.polymers[i]
+    
+    def get_polymers_count(self) -> int:
+        return len(self.polymers)

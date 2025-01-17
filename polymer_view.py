@@ -1,4 +1,5 @@
-from PyQt6.QtGui import QVector3D, QQuaternion
+from random import random
+from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from space import Space
@@ -8,7 +9,9 @@ class PolymerView:
     def __init__(self, polymer: Polymer, rootEntity: QEntity):
         self.transform = QTransform()
         self.material = QPhongMaterial()
+        self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
         self.transform.setTranslation(Space.global_zero)
+        self.name = polymer.name()
 
         self.entity = QEntity(rootEntity)
         self.entity.addComponent(self.transform)

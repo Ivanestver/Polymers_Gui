@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QWidget
+from PyQt6.QtWidgets import QDialog, QWidget, QListWidgetItem
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
@@ -39,19 +39,36 @@ class MainWindow(QDialog):
         finished_polymers = calcAlg.calc()
         for polymer in finished_polymers:
             self.view.add_polymer(polymer)
+            self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
 
     def on_btn_up_clicked(self):
-        polymer = self.view.get_polymer(0)
+        curr_polymer_number = self.ui.polymersListWidget.currentRow()
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+            return
+
+        polymer = self.view.get_polymer(curr_polymer_number)
         polymer.setRotationX(polymer.rotationX() + 10)
 
     def on_btn_down_clicked(self):
-        polymer = self.view.get_polymer(0)
+        curr_polymer_number = self.ui.polymersListWidget.currentRow()
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+            return
+
+        polymer = self.view.get_polymer(curr_polymer_number)
         polymer.setRotationX(polymer.rotationX() - 10)
 
     def on_btn_left_clicked(self):
-        polymer = self.view.get_polymer(0)
+        curr_polymer_number = self.ui.polymersListWidget.currentRow()
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+            return
+
+        polymer = self.view.get_polymer(curr_polymer_number)
         polymer.setRotationY(polymer.rotationY() + 10)
 
     def on_btn_right_clicked(self):
-        polymer = self.view.get_polymer(0)
+        curr_polymer_number = self.ui.polymersListWidget.currentRow()
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+            return
+
+        polymer = self.view.get_polymer(curr_polymer_number)
         polymer.setRotationY(polymer.rotationY() - 10)
