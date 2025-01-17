@@ -4,7 +4,9 @@ import PyQt6.QtCore as core
 from window_3d import Window3D
 from alg.polymers_copy import CalcAlg
 from space import Space
-from PyQt6.QtGui import QVector3D
+from PyQt6.QtGui import QVector3D, QColor
+from PyQt6.Qt3DRender import QPickEvent
+from PyQt6.Qt3DExtras import QPhongMaterial
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -38,8 +40,14 @@ class MainWindow(QDialog):
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count)
         finished_polymers = calcAlg.calc()
         for polymer in finished_polymers:
-            self.view.add_polymer(polymer)
+            self.view.add_polymer(polymer, self.on_picker_clicked)
             self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
+
+    def on_picker_clicked(self, e: QPickEvent):
+        material = QPhongMaterial()
+        material.setAmbient(QColor.fromRgb(0, 0, 0))
+        e.entity().addComponent(material)
+        pass
 
     def on_btn_up_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()

@@ -2,6 +2,7 @@ from random import random
 from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
+from PyQt6.Qt3DRender import QObjectPicker
 from space import Space
 from alg.polymer_lib import Polymer
 
@@ -23,6 +24,8 @@ class PolymerView:
             self.__add_connection__(curr_monomer, next_monomer)
         
         self.entity.addComponent(self.material)
+        self.objectPicker = QObjectPicker()
+        self.entity.addComponent(self.objectPicker)
 
     def rotationX(self):
         return self.transform.rotationX()

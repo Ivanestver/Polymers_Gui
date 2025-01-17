@@ -1,6 +1,8 @@
+import typing
 from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DCore import QEntity, QTransform
+from PyQt6.Qt3DInput import QMouseEvent
 from alg.polymer_lib import Polymer
 from space import Space
 from polymer_view import PolymerView
@@ -71,8 +73,9 @@ class Window3D(Qt3DWindow):
             if nodes[i] is QEntity:
                 nodes.remove(nodes[i])
     
-    def add_polymer(self, polymer: Polymer):
+    def add_polymer(self, polymer: Polymer, on_picker_clicked):
         new_polymer = PolymerView(polymer, self.rootEntity)
+        new_polymer.objectPicker.clicked.connect(on_picker_clicked)
         self.polymers.append(new_polymer)
     
     def get_polymer(self, i) -> PolymerView:
