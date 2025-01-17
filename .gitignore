@@ -2,3 +2,5 @@ __pycache__/
 alg/__pycache__/
 uis/__pycache__/
 *.exe
+[dist]/
+*.spec
