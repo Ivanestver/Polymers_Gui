@@ -116,12 +116,16 @@ class MainWindow(QDialog):
                 self.ui.radiusSphereSpinBox.value())
 
 
+        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
+        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
+
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
         polymers_count = self.ui.polymersCountSpinBox.value()
         accept_threshold = self.ui.thresholdSpinBox.value()
         monomers_count = self.ui.monomersCountSpinBox.value()
-        calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count)
+        sphere_radius = self.ui.radiusSphereSpinBox.value()
+        calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.calc()
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
         globula_item = QListWidgetItem(new_globula.name)

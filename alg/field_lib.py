@@ -1,15 +1,17 @@
+import math
 from typing import Iterable
 from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
 import numpy as np
 from space import Space
 
 class Field:
-    def __init__(self):
+    def __init__(self, sphere_radius):
         shape = tuple([Space.space_dimention for i in range(axis_count())])
-        self.__field = np.zeros(shape, dtype=int)
+        self._field = np.zeros(shape, dtype=int)
+        self._sphere_radius = sphere_radius
         
     def __set_cell_state(self, position_to_set: Iterable, state: int):
-        item = self.__field
+        item = self._field
         for i in range(axis_count()-1):
             item = item[position_to_set[i]]
         item[position_to_set[axis_count()-1]] = state
@@ -21,7 +23,7 @@ class Field:
         self.__set_cell_state(position_to_make, 0)
 
     def is_free(self, coords: Iterable) -> bool:
-        item = self.__field
+        item = self._field
         for i in range(len(coords)-1):
             if coords[i] < 0 or coords[i] >= len(item):
                 return False
@@ -33,11 +35,19 @@ class Field:
 
     def get_cell_within_borders(self, point):
         return tuple((v % Space.space_dimention for v in point))
+
+    def __get_length_metrics(self, start_point):
+        end_point = Space.global_zero
+        return math.sqrt(sum([(e - s) ** 2 for e, s in zip(end_point, start_point)]))
+
+    def is_within_sphere(self, point):
+        return self.__get_length_metrics(point) <= self._sphere_radius
     
     def is_within_borders(self, point: tuple):
         return (0 <= point[0] <= Space.space_dimention) \
         and (0 <= point[1] <= Space.space_dimention) \
-        and (0 <= point[2] <= Space.space_dimention)
+        and (0 <= point[2] <= Space.space_dimention) \
+        and self.is_within_sphere(point)
 
     def get_available_cells(self, curr_pos):
         available_cells = []
