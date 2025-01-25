@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QWidget, QListWidgetItem
+from PyQt6.QtWidgets import QDialog, QWidget
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
@@ -32,12 +32,16 @@ class MainWindow(QDialog):
         self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
 
+        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
+        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
+
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
         polymers_count = self.ui.polymersCountSpinBox.value()
         accept_threshold = self.ui.thresholdSpinBox.value()
         monomers_count = self.ui.monomersCountSpinBox.value()
-        calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count)
+        sphere_radius = self.ui.radiusSphereSpinBox.value()
+        calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.calc()
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
         self.ui.polymersListWidget.addItem(new_globula.name)
