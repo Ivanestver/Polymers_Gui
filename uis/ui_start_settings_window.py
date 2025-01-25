@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\start_settings_window.ui'
+# Form implementation generated from reading ui file '.\uis\start_settings_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_StartSettingsWindow(object):
     def setupUi(self, StartSettingsWindow):
         StartSettingsWindow.setObjectName("StartSettingsWindow")
-        StartSettingsWindow.resize(246, 112)
+        StartSettingsWindow.resize(252, 112)
         self.verticalLayout = QtWidgets.QVBoxLayout(StartSettingsWindow)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -21,8 +21,9 @@ class Ui_StartSettingsWindow(object):
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
         self.spaceDimentionSpinBox = QtWidgets.QSpinBox(parent=StartSettingsWindow)
-        self.spaceDimentionSpinBox.setMinimum(10)
+        self.spaceDimentionSpinBox.setMinimum(2)
         self.spaceDimentionSpinBox.setMaximum(100)
+        self.spaceDimentionSpinBox.setProperty("value", 2)
         self.spaceDimentionSpinBox.setObjectName("spaceDimentionSpinBox")
         self.horizontalLayout.addWidget(self.spaceDimentionSpinBox)
         self.verticalLayout.addLayout(self.horizontalLayout)

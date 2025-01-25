@@ -1,5 +1,5 @@
 from typing import Iterable
-from alg.config import axis_count, Direction, Axis, move_cell
+from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
 import numpy as np
 from space import Space
 
@@ -23,18 +23,28 @@ class Field:
     def is_free(self, coords: Iterable) -> bool:
         item = self.__field
         for i in range(len(coords)-1):
+            if coords[i] < 0 or coords[i] >= len(item):
+                return False
             item = item[coords[i]]
+
+        if coords[-1] < 0 or coords[-1] >= len(item):
+            return False
         return item[coords[-1]] == 0
 
     def get_cell_within_borders(self, point):
         return tuple((v % Space.space_dimention for v in point))
+    
+    def is_within_borders(self, point: tuple):
+        return (0 <= point[0] <= Space.space_dimention) \
+        and (0 <= point[1] <= Space.space_dimention) \
+        and (0 <= point[2] <= Space.space_dimention)
 
     def get_available_cells(self, curr_pos):
         available_cells = []
         for axis in range(axis_count()):
             for dir in [Direction.DIRECTION_BACKWARD, Direction.DIRECTION_FORWARD]:
-                curr_moved = self.get_cell_within_borders(move_cell(curr_pos, Axis(axis), dir))
-                if self.is_free(curr_moved):
+                curr_moved = move_cell_no_borders(curr_pos, Axis(axis), dir)
+                if self.is_within_borders(curr_moved) and self.is_free(curr_moved):
                     available_cells.append(curr_moved)
 
         return available_cells
