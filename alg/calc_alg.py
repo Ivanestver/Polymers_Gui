@@ -143,8 +143,11 @@ class CalcAlg:
                 p.add_monomer(new_pos)
                 field.make_filled(new_pos)
 
-            while sum([self.max_monomers_count - polymer.len() for polymer in polymers]) != 0:
+            blacklist = []
+            while len(finished_polimers) != len(polymers):
                 for i in range(len(polymers)):
+                    if i in blacklist:
+                        continue
                     polymer = polymers[i]
                     polymer_cache = polymers_cache[i]
                     if polymer.len() == self.max_monomers_count:
@@ -152,15 +155,10 @@ class CalcAlg:
                     
                     current_position = polymer.back()
                     available_cells = field.get_available_cells(current_position)
-                    while len(available_cells) == 0:
-                        if not is_stepping_back:
-                            is_stepping_back = True
-                        if polymer.make_step_back():
-                            current_position = polymer.back()
-                            available_cells = field.get_available_cells(current_position)
-                        else:
-                            is_stepping_back = False
-                            break
+                    if  len(available_cells) == 0:
+                        finished_polimers.append(polymer)
+                        blacklist.append(i)
+                        continue
                         
                     continuations = self.__get_continuations(len(available_cells), available_cells)
                     potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
@@ -188,6 +186,7 @@ class CalcAlg:
                     print(f'{polymer.name()}\'s monomers count: {polymer.len()}')
                     if polymer.len() == self.max_monomers_count:
                         finished_polimers.append(polymer)
+                        blacklist.append(i)
 
             if path_to_save_dir is not None:
                 self.__save_polymer_mol_into_file(epoch, finished_polimers)

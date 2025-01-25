@@ -1,4 +1,4 @@
-from alg.config import axis_count, Direction, Axis, move_cell
+from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
 from alg.field_lib import Field
 from space import Space
 
