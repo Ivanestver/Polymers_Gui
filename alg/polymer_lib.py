@@ -57,9 +57,9 @@ class Polymer:
         next_points = []
         for axis in range(axis_count()):
             for direction in [Direction.DIRECTION_BACKWARD, Direction.DIRECTION_FORWARD]:
-                next_points.append(move_cell(last_point, Axis(axis), direction))
+                next_points.append(move_cell_no_borders(last_point, Axis(axis), direction))
         for next_point in next_points:
-            if not self.__field.is_free(next_point) and next_point != prelast_point:
+            if Space.point_within_borders(next_point) and not self.__field.is_free(next_point) and next_point != prelast_point:
                 u += -1.0
 
         return u

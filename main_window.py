@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QDialog, QWidget
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
-from alg.polymers_copy import CalcAlg
+from alg.calc_alg import CalcAlg
 from space import Space
 from PyQt6.QtGui import QVector3D, QColor
 from PyQt6.Qt3DRender import QPickEvent
