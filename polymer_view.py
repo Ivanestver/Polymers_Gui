@@ -1,8 +1,10 @@
+import os
 from random import random
 from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DRender import QObjectPicker
+from alg.config import Axis
 from space import Space
 from alg.polymer_lib import Polymer
 
@@ -36,7 +38,6 @@ class Entity:
     def setRotationZ(self, angle: float):
         self.transform.setRotationZ(angle)
 
-
 class PolymerView(Entity):
     def __init__(self, polymer: Polymer, rootEntity: QEntity):
         super().__init__(polymer.name(), rootEntity)
@@ -51,6 +52,10 @@ class PolymerView(Entity):
         
         self.objectPicker = QObjectPicker()
         self.entity.addComponent(self.objectPicker)
+        self.polymer = polymer
+
+    def len(self):
+        return self.polymer.len()
 
     def __add_monomer__(self, monomer):
         sphereMesh = QSphereMesh()
@@ -98,9 +103,50 @@ class PolymerView(Entity):
         else:
             return QQuaternion.fromAxisAndAngle(Space.forward_vector, 90.0)
 
+    def turn_to_mol(self, element_name: str, number: int):
+        min_width, max_width, min_height, max_height = self.polymer.get_min_max_width_height()
+        if min_width == max_width or min_height == max_height:
+            return
+        contents = ""
+        for i, monomer in enumerate(self.polymer):
+            label = element_name
+            if i == 0:
+                label = 'Fe'
+            if i == self.polymer.len() - 1:
+                label = 'Cu'
+            x: float = monomer[Axis.X_AXIS.value]
+            y: float = monomer[Axis.Y_AXIS.value]
+            z: float = monomer[Axis.Z_AXIS.value]
+            contents += f"{self.len() * number + i + 1} {label} {x:.4f} {y:.4f} {z:.4f} {label}\n"
+
+        return contents
+
 class GlobulaView(Entity):
+    _finished_polimers_labels = ['C', 'N', 'H', 'O', 'F', 'Na', 'Mg', 'Al', 'P', 'S']
+    
     def __init__(self, name: str, polymers: list[Polymer], rootEntity: QEntity) -> None:
         super().__init__(name, rootEntity)
         self.transform.setTranslation(Space.global_zero)
 
         self.polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
+    
+    def turn_to_mol(self):
+
+        contents = ""
+        contents += "@<TRIPOS>MOLECULE\n*****\n"
+        contents += f" {sum([pl.len() for pl in self.polymers])} {sum([pl.len() for pl in self.polymers]) - len(self.polymers)} 0 0 0\n"
+        contents += "SMALL\n"
+        contents += "GASTEIGER\n\n\r\n"
+
+        contents += "@<TRIPOS>ATOM\n"
+        for pol_number, pol in enumerate(self.polymers):
+            contents += pol.turn_to_mol(self._finished_polimers_labels[pol_number], pol_number)
+
+        contents += "@<TRIPOS>BOND\n"
+        addition = 0
+        for pol_number, pol in enumerate(self.polymers):
+            for i in range(pol.len() - 1):
+                contents += f"{addition + i + 1} {addition + i + 1} {addition + i + 2} 1\n"
+            addition += pol.len()
+
+        return f'{self.name}.mol2', contents
