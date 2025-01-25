@@ -1,10 +1,11 @@
-from PyQt6.QtWidgets import QDialog, QWidget, QListWidgetItem
+import os
+from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
 from alg.polymers_copy import CalcAlg
 from space import Space
-from PyQt6.QtGui import QVector3D, QColor
+from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 
@@ -31,6 +32,33 @@ class MainWindow(QDialog):
         self.ui.btnLeft.clicked.connect(self.on_btn_left_clicked)
         self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
+        self.setup_context_menu()
+
+    def setup_context_menu(self):
+        action = QAction("Save to mol", self)
+        action.triggered.connect(self.__on_save_to_file_action_triggered)
+        self.ui.polymersListWidget.addAction(action)
+
+    def __on_save_to_file_action_triggered(self):
+        curr_polymer_number = self.ui.polymersListWidget.currentRow()
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
+            return
+
+        globula = self.view.get_globula(curr_polymer_number)
+        path_to_save_dir = "./slices"
+
+        if not os.path.isdir(path_to_save_dir):
+            os.mkdir(path_to_save_dir)
+
+        file_name, file_contents = globula.turn_to_mol()
+        full_file_name = f'{path_to_save_dir}/{file_name}'
+        if os.path.exists(full_file_name):
+            os.remove(full_file_name)
+
+        with open(full_file_name, 'w') as file:
+            file.write(file_contents)
+
+        QMessageBox.information(self, "Information", f"The selected globula was saved to {full_file_name}")
 
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
@@ -56,29 +84,29 @@ class MainWindow(QDialog):
         if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_globula(curr_polymer_number)
-        polymer.setRotationX(polymer.rotationX() + 10)
+        globula = self.view.get_globula(curr_polymer_number)
+        globula.setRotationX(globula.rotationX() + 10)
 
     def on_btn_down_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
         if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_globula(curr_polymer_number)
-        polymer.setRotationX(polymer.rotationX() - 10)
+        globula = self.view.get_globula(curr_polymer_number)
+        globula.setRotationX(globula.rotationX() - 10)
 
     def on_btn_left_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
         if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_globula(curr_polymer_number)
-        polymer.setRotationY(polymer.rotationY() + 10)
+        globula = self.view.get_globula(curr_polymer_number)
+        globula.setRotationY(globula.rotationY() + 10)
 
     def on_btn_right_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
         if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_globula(curr_polymer_number)
-        polymer.setRotationY(polymer.rotationY() - 10)
+        globula = self.view.get_globula(curr_polymer_number)
+        globula.setRotationY(globula.rotationY() - 10)

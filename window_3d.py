@@ -1,5 +1,6 @@
 import typing
-from PyQt6.QtGui import QVector3D, QQuaternion, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QVector3D, QQuaternion, QColor, QKeyEvent
 from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DInput import QMouseEvent
@@ -83,7 +84,7 @@ class Window3D(Qt3DWindow):
         self.globulas.append(new_globula)
         return new_globula
     
-    def get_globula(self, i) -> PolymerView:
+    def get_globula(self, i) -> GlobulaView:
         return self.globulas[i]
     
     def get_globulas_count(self) -> int:

@@ -13,6 +13,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(926, 628)
+        MainWindow.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.NoContextMenu)
         self.horizontalLayout = QtWidgets.QHBoxLayout(MainWindow)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.mainLayout = QtWidgets.QVBoxLayout()
@@ -69,6 +70,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.btnRight, 1, 2, 1, 1)
         self.formLayout.setLayout(5, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.gridLayout)
         self.polymersListWidget = QtWidgets.QListWidget(parent=MainWindow)
+        self.polymersListWidget.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.ActionsContextMenu)
         self.polymersListWidget.setObjectName("polymersListWidget")
         self.formLayout.setWidget(6, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.polymersListWidget)
         self.horizontalLayout.addLayout(self.formLayout)
