@@ -6,3 +6,4 @@ uis/__pycache__/
 *.spec
 .vs/
 __pycache__
+slices/
