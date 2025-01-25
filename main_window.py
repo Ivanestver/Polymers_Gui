@@ -39,9 +39,11 @@ class MainWindow(QDialog):
         monomers_count = self.ui.monomersCountSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count)
         finished_polymers = calcAlg.calc()
-        for polymer in finished_polymers:
-            self.view.add_polymer(polymer, self.on_picker_clicked)
-            self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
+        new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
+        self.ui.polymersListWidget.addItem(new_globula.name)
+        # for polymer in finished_polymers:
+        #     self.view.add_polymer(polymer, self.on_picker_clicked)
+        #     self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
 
     def on_picker_clicked(self, e: QPickEvent):
         material = QPhongMaterial()
@@ -51,32 +53,32 @@ class MainWindow(QDialog):
 
     def on_btn_up_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_polymer(curr_polymer_number)
+        polymer = self.view.get_globula(curr_polymer_number)
         polymer.setRotationX(polymer.rotationX() + 10)
 
     def on_btn_down_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_polymer(curr_polymer_number)
+        polymer = self.view.get_globula(curr_polymer_number)
         polymer.setRotationX(polymer.rotationX() - 10)
 
     def on_btn_left_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_polymer(curr_polymer_number)
+        polymer = self.view.get_globula(curr_polymer_number)
         polymer.setRotationY(polymer.rotationY() + 10)
 
     def on_btn_right_clicked(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_polymers_count():
+        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
             return
 
-        polymer = self.view.get_polymer(curr_polymer_number)
+        polymer = self.view.get_globula(curr_polymer_number)
         polymer.setRotationY(polymer.rotationY() - 10)

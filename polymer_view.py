@@ -6,27 +6,18 @@ from PyQt6.Qt3DRender import QObjectPicker
 from space import Space
 from alg.polymer_lib import Polymer
 
-class PolymerView:
-    def __init__(self, polymer: Polymer, rootEntity: QEntity):
+class Entity:
+    def __init__(self, name: str, rootEntity: QEntity) -> None:
         self.transform = QTransform()
+
         self.material = QPhongMaterial()
         self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
-        self.transform.setTranslation(Space.global_zero)
-        self.name = polymer.name()
+        self.name = name
 
         self.entity = QEntity(rootEntity)
         self.entity.addComponent(self.transform)
-        for i in range(polymer.len() - 1):
-            curr_monomer = polymer.get_monomer_by_idx(i)
-            self.__add_monomer__(curr_monomer)
-            next_monomer = polymer.get_monomer_by_idx(i + 1)
-            self.__add_monomer__(next_monomer)
-            self.__add_connection__(curr_monomer, next_monomer)
-        
         self.entity.addComponent(self.material)
-        self.objectPicker = QObjectPicker()
-        self.entity.addComponent(self.objectPicker)
-
+        
     def rotationX(self):
         return self.transform.rotationX()
 
@@ -44,6 +35,22 @@ class PolymerView:
 
     def setRotationZ(self, angle: float):
         self.transform.setRotationZ(angle)
+
+
+class PolymerView(Entity):
+    def __init__(self, polymer: Polymer, rootEntity: QEntity):
+        super().__init__(polymer.name(), rootEntity)
+        self.transform.setTranslation(QVector3D(0, 0, 0))
+
+        for i in range(polymer.len() - 1):
+            curr_monomer = polymer.get_monomer_by_idx(i)
+            self.__add_monomer__(curr_monomer)
+            next_monomer = polymer.get_monomer_by_idx(i + 1)
+            self.__add_monomer__(next_monomer)
+            self.__add_connection__(curr_monomer, next_monomer)
+        
+        self.objectPicker = QObjectPicker()
+        self.entity.addComponent(self.objectPicker)
 
     def __add_monomer__(self, monomer):
         sphereMesh = QSphereMesh()
@@ -90,3 +97,10 @@ class PolymerView:
             return QQuaternion.fromAxisAndAngle(Space.left_vector, 90.0)
         else:
             return QQuaternion.fromAxisAndAngle(Space.forward_vector, 90.0)
+
+class GlobulaView(Entity):
+    def __init__(self, name: str, polymers: list[Polymer], rootEntity: QEntity) -> None:
+        super().__init__(name, rootEntity)
+        self.transform.setTranslation(Space.global_zero)
+
+        self.polymers = [PolymerView(polymer, self.entity) for polymer in polymers]

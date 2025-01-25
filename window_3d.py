@@ -5,7 +5,7 @@ from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DInput import QMouseEvent
 from alg.polymer_lib import Polymer
 from space import Space
-from polymer_view import PolymerView
+from polymer_view import PolymerView, GlobulaView
 
 class Window3D(Qt3DWindow):
     
@@ -16,7 +16,7 @@ class Window3D(Qt3DWindow):
         self.material = QPhongMaterial(self.rootEntity)
 
         self.setRootEntity(self.rootEntity)
-        self.polymers = list[PolymerView]()
+        self.globulas = list[GlobulaView]()
         self.__configure_camera()
         self.__configure_coordinate_axises()
 
@@ -77,9 +77,14 @@ class Window3D(Qt3DWindow):
         new_polymer = PolymerView(polymer, self.rootEntity)
         new_polymer.objectPicker.clicked.connect(on_picker_clicked)
         self.polymers.append(new_polymer)
+
+    def add_globula(self, polymers: list[Polymer], on_picker_clicked):
+        new_globula = GlobulaView(f'Globula {len(self.globulas)}', polymers, self.rootEntity)
+        self.globulas.append(new_globula)
+        return new_globula
     
-    def get_polymer(self, i) -> PolymerView:
-        return self.polymers[i]
+    def get_globula(self, i) -> PolymerView:
+        return self.globulas[i]
     
-    def get_polymers_count(self) -> int:
-        return len(self.polymers)
+    def get_globulas_count(self) -> int:
+        return len(self.globulas)
