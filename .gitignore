@@ -4,3 +4,5 @@ uis/__pycache__/
 *.exe
 [dist]/
 *.spec
+.vs/
+__pycache__
