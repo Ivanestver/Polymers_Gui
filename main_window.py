@@ -1,5 +1,6 @@
 import os
-from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox
+from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem
+from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
@@ -8,6 +9,7 @@ from space import Space
 from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
+from stats_window import DlgStats
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -33,6 +35,9 @@ class MainWindow(QDialog):
         self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
         self.setup_context_menu()
+
+        self.ui.polymersListWidget.itemDoubleClicked.connect(self.__on_globula_list_item_double_clicked)
+        self.GLOBULA_ROLE = core.Qt.ItemDataRole.UserRole + 1
 
     def setup_context_menu(self):
         action = QAction("Save to mol", self)
@@ -72,7 +77,9 @@ class MainWindow(QDialog):
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.calc()
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
-        self.ui.polymersListWidget.addItem(new_globula.name)
+        globula_item = QListWidgetItem(new_globula.name)
+        globula_item.setData(self.GLOBULA_ROLE, new_globula)
+        self.ui.polymersListWidget.addItem(globula_item)
         # for polymer in finished_polymers:
         #     self.view.add_polymer(polymer, self.on_picker_clicked)
         #     self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
@@ -83,34 +90,38 @@ class MainWindow(QDialog):
         e.entity().addComponent(material)
         pass
 
-    def on_btn_up_clicked(self):
+    def __get_current_globula(self):
         curr_polymer_number = self.ui.polymersListWidget.currentRow()
         if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
-            return
+            return None
 
-        globula = self.view.get_globula(curr_polymer_number)
-        globula.setRotationX(globula.rotationX() + 10)
+        return self.view.get_globula(curr_polymer_number)
+
+    def on_btn_up_clicked(self):
+        globula = self.__get_current_globula() 
+        if globula is not None:
+            globula.setRotationX(globula.rotationX() + 10)
 
     def on_btn_down_clicked(self):
-        curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
-            return
-
-        globula = self.view.get_globula(curr_polymer_number)
-        globula.setRotationX(globula.rotationX() - 10)
+        globula = self.__get_current_globula() 
+        if globula is not None:
+            globula.setRotationX(globula.rotationX() - 10)
 
     def on_btn_left_clicked(self):
-        curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
-            return
-
-        globula = self.view.get_globula(curr_polymer_number)
-        globula.setRotationY(globula.rotationY() + 10)
+        globula = self.__get_current_globula() 
+        if globula is not None:
+            globula.setRotationY(globula.rotationY() + 10)
 
     def on_btn_right_clicked(self):
-        curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
+        globula = self.__get_current_globula() 
+        if globula is not None:
+            globula.setRotationY(globula.rotationY() - 10)
+
+    def __on_globula_list_item_double_clicked(self, item: QListWidgetItem):
+        polymer = item.data(self.GLOBULA_ROLE)
+        if polymer is None:
+            QMessageBox.critical(self, "Ошибка", "Отсутствует информация по указанной глобуле")
             return
 
-        globula = self.view.get_globula(curr_polymer_number)
-        globula.setRotationY(globula.rotationY() - 10)
+        dlg = DlgStats(polymer)
+        dlg.exec()
