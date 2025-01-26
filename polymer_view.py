@@ -14,11 +14,15 @@ class Entity:
 
         self.material = QPhongMaterial()
         self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
-        self.name = name
+        self._name = name
 
         self.entity = QEntity(rootEntity)
         self.entity.addComponent(self.transform)
         self.entity.addComponent(self.material)
+
+    @property
+    def name(self):
+        return self._name
         
     def rotationX(self):
         return self.transform.rotationX()
@@ -56,6 +60,12 @@ class PolymerView(Entity):
 
     def len(self):
         return self.polymer.len()
+
+    def get_start_end_monomers(self):
+        if self.polymer.len() == 0:
+            raise Exception("The PolymerView cannot contain an empty polymer")
+        
+        return (self.polymer.get_monomer_by_idx(0), self.polymer.get_monomer_by_idx(self.polymer.len() - 1))
 
     def __add_monomer__(self, monomer):
         sphereMesh = QSphereMesh()
@@ -129,6 +139,9 @@ class GlobulaView(Entity):
         self.transform.setTranslation(Space.global_zero)
 
         self.polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
+
+    def __iter__(self):
+        return iter(self.polymers)
     
     def turn_to_mol(self):
 
