@@ -1,5 +1,6 @@
 import os
-from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox
+from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem
+from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
@@ -8,6 +9,7 @@ from space import Space
 from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
+from stats_window import DlgStats
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -33,6 +35,9 @@ class MainWindow(QDialog):
         self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
         self.setup_context_menu()
+
+        self.ui.polymersListWidget.itemDoubleClicked.connect(self.__on_globula_list_item_double_clicked)
+        self.GLOBULA_ROLE = core.Qt.ItemDataRole.UserRole + 1
 
     def setup_context_menu(self):
         action = QAction("Save to mol", self)
@@ -68,7 +73,9 @@ class MainWindow(QDialog):
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count)
         finished_polymers = calcAlg.calc()
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
-        self.ui.polymersListWidget.addItem(new_globula.name)
+        globula_item = QListWidgetItem(new_globula.name)
+        globula_item.setData(self.GLOBULA_ROLE, new_globula)
+        self.ui.polymersListWidget.addItem(globula_item)
         # for polymer in finished_polymers:
         #     self.view.add_polymer(polymer, self.on_picker_clicked)
         #     self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
