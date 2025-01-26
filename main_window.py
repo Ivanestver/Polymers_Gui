@@ -36,6 +36,9 @@ class MainWindow(QDialog):
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
         self.setup_context_menu()
 
+        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
+        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
+
         self.ui.polymersListWidget.itemDoubleClicked.connect(self.__on_globula_list_item_double_clicked)
         self.GLOBULA_ROLE = core.Qt.ItemDataRole.UserRole + 1
 
@@ -65,9 +68,6 @@ class MainWindow(QDialog):
 
         QMessageBox.information(self, "Information", f"The selected globula was saved to {full_file_name}")
 
-        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
-        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
-
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
         polymers_count = self.ui.polymersCountSpinBox.value()
@@ -76,6 +76,9 @@ class MainWindow(QDialog):
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.calc()
+        if len(finished_polymers) == 0:
+            QMessageBox.warning(self, "Внимание", "Не удалось построить многочлены. Проверьте настройки и повторите попытку")
+            return
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
         globula_item = QListWidgetItem(new_globula.name)
         globula_item.setData(self.GLOBULA_ROLE, new_globula)

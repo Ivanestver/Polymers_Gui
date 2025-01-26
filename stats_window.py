@@ -10,7 +10,7 @@ class DlgStats(QDialog):
 
         self.ui = Ui_DlgStats()
         self.ui.setupUi(self)
-        self.setWindowTitle(f'Статистика глобулы {globula.name}')
+        self.setWindowTitle(f'Статистика полимеров глобулы {globula.name}')
         self.ui.polymersListWidget.itemClicked.connect(self.__on_item_clicked_handler)
         self.POLYMER_ROLE = Qt.ItemDataRole.UserRole + 1
 
