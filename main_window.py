@@ -116,9 +116,6 @@ class MainWindow(QDialog):
                 self.ui.radiusSphereSpinBox.value())
 
 
-        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
-        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
-
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
         polymers_count = self.ui.polymersCountSpinBox.value()
