@@ -1,5 +1,5 @@
 import os
-from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem
+from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem, QFileDialog
 from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
@@ -48,11 +48,11 @@ class MainWindow(QDialog):
         self.ui.polymersListWidget.addAction(action)
 
     def __on_save_to_file_action_triggered(self):
-        curr_polymer_number = self.ui.polymersListWidget.currentRow()
-        if curr_polymer_number < 0 or curr_polymer_number >= self.view.get_globulas_count():
+        curr_globula_number = self.ui.polymersListWidget.currentRow()
+        if curr_globula_number < 0 or curr_globula_number >= self.view.get_globulas_count():
             return
 
-        globula = self.view.get_globula(curr_polymer_number)
+        globula = self.view.get_globula(curr_globula_number)
         path_to_save_dir = "./slices"
 
         if not os.path.isdir(path_to_save_dir):
@@ -60,13 +60,64 @@ class MainWindow(QDialog):
 
         file_name, file_contents = globula.turn_to_mol()
         full_file_name = f'{path_to_save_dir}/{file_name}'
-        if os.path.exists(full_file_name):
-            os.remove(full_file_name)
+        real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить в mol2", full_file_name, "*.mol2")
+        if os.path.exists(real_full_file_name):
+            os.remove(real_full_file_name)
 
-        with open(full_file_name, 'w') as file:
+        with open(real_full_file_name, 'w', encoding='utf-8') as file:
             file.write(file_contents)
 
-        QMessageBox.information(self, "Information", f"The selected globula was saved to {full_file_name}")
+        real_full_file_name_split = real_full_file_name.split('/')
+        real_file_name = real_full_file_name_split[-1]
+        real_full_file_name_split.remove(real_file_name)
+        file_name = real_file_name.split('.')[0]
+        json_file_name = '/'.join(real_full_file_name_split) + f'/{file_name}.json'
+        if os.path.exists(json_file_name):
+            os.remove(json_file_name)
+
+        with open(json_file_name, 'w', encoding='utf-8') as file:
+            file.write(self.__get_modelling_info_as_json(globula))
+
+        QMessageBox.information(self, "Information", f"The selected globula was saved to {real_full_file_name}")
+
+    def __get_modelling_info_as_json(self, globula: GlobulaView):
+        space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()
+        json_dict = {
+            'space_dimention': {
+                'value': space_dimention,
+                'name': "Название"
+            },
+            'polymers_count': {
+                'value': polymers_count,
+                'name': "Количество полимеров"
+            },
+            'threshold': {
+                'value': threshold,
+                'name': "Порог принятия"
+            },
+            'max_monomers_count': {
+                'value': monomers_count,
+                'name': "Максимальное количество мономеров"
+            },
+            'radius_sphere': {
+                'value': radius_sphere,
+                'name': "Радиус сферы"
+            },
+            'globula': {
+                'value': globula.to_json(),
+                'name': "Глобула"
+            }
+        }
+        json = core.QJsonDocument(json_dict)
+        return json.toJson().data().decode("utf-8")
+        
+    def __get_modelling_parameters(self):
+        return (Space.space_dimention,
+                self.ui.polymersCountSpinBox.value(),
+                self.ui.thresholdSpinBox.value(),
+                self.ui.monomersCountSpinBox.value(),
+                self.ui.radiusSphereSpinBox.value())
+
 
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
