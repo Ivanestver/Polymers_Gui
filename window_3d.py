@@ -23,7 +23,7 @@ class Window3D(Qt3DWindow):
 
     def __configure_camera(self):
         camera = self.camera()
-        camera.setPosition(Space.global_zero - QVector3D(0, 0, Space.space_dimention))
+        camera.setPosition(Space.global_zero)
         camera.setViewCenter(Space.global_zero - QVector3D(0, 0, Space.global_zero.z()))
 
         camController = QOrbitCameraController(self.rootEntity)
