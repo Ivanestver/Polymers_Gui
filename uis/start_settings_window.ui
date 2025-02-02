@@ -29,7 +29,10 @@
         <number>10</number>
        </property>
        <property name="maximum">
-        <number>100</number>
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>2</number>
        </property>
       </widget>
      </item>
