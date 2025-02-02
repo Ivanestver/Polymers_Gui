@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\uis\start_settings_window.ui'
+# Form implementation generated from reading ui file '.\start_settings_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -22,7 +22,7 @@ class Ui_StartSettingsWindow(object):
         self.horizontalLayout.addWidget(self.label)
         self.spaceDimentionSpinBox = QtWidgets.QSpinBox(parent=StartSettingsWindow)
         self.spaceDimentionSpinBox.setMinimum(2)
-        self.spaceDimentionSpinBox.setMaximum(100)
+        self.spaceDimentionSpinBox.setMaximum(1000)
         self.spaceDimentionSpinBox.setProperty("value", 2)
         self.spaceDimentionSpinBox.setObjectName("spaceDimentionSpinBox")
         self.horizontalLayout.addWidget(self.spaceDimentionSpinBox)
