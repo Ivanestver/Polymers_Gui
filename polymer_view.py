@@ -1,5 +1,7 @@
+import math
 import os
 from random import random
+from PyQt6.QtCore import QJsonValue, QJsonDocument
 from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
@@ -131,6 +133,27 @@ class PolymerView(Entity):
 
         return contents
 
+    def to_json(self):
+        start_point, end_point = self.get_start_end_monomers()
+        length = math.sqrt(sum([(e - s) ** 2 for s, e in zip(start_point, end_point)]))
+        json_dict = {
+            'name': {
+                'value': self.name,
+                'name': 'Название'
+            },
+            'monomers_count': {
+                'value': self.len(),
+                'name': "Количество мономеров"
+            },
+            'statistics': {
+                'end-to-end length': {
+                    'value': length,
+                    'name': "Межконцевое расстояние"
+                }
+            }
+        }
+        return QJsonValue(json_dict)
+
 class GlobulaView(Entity):
     _finished_polimers_labels = ['C', 'N', 'H', 'O', 'F', 'Na', 'Mg', 'Al', 'P', 'S']
     
@@ -163,3 +186,17 @@ class GlobulaView(Entity):
             addition += pol.len()
 
         return f'{self.name}.mol2', contents
+
+    def to_json(self):
+        json_dict = {
+            'polymers_count': {
+                'value': len(self.polymers),
+                'name': "Количество полимеров"
+            },
+            'polymers': {
+                'value': QJsonValue([polymer.to_json() for polymer in self.polymers]),
+                'name': "Полимеры"
+            }
+        }
+
+        return QJsonValue(json_dict)
