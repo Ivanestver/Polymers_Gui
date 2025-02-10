@@ -118,21 +118,6 @@ class PolymerView(Entity):
         else:
             return QQuaternion.fromAxisAndAngle(Space.forward_vector, 90.0)
 
-    def turn_to_mol(self, element_name: str, number: int):
-        contents = ""
-        for i, monomer in enumerate(self.polymer):
-            label = element_name
-            if i == 0:
-                label = 'Fe'
-            if i == self.polymer.len() - 1:
-                label = 'Cu'
-            x: float = monomer[Axis.X_AXIS.value]
-            y: float = monomer[Axis.Y_AXIS.value]
-            z: float = monomer[Axis.Z_AXIS.value]
-            contents += f"{self.len() * number + i + 1} {label} {x:.4f} {y:.4f} {z:.4f} {label}\n"
-
-        return contents
-
     def to_json(self):
         start_point, end_point = self.get_start_end_monomers()
         length = math.sqrt(sum([(e - s) ** 2 for s, e in zip(start_point, end_point)]))
@@ -165,28 +150,10 @@ class GlobulaView(Entity):
 
     def __iter__(self):
         return iter(self.polymers)
+
+    def len(self):
+        return len(self.polymers)
     
-    def turn_to_mol(self):
-
-        contents = ""
-        contents += "@<TRIPOS>MOLECULE\n*****\n"
-        contents += f" {sum([pl.len() for pl in self.polymers])} {sum([pl.len() for pl in self.polymers]) - len(self.polymers)} 0 0 0\n"
-        contents += "SMALL\n"
-        contents += "GASTEIGER\n\n\r\n"
-
-        contents += "@<TRIPOS>ATOM\n"
-        for pol_number, pol in enumerate(self.polymers):
-            contents += pol.turn_to_mol(self._finished_polimers_labels[pol_number], pol_number)
-
-        contents += "@<TRIPOS>BOND\n"
-        addition = 0
-        for pol_number, pol in enumerate(self.polymers):
-            for i in range(pol.len() - 1):
-                contents += f"{addition + i + 1} {addition + i + 1} {addition + i + 2} 1\n"
-            addition += pol.len()
-
-        return f'{self.name}.mol2', contents
-
     def to_json(self):
         json_dict = {
             'polymers_count': {

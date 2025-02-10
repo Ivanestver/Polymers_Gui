@@ -10,6 +10,7 @@ from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
+from save_to_formats import SaveToFile, SaveToMol
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -48,6 +49,8 @@ class MainWindow(QDialog):
         self.ui.polymersListWidget.addAction(action)
 
     def __on_save_to_file_action_triggered(self):
+        self.__save_to_file("*.mol2", SaveToMol())
+        """
         curr_globula_number = self.ui.polymersListWidget.currentRow()
         if curr_globula_number < 0 or curr_globula_number >= self.view.get_globulas_count():
             return
@@ -58,7 +61,7 @@ class MainWindow(QDialog):
         if not os.path.isdir(path_to_save_dir):
             os.mkdir(path_to_save_dir)
 
-        file_name, file_contents = globula.turn_to_mol()
+        file_name, file_contents = SaveToMol(globula).convert()
         full_file_name = f'{path_to_save_dir}/{file_name}'
         real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить в mol2", full_file_name, "*.mol2")
         if os.path.exists(real_full_file_name):
@@ -79,9 +82,43 @@ class MainWindow(QDialog):
             file.write(self.__get_modelling_info_as_json(globula))
 
         QMessageBox.information(self, "Information", f"The selected globula was saved to {real_full_file_name}")
+        """
     
     def __on_save_to_lammps_btn_clicked(self):
         pass
+
+    def __save_to_file(self, file_filters: str, saveToFileObj: SaveToFile):
+        curr_globula_number = self.ui.polymersListWidget.currentRow()
+        if curr_globula_number < 0 or curr_globula_number >= self.view.get_globulas_count():
+            return
+
+        globula = self.view.get_globula(curr_globula_number)
+        path_to_save_dir = "./slices"
+
+        if not os.path.isdir(path_to_save_dir):
+            os.mkdir(path_to_save_dir)
+
+        file_name, file_contents = saveToFileObj.convert(globula)
+        full_file_name = f'{path_to_save_dir}/{file_name}'
+        real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить", full_file_name, file_filters)
+        if os.path.exists(real_full_file_name):
+            os.remove(real_full_file_name)
+
+        with open(real_full_file_name, 'w', encoding='utf-8') as file:
+            file.write(file_contents)
+
+        real_full_file_name_split = real_full_file_name.split('/')
+        real_file_name = real_full_file_name_split[-1]
+        real_full_file_name_split.remove(real_file_name)
+        file_name = real_file_name.split('.')[0]
+        json_file_name = '/'.join(real_full_file_name_split) + f'/{file_name}.json'
+        if os.path.exists(json_file_name):
+            os.remove(json_file_name)
+
+        with open(json_file_name, 'w', encoding='utf-8') as file:
+            file.write(self.__get_modelling_info_as_json(globula))
+
+        QMessageBox.information(self, "Information", f"The selected globula was saved to {real_full_file_name}")
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()
