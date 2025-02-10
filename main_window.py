@@ -9,7 +9,7 @@ from space import Space
 from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
-from stats_window import DlgStats
+from stats_window import DlgStats, StatsInput
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -79,6 +79,9 @@ class MainWindow(QDialog):
             file.write(self.__get_modelling_info_as_json(globula))
 
         QMessageBox.information(self, "Information", f"The selected globula was saved to {real_full_file_name}")
+    
+    def __on_save_to_lammps_btn_clicked(self):
+        pass
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()
@@ -172,10 +175,14 @@ class MainWindow(QDialog):
             globula.setRotationY(globula.rotationY() - 10)
 
     def __on_globula_list_item_double_clicked(self, item: QListWidgetItem):
-        polymer = item.data(self.GLOBULA_ROLE)
-        if polymer is None:
+        globula = item.data(self.GLOBULA_ROLE)
+        if globula is None:
             QMessageBox.critical(self, "Ошибка", "Отсутствует информация по указанной глобуле")
             return
 
-        dlg = DlgStats(polymer)
+        inputData = StatsInput()
+        inputData.L = self.ui.radiusSphereSpinBox.value()
+        inputData.globula = globula
+
+        dlg = DlgStats(inputData)
         dlg.exec()

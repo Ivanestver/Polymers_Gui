@@ -63,6 +63,9 @@ class PolymerView(Entity):
     def len(self):
         return self.polymer.len()
 
+    def __iter__(self):
+        return iter(self.polymer)
+
     def get_start_end_monomers(self):
         if self.polymer.len() == 0:
             raise Exception("The PolymerView cannot contain an empty polymer")
@@ -116,9 +119,6 @@ class PolymerView(Entity):
             return QQuaternion.fromAxisAndAngle(Space.forward_vector, 90.0)
 
     def turn_to_mol(self, element_name: str, number: int):
-        min_width, max_width, min_height, max_height = self.polymer.get_min_max_width_height()
-        if min_width == max_width or min_height == max_height:
-            return
         contents = ""
         for i, monomer in enumerate(self.polymer):
             label = element_name
@@ -200,3 +200,13 @@ class GlobulaView(Entity):
         }
 
         return QJsonValue(json_dict)
+    
+    def get_mass_center(self):
+        center = (0, 0, 0)
+        N = 0
+        for polymer in self.polymers:
+            for monomer in polymer:
+                center = tuple(c + m for c, m in zip(center, monomer))
+            N += polymer.len()
+        
+        return tuple((i / N for i in center)) if N > 0 else (0, 0, 0)
