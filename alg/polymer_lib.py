@@ -30,6 +30,9 @@ class Polymer:
     
     def number(self):
         return self.__number
+
+    def field(self):
+        return self.__field
     
     def copy(self):
         new_polymer = Polymer(self.__field, self.number())

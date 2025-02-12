@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\uis\main_window.ui'
+# Form implementation generated from reading ui file '.\main_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -51,6 +51,12 @@ class Ui_MainWindow(object):
         self.monomersCountSpinBox.setMaximum(2048)
         self.monomersCountSpinBox.setObjectName("monomersCountSpinBox")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.monomersCountSpinBox)
+        self.sphereRadiusText = QtWidgets.QLabel(parent=MainWindow)
+        self.sphereRadiusText.setObjectName("sphereRadiusText")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.LabelRole, self.sphereRadiusText)
+        self.radiusSphereSpinBox = QtWidgets.QSpinBox(parent=MainWindow)
+        self.radiusSphereSpinBox.setObjectName("radiusSphereSpinBox")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.FieldRole, self.radiusSphereSpinBox)
         self.calculateBtn = QtWidgets.QPushButton(parent=MainWindow)
         self.calculateBtn.setObjectName("calculateBtn")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.FieldRole, self.calculateBtn)
@@ -73,15 +79,12 @@ class Ui_MainWindow(object):
         self.polymersListWidget.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.ActionsContextMenu)
         self.polymersListWidget.setObjectName("polymersListWidget")
         self.formLayout.setWidget(7, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.polymersListWidget)
-        self.sphereRadiusText = QtWidgets.QLabel(parent=MainWindow)
-        self.sphereRadiusText.setObjectName("sphereRadiusText")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.LabelRole, self.sphereRadiusText)
-        self.radiusSphereSpinBox = QtWidgets.QSpinBox(parent=MainWindow)
-        self.radiusSphereSpinBox.setObjectName("radiusSphereSpinBox")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.FieldRole, self.radiusSphereSpinBox)
+        self.buildMoreBtn = QtWidgets.QPushButton(parent=MainWindow)
+        self.buildMoreBtn.setEnabled(False)
+        self.buildMoreBtn.setObjectName("buildMoreBtn")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.buildMoreBtn)
         self.horizontalLayout.addLayout(self.formLayout)
         self.horizontalLayout.setStretch(0, 5)
-        self.horizontalLayout.setStretch(1, 1)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -93,9 +96,10 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Количество полимеров"))
         self.label_3.setText(_translate("MainWindow", "Значение порога"))
         self.label_4.setText(_translate("MainWindow", "Количество мономеров"))
+        self.sphereRadiusText.setText(_translate("MainWindow", "TextLabel"))
         self.calculateBtn.setText(_translate("MainWindow", "Рассчитать"))
         self.btnUp.setText(_translate("MainWindow", "^"))
         self.btnLeft.setText(_translate("MainWindow", "<"))
         self.btnDown.setText(_translate("MainWindow", "v"))
         self.btnRight.setText(_translate("MainWindow", ">"))
-        self.sphereRadiusText.setText(_translate("MainWindow", "TextLabel"))
+        self.buildMoreBtn.setText(_translate("MainWindow", "Достроить"))
