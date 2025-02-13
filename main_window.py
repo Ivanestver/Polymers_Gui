@@ -75,6 +75,9 @@ class MainWindow(QDialog):
         file_name, file_contents = saveToFileObj.convert(globula)
         full_file_name = f'{path_to_save_dir}/{file_name}'
         real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить", full_file_name, file_filters)
+        if len(real_full_file_name):
+            return
+        
         if os.path.exists(real_full_file_name):
             os.remove(real_full_file_name)
 

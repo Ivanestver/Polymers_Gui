@@ -3,8 +3,8 @@ from PyQt6.QtWidgets import QDialog, QListWidgetItem, QMessageBox, QLabel
 from PyQt6.QtCore import Qt
 from polymer_view import GlobulaView, PolymerView
 from math import sqrt, ceil
-from chart_window import ChartWindow
 from common_funcs import distance
+from graphics_window import DlgGraphicsWindow, EndToEndDistanceSettings
 
 class StatsInput:
     def __init__(self):
@@ -25,6 +25,7 @@ class DlgStats(QDialog):
 
         self.__show_polymers_in_globula()
         self.__show_globula_stats()
+        self.ui.graphicsBtn.clicked.connect(self.__show_chart)
 
     def __show_polymers_in_globula(self):
         for polymer in self.globula:
@@ -52,9 +53,8 @@ class DlgStats(QDialog):
         self.ui.stats_layout.addRow("Расстояние между началом и концом", QLabel(str(round(self.__get_start_end_monomer_distance(polymer), 2))))
 
     def __show_chart(self):
-        distribution = self.__get_distance_distribution()
-        chartWindow = ChartWindow([(n, v) for n, v in distribution.items()])
-        self.ui.chartLayout.addWidget(chartWindow)
+        graphics_ui = DlgGraphicsWindow(EndToEndDistanceSettings(self.globula, self.L), self)
+        graphics_ui.exec()
 
     def __get_distance_distribution(self):
         distribution = {i: 0 for i in range(self.L)}
@@ -70,7 +70,6 @@ class DlgStats(QDialog):
         return distance(start_monomer, end_monomer)
 
     def __show_globula_stats(self):
-        self.__show_chart()
         # Считаем центр масс
         mass_center = self.globula.get_mass_center()
         self.ui.massCenterLabel.setText(f'({round(mass_center[0], 2)}, {round(mass_center[1], 2)}, {round(mass_center[2], 2)})')
