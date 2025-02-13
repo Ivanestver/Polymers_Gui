@@ -92,6 +92,9 @@ class CalcAlg:
 
         polymers = list[Polymer]()
         field = globula[0].field()
+        if field.is_busy():
+            return None
+
         for i in range(self._polymers_count):
             polymers.append(Polymer(field))
         

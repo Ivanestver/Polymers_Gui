@@ -36,6 +36,9 @@ class Field:
     def get_cell_within_borders(self, point):
         return tuple((v % Space.space_dimention for v in point))
 
+    def is_busy(self):
+        return np.all(self._field == 1)
+
     def __get_length_metrics(self, start_point):
         end_point = Space.global_zero
         return math.sqrt(sum([(e - s) ** 2 for e, s in zip(end_point, start_point)]))
