@@ -73,11 +73,6 @@ class Window3D(Qt3DWindow):
         for i in range(len(nodes) - 1, 4, -1):
             if nodes[i] is QEntity:
                 nodes.remove(nodes[i])
-    
-    def add_polymer(self, polymer: Polymer, on_picker_clicked):
-        new_polymer = PolymerView(polymer, self.rootEntity)
-        new_polymer.objectPicker.clicked.connect(on_picker_clicked)
-        self.polymers.append(new_polymer)
 
     def add_globula(self, polymers: list[Polymer], on_picker_clicked):
         new_globula = GlobulaView(f'Globula {len(self.globulas)}', polymers, self.rootEntity)
@@ -90,13 +85,6 @@ class Window3D(Qt3DWindow):
         
         globula.entity.setParent(None)
         self.globulas.remove(globula)
-        """
-        children: list = self.rootEntity.childNodes()
-        for i in range(len(children)):
-            if children[i].id() == globula.entity.id():
-                self.rootEntity.childNodes().remove(children[i])
-                return
-        """
     
     def get_globula(self, i) -> GlobulaView:
         return self.globulas[i]
