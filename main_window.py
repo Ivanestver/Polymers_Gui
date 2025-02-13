@@ -165,7 +165,7 @@ class MainWindow(QDialog):
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.build_more(polymers)
-        if len(finished_polymers) == 0:
+        if finished_polymers == None or len(finished_polymers) == 0:
             QMessageBox.warning(self, "Внимание", "Не удалось построить глобулу. Проверьте настройки и повторите попытку")
             return
 
