@@ -102,8 +102,4 @@ class Ui_MainWindow(object):
         self.btnLeft.setText(_translate("MainWindow", "<"))
         self.btnDown.setText(_translate("MainWindow", "v"))
         self.btnRight.setText(_translate("MainWindow", ">"))
-<<<<<<< HEAD
-        self.sphereRadiusText.setText(_translate("MainWindow", "TextLabel"))
-=======
         self.buildMoreBtn.setText(_translate("MainWindow", "Достроить"))
->>>>>>> experiments
