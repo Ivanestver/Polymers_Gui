@@ -12,3 +12,6 @@ class Space:
 
     global_zero = QVector3D(0, 0, 0)
     space_dimention = 0
+    
+    def point_within_borders(point: tuple):
+        return all([0 <= c <= Space.space_dimention for c in point])

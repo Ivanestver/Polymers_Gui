@@ -36,6 +36,9 @@ class Field:
     def get_cell_within_borders(self, point):
         return tuple((v % Space.space_dimention for v in point))
 
+    def is_busy(self):
+        return np.all(self._field == 1)
+
     def __get_length_metrics(self, start_point):
         end_point = Space.global_zero
         return math.sqrt(sum([(e - s) ** 2 for e, s in zip(end_point, start_point)]))
@@ -44,10 +47,7 @@ class Field:
         return self.__get_length_metrics(point) <= self._sphere_radius
     
     def is_within_borders(self, point: tuple):
-        return (0 <= point[0] <= Space.space_dimention) \
-        and (0 <= point[1] <= Space.space_dimention) \
-        and (0 <= point[2] <= Space.space_dimention) \
-        and self.is_within_sphere(point)
+        return Space.point_within_borders(point) and self.is_within_sphere(point)
 
     def get_available_cells(self, curr_pos):
         available_cells = []

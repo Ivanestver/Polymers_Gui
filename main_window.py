@@ -30,6 +30,7 @@ class MainWindow(QDialog):
 
         self.ui.mainLayout.addWidget(container)
         self.ui.calculateBtn.clicked.connect(self.on_calc_btn_clicked)
+        self.ui.buildMoreBtn.clicked.connect(self.on_build_more_btn_clicked)
 
         self.ui.btnUp.clicked.connect(self.on_btn_up_clicked)
         self.ui.btnLeft.clicked.connect(self.on_btn_left_clicked)
@@ -37,7 +38,11 @@ class MainWindow(QDialog):
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
         self.setup_context_menu()
 
+        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
+        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
+
         self.ui.polymersListWidget.itemDoubleClicked.connect(self.__on_globula_list_item_double_clicked)
+        self.ui.polymersListWidget.itemClicked.connect(self.__on_polymer_item_list_clicked)
         self.GLOBULA_ROLE = core.Qt.ItemDataRole.UserRole + 1
 
     def setup_context_menu(self):
@@ -136,13 +141,39 @@ class MainWindow(QDialog):
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         finished_polymers = calcAlg.calc()
+        if len(finished_polymers) == 0:
+            QMessageBox.warning(self, "Внимание", "Не удалось построить многочлены. Проверьте настройки и повторите попытку")
+            return
         new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
         globula_item = QListWidgetItem(new_globula.name)
         globula_item.setData(self.GLOBULA_ROLE, new_globula)
         self.ui.polymersListWidget.addItem(globula_item)
-        # for polymer in finished_polymers:
-        #     self.view.add_polymer(polymer, self.on_picker_clicked)
-        #     self.ui.polymersListWidget.addItem(QListWidgetItem(polymer.name()))
+    
+    def on_build_more_btn_clicked(self):
+        globula = self.__get_current_globula()
+        if globula == None:
+            QMessageBox.warning(self, "Внимание", "Выберите глобулу")
+            return
+
+        polymers = list()
+        for pol in globula:
+            polymers.append(pol.polymer)
+        globuls_count = self.ui.filesCountSpinBox.value()
+        polymers_count = self.ui.polymersCountSpinBox.value()
+        accept_threshold = self.ui.thresholdSpinBox.value()
+        monomers_count = self.ui.monomersCountSpinBox.value()
+        sphere_radius = self.ui.radiusSphereSpinBox.value()
+        calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
+        finished_polymers = calcAlg.build_more(polymers)
+        if finished_polymers == None or len(finished_polymers) == 0:
+            QMessageBox.warning(self, "Внимание", "Не удалось построить глобулу. Проверьте настройки и повторите попытку")
+            return
+
+        self.view.remove_globula(globula)
+        new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
+        globula_item = self.ui.polymersListWidget.currentItem()
+        globula_item.setText(new_globula.name)
+        globula_item.setData(self.GLOBULA_ROLE, new_globula)
 
     def on_picker_clicked(self, e: QPickEvent):
         material = QPhongMaterial()
@@ -189,3 +220,6 @@ class MainWindow(QDialog):
 
         dlg = DlgStats(inputData)
         dlg.exec()
+
+    def __on_polymer_item_list_clicked(self, listItem: QListWidgetItem):
+        self.ui.buildMoreBtn.setEnabled(True)
