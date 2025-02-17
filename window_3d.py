@@ -74,8 +74,8 @@ class Window3D(Qt3DWindow):
             if nodes[i] is QEntity:
                 nodes.remove(nodes[i])
 
-    def add_globula(self, polymers: list[Polymer], on_picker_clicked):
-        new_globula = GlobulaView(f'Globula {len(self.globulas)}', polymers, self.rootEntity)
+    def add_globula(self, polymers: list[Polymer], to_show: bool = True):
+        new_globula = GlobulaView(f'Globula {len(self.globulas)}', polymers, self.rootEntity if to_show else None)
         self.globulas.append(new_globula)
         return new_globula
 

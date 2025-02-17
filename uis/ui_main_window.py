@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\uis\main_window.ui'
+# Form implementation generated from reading ui file '.\main_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -59,7 +59,7 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.FieldRole, self.radiusSphereSpinBox)
         self.calculateBtn = QtWidgets.QPushButton(parent=MainWindow)
         self.calculateBtn.setObjectName("calculateBtn")
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.FieldRole, self.calculateBtn)
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.ItemRole.FieldRole, self.calculateBtn)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.btnUp = QtWidgets.QPushButton(parent=MainWindow)
@@ -74,15 +74,20 @@ class Ui_MainWindow(object):
         self.btnRight = QtWidgets.QPushButton(parent=MainWindow)
         self.btnRight.setObjectName("btnRight")
         self.gridLayout.addWidget(self.btnRight, 1, 2, 1, 1)
-        self.formLayout.setLayout(6, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.gridLayout)
+        self.formLayout.setLayout(7, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.gridLayout)
         self.polymersListWidget = QtWidgets.QListWidget(parent=MainWindow)
         self.polymersListWidget.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.ActionsContextMenu)
         self.polymersListWidget.setObjectName("polymersListWidget")
-        self.formLayout.setWidget(7, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.polymersListWidget)
+        self.formLayout.setWidget(8, QtWidgets.QFormLayout.ItemRole.SpanningRole, self.polymersListWidget)
         self.buildMoreBtn = QtWidgets.QPushButton(parent=MainWindow)
         self.buildMoreBtn.setEnabled(False)
         self.buildMoreBtn.setObjectName("buildMoreBtn")
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.buildMoreBtn)
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.ItemRole.LabelRole, self.buildMoreBtn)
+        self.toShowResultCheckBox = QtWidgets.QCheckBox(parent=MainWindow)
+        self.toShowResultCheckBox.setChecked(True)
+        self.toShowResultCheckBox.setTristate(False)
+        self.toShowResultCheckBox.setObjectName("toShowResultCheckBox")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.toShowResultCheckBox)
         self.horizontalLayout.addLayout(self.formLayout)
         self.horizontalLayout.setStretch(0, 5)
 
@@ -103,3 +108,4 @@ class Ui_MainWindow(object):
         self.btnDown.setText(_translate("MainWindow", "v"))
         self.btnRight.setText(_translate("MainWindow", ">"))
         self.buildMoreBtn.setText(_translate("MainWindow", "Достроить"))
+        self.toShowResultCheckBox.setText(_translate("MainWindow", "Отобразить результат"))

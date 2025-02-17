@@ -61,7 +61,11 @@ class DlgStats(QDialog):
         mass_center = self.globula.get_mass_center()
         for polymer in self.globula:
             for monomer in polymer:
-                distribution[int(ceil(distance(monomer, mass_center)))] += 1
+                key = int(ceil(distance(monomer, mass_center)))
+                if key in distribution.keys():
+                    distribution[key] += 1
+                else:
+                    distribution[key] = 1
         
         return distribution
     

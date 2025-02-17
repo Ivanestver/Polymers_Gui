@@ -1,4 +1,5 @@
 import os
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem, QFileDialog
 from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
@@ -75,7 +76,7 @@ class MainWindow(QDialog):
         file_name, file_contents = saveToFileObj.convert(globula)
         full_file_name = f'{path_to_save_dir}/{file_name}'
         real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить", full_file_name, file_filters)
-        if len(real_full_file_name):
+        if len(real_full_file_name) == 0:
             return
         
         if os.path.exists(real_full_file_name):
@@ -147,7 +148,8 @@ class MainWindow(QDialog):
         if len(finished_polymers) == 0:
             QMessageBox.warning(self, "Внимание", "Не удалось построить многочлены. Проверьте настройки и повторите попытку")
             return
-        new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
+
+        new_globula = self.view.add_globula(finished_polymers, self.ui.toShowResultCheckBox.isChecked())
         globula_item = QListWidgetItem(new_globula.name)
         globula_item.setData(self.GLOBULA_ROLE, new_globula)
         self.ui.polymersListWidget.addItem(globula_item)
@@ -173,7 +175,7 @@ class MainWindow(QDialog):
             return
 
         self.view.remove_globula(globula)
-        new_globula = self.view.add_globula(finished_polymers, self.on_picker_clicked)
+        new_globula = self.view.add_globula(finished_polymers, self.ui.toShowResultCheckBox.isChecked())
         globula_item = self.ui.polymersListWidget.currentItem()
         globula_item.setText(new_globula.name)
         globula_item.setData(self.GLOBULA_ROLE, new_globula)
