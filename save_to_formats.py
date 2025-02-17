@@ -6,7 +6,7 @@ class SaveToFile:
     def __init__(self, file_label, file_extension):
         self.file_label = file_label
         self.file_extension = file_extension
-        self._finished_polimers_labels = ['C', 'N', 'H', 'O', 'F', 'Na', 'Mg', 'Al', 'P', 'S']
+        self._finished_polimers_labels = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe']
         self.contents = ""
     
     def convert(self, globula: GlobulaView):
@@ -70,14 +70,16 @@ class SaveToLammps(SaveToFile):
             atoms_count += pol.len()
         return atoms_count
 
+    def __get_bonds_count(self, globula: GlobulaView):
+        return sum([pol.len() - 1 for pol in globula])
+
     def _build_contents(self, globula: GlobulaView):
         self.add_string("LAMMPS data file via write_data, version 24 Dec 2020, timestep = 40000000")
         self.add_new_line()
 
-        atoms_count = self.__get_atoms_count(globula)
-        self.add_string(f'{atoms_count} atoms')
+        self.add_string(f'{self.__get_atoms_count(globula)} atoms')
         self.add_string(f'{globula.len()} atom types')
-        self.add_string(f'{atoms_count - 1} bonds')
+        self.add_string(f'{self.__get_bonds_count(globula)} bonds')
         self.add_string(f'1 bond types')
         self.add_new_line()
 
@@ -96,8 +98,7 @@ class SaveToLammps(SaveToFile):
         self.add_string('Bond Coeffs # harmonic')
         self.add_new_line()
 
-        for i in range(globula.len()):
-            self.add_string(f'{i + 1} 10000 # {i + 1}')
+        self.add_string(f'1 10000 # 1')
         self.add_new_line()
 
         self.add_string('Atoms # molecular')
@@ -106,7 +107,7 @@ class SaveToLammps(SaveToFile):
         monomer_number = 1
         for pol_number, pol in enumerate(globula):
             for monomer in pol:
-                self.add_string(f'{monomer_number} {pol_number} 1 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 1 0 0')
+                self.add_string(f'{monomer_number} 1 {pol_number + 1} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
                 monomer_number += 1
         self.add_new_line()
 
