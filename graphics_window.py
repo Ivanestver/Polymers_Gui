@@ -47,7 +47,7 @@ class DlgGraphicsWindow(QDialog):
                 add_to_dist(ceil(dist))
             
         distribution = sorted(distribution.items(), key=lambda item: item[0])
-        chartWindow = LineChartWindow(distribution, "Распределение межконцевых расстояний")
+        chartWindow = BarChartWindow(distribution, "Распределение межконцевых расстояний")
         self.ui.graphicsLayout.addWidget(chartWindow, 0, 0)
 
     def __add_polymer_length_distribution(self):
