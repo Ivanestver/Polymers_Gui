@@ -54,6 +54,7 @@ class MainWindow(QDialog):
         
         add_action("Save to mol", self.__on_save_to_file_action_triggered)
         add_action("Save to lammps", self.__on_save_to_lammps_btn_clicked)
+        add_action("Remove", self.__on_remove_globula_triggered)
 
     def __on_save_to_file_action_triggered(self):
         self.__save_to_file("*.mol2", SaveToMol())
@@ -97,6 +98,12 @@ class MainWindow(QDialog):
             file.write(self.__get_modelling_info_as_json(globula))
 
         QMessageBox.information(self, "Information", f"The selected globula was saved to {real_full_file_name}")
+
+    def __on_remove_globula_triggered(self):
+        current_globula = self.__get_current_globula()
+        self.view.remove_globula(current_globula)
+        self.ui.polymersListWidget.takeItem(self.ui.polymersListWidget.currentRow())
+        pass
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()
