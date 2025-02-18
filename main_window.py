@@ -151,7 +151,10 @@ class MainWindow(QDialog):
         monomers_count = self.ui.monomersCountSpinBox.value()
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
-        finished_polymers = calcAlg.calc()
+        if self.ui.buildCristallCheckBox.isChecked():
+            finished_polymers = calcAlg.calc_as_cristall()
+        else:
+            finished_polymers = calcAlg.calc_simultaneously()
         if len(finished_polymers) == 0:
             QMessageBox.warning(self, "Внимание", "Не удалось построить многочлены. Проверьте настройки и повторите попытку")
             return
@@ -176,7 +179,10 @@ class MainWindow(QDialog):
         monomers_count = self.ui.monomersCountSpinBox.value()
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
-        finished_polymers = calcAlg.build_more(polymers)
+        if self.ui.buildCristallCheckBox.isChecked():
+            assert False, "Building more as cristall is not implemented yet"
+        else:
+            finished_polymers = calcAlg.build_more_simultaneously(polymers)
         if finished_polymers == None or len(finished_polymers) == 0:
             QMessageBox.warning(self, "Внимание", "Не удалось построить глобулу. Проверьте настройки и повторите попытку")
             return

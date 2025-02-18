@@ -88,6 +88,9 @@ class Ui_MainWindow(object):
         self.toShowResultCheckBox.setTristate(False)
         self.toShowResultCheckBox.setObjectName("toShowResultCheckBox")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.toShowResultCheckBox)
+        self.buildCristallCheckBox = QtWidgets.QCheckBox(parent=MainWindow)
+        self.buildCristallCheckBox.setObjectName("buildCristallCheckBox")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.FieldRole, self.buildCristallCheckBox)
         self.horizontalLayout.addLayout(self.formLayout)
         self.horizontalLayout.setStretch(0, 5)
 
@@ -109,3 +112,4 @@ class Ui_MainWindow(object):
         self.btnRight.setText(_translate("MainWindow", ">"))
         self.buildMoreBtn.setText(_translate("MainWindow", "Достроить"))
         self.toShowResultCheckBox.setText(_translate("MainWindow", "Отобразить результат"))
+        self.buildCristallCheckBox.setText(_translate("MainWindow", "Строить кристалл"))

@@ -28,7 +28,18 @@ class CalcAlg:
         config_copy.add_monomer(tuple(continuation))
         return config_copy
 
-    def __run_alg(self, polymers: list[Polymer], field: Field):
+    def __get_next_current_position(self, potential_configs: list[Polymer], U_current: float):
+        while True:
+            choice = np.random.randint(0, len(potential_configs))
+            next_config = potential_configs[choice]
+            deltaU = U_current - next_config.calc_energy()
+            if deltaU > 0:
+                return next_config.back()
+            r = np.random.uniform(0.0, 1.0, 1)
+            if r < self._accept_threshold:
+                return next_config.back()
+
+    def __run_alg_simultaneously(self, polymers: list[Polymer], field: Field):
         finished_polimers = []
         for p in polymers:
             new_pos = field.define_start_position()
@@ -53,18 +64,7 @@ class CalcAlg:
                     
                 continuations = self.__get_continuations(len(available_cells), available_cells)
                 potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
-                U_current = polymer.calc_energy()
-                while True:
-                    choice = np.random.randint(0, len(potential_configs))
-                    next_config = potential_configs[choice]
-                    deltaU = U_current - next_config.calc_energy()
-                    if deltaU > 0:
-                        current_position = next_config.back()
-                        break
-                    r = np.random.uniform(0.0, 1.0, 1)
-                    if r < self._accept_threshold:
-                        current_position = next_config.back()
-                        break
+                current_position = self.__get_next_current_position(potential_configs, polymer.calc_energy())
                     
                 polymer.add_monomer(current_position)
                 field.make_filled(current_position)
@@ -80,13 +80,13 @@ class CalcAlg:
 
         return finished_polimers
 
-    def calc(self) -> list[Polymer]:
+    def calc_simultaneously(self) -> list[Polymer]:
         field = Field(self._sphere_radius)
         polymers = [Polymer(field) for i in range(self._polymers_count)]
-        finished_polimers = self.__run_alg(polymers, field)
+        finished_polimers = self.__run_alg_simultaneously(polymers, field)
         return finished_polimers
     
-    def build_more(self, globula: list[Polymer]):
+    def build_more_simultaneously(self, globula: list[Polymer]):
         if len(globula) == 0:
             return None
 
@@ -98,5 +98,51 @@ class CalcAlg:
         for i in range(self._polymers_count):
             polymers.append(Polymer(field))
         
-        built_polimers = self.__run_alg(polymers, field)
+        built_polimers = self.__run_alg_simultaneously(polymers, field)
         return globula + built_polimers
+
+    def calc_as_cristall(self):
+        is_stepping_back = False
+        finished_polimers = []
+        field = Field(self._sphere_radius)
+        while len(finished_polimers) != self._polymers_count:
+            print(f'\tfinished_polymers count = {len(finished_polimers)}')
+            current_position = field.define_start_position()
+            field.make_filled(current_position)
+            polymer = Polymer(field)
+            polymer.add_monomer(current_position)
+            polymer_cache = []
+            while polymer.len() != self._max_monomers_count:
+                available_cells = field.get_available_cells(current_position)
+                if len(available_cells) == 0:
+                    if not is_stepping_back:
+                        is_stepping_back = True
+                    if polymer.make_step_back():
+                        current_position = polymer.back()
+                        continue
+                    else:
+                        break
+                    
+                if is_stepping_back:
+                    is_stepping_back = False
+
+                continuations = self.__get_continuations(len(available_cells), available_cells)
+                potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
+                current_position = self.__get_next_current_position(potential_configs, polymer.calc_energy())
+
+                polymer.add_monomer(current_position)
+                polymer_cache.append(current_position)
+                field.make_filled(current_position)
+                persentage = polymer.len() / self._max_monomers_count * 100
+                int_persentage = int(persentage)
+                if (persentage - int_persentage < 0.1):
+                    print(f'\t\tDone: {int_persentage}%/100%')
+            print(f'Monomers count: {polymer.len()}')
+            if polymer.len() == self._max_monomers_count:
+                finished_polimers.append(polymer)
+            else:
+                print(f'It is less than required. Roll back and repeat...')
+                for cell in polymer_cache:
+                    field.make_free(cell)
+        
+        return finished_polimers
