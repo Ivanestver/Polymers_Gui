@@ -64,15 +64,14 @@ class DlgGraphicsWindow(QDialog):
         self.ui.graphicsLayout.addWidget(chartWindow, 0, 1)
 
     def __add_dist_to_mass_center_distribution(self):
-        gr = self.__create_distance_distribution_function()
-        distribution = {}
+        distribution = {i: 0 for i in range(1, self.endToEndDistanceSettings.L)}
         mass_center = self.endToEndDistanceSettings.globula.get_mass_center()
         for polymer in self.endToEndDistanceSettings.globula:
             for monomer in polymer:
-                rj = distance(monomer, mass_center)
-                distribution[rj] = gr(rj)
+                rj = int(ceil(distance(monomer, mass_center)))
+                distribution[rj] += 1
 
-        chartWindow = LineChartWindow(sorted(distribution.items(), key=lambda item: item[0]), "Распределение расстояний от точки до центра масс")
+        chartWindow = BarChartWindow(sorted(distribution.items(), key=lambda item: item[0]), "Распределение расстояний от точки до центра масс")
         self.ui.graphicsLayout.addWidget(chartWindow, 1, 0)
 
     def __create_distance_distribution_function(self):
@@ -94,7 +93,8 @@ class DlgGraphicsWindow(QDialog):
                     
         def distance_distribution_function(rj):
             dist = int(ceil(rj))
-            return (1 / ro) * (distribution[dist] / (2 * pi * (rj ** 2)))
+            # return (1 / ro) * (distribution[dist] / (2 * pi * (rj ** 2)))
+            return distribution[dist]
         
         return distance_distribution_function
     
