@@ -24,6 +24,7 @@ class DlgGraphicsWindow(QDialog):
         self.__add_end_to_end_distance_distribution()
         self.__add_polymer_length_distribution()
         self.__add_dist_to_mass_center_distribution()
+        self.__add_dist_g_r()
 
     def __add_end_to_end_distance_distribution(self):
         distribution = {}
@@ -73,6 +74,20 @@ class DlgGraphicsWindow(QDialog):
 
         chartWindow = BarChartWindow(sorted(distribution.items(), key=lambda item: item[0]), "Распределение расстояний от точки до центра масс")
         self.ui.graphicsLayout.addWidget(chartWindow, 1, 0)
+    
+    def __add_dist_g_r(self):
+        distribution = {i: 0 for i in range(1, self.endToEndDistanceSettings.L)}
+        mass_center = self.endToEndDistanceSettings.globula.get_mass_center()
+        for polymer in self.endToEndDistanceSettings.globula:
+            for monomer in polymer:
+                rj = int(ceil(distance(monomer, mass_center)))
+                distribution[rj] += 1
+
+        for k in distribution.keys():
+            distribution[k] /= 2 * pi * k * k
+
+        chartWindow = BarChartWindow(sorted(distribution.items(), key=lambda item: item[0]), "g(r)")
+        self.ui.graphicsLayout.addWidget(chartWindow, 1, 1)
 
     def __create_distance_distribution_function(self):
         # Считаем плотность
