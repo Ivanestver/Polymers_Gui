@@ -39,7 +39,7 @@ class CalcAlg:
             if r < self._accept_threshold:
                 return next_config.back()
 
-    def __get_next_current_position_cristall(self, potential_configs: list[Polymer], U_current: float):
+    def __get_next_current_position_tuned(self, potential_configs: list[Polymer], U_current: float):
         deltas_of_potential_configs = np.array([U_current - pol.calc_energy() for pol in potential_configs])
         if np.any(deltas_of_potential_configs > 0):
             max_values_indices = np.argwhere(deltas_of_potential_configs == np.amax(deltas_of_potential_configs)).flatten()
@@ -77,7 +77,7 @@ class CalcAlg:
                     
                 continuations = self.__get_continuations(len(available_cells), available_cells)
                 potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
-                current_position = self.__get_next_current_position(potential_configs, polymer.calc_energy())
+                current_position = self.__get_next_current_position_tuned(potential_configs, polymer.calc_energy())
                     
                 polymer.add_monomer(current_position)
                 field.make_filled(current_position)
@@ -114,11 +114,15 @@ class CalcAlg:
         built_polimers = self.__run_alg_simultaneously(polymers, field)
         return globula + built_polimers
 
+        
     def calc_as_cristall(self):
-        is_stepping_back = False
-        finished_polimers = []
         field = Field(self._sphere_radius)
+        return self.__run_as_cristall(field)
+
+    def __run_as_cristall(self, field: Field):
+        finished_polimers = []
         while len(finished_polimers) != self._polymers_count:
+            is_stepping_back = False
             print(f'\tfinished_polymers count = {len(finished_polimers)}')
             current_position = field.define_start_position()
             field.make_filled(current_position)
@@ -141,7 +145,7 @@ class CalcAlg:
 
                 continuations = self.__get_continuations(len(available_cells), available_cells)
                 potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
-                current_position = self.__get_next_current_position_cristall(potential_configs, polymer.calc_energy())
+                current_position = self.__get_next_current_position_tuned(potential_configs, polymer.calc_energy())
 
                 polymer.add_monomer(current_position)
                 polymer_cache.append(current_position)
@@ -159,3 +163,14 @@ class CalcAlg:
                     field.make_free(cell)
         
         return finished_polimers
+    
+    def build_more_as_cristall(self, globula: list[Polymer]):
+        if len(globula) == 0:
+            return None
+
+        field = globula[0].field()
+        if field.is_busy():
+            return None
+
+        built_polimers = self.__run_as_cristall(field)
+        return globula + built_polimers

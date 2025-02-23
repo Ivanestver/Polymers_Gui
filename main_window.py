@@ -180,7 +180,7 @@ class MainWindow(QDialog):
         sphere_radius = self.ui.radiusSphereSpinBox.value()
         calcAlg = CalcAlg(globuls_count, polymers_count, accept_threshold, monomers_count, sphere_radius)
         if self.ui.buildCristallCheckBox.isChecked():
-            assert False, "Building more as cristall is not implemented yet"
+            finished_polymers = calcAlg.build_more_as_cristall(polymers)
         else:
             finished_polymers = calcAlg.build_more_simultaneously(polymers)
         if finished_polymers == None or len(finished_polymers) == 0:
