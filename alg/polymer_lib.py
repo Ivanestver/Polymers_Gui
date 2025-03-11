@@ -11,6 +11,8 @@ class Monomer:
     def __init__(self, coords: list[int], type: MonomerType):
         self._coords = coords
         self._type = type
+        self._prev_monomer = None
+        self._next_monomer = None
 
     @property
     def coords(self):
@@ -24,6 +26,22 @@ class Monomer:
     def type(self, type):
         self._type = type
 
+    @property
+    def prev_monomer(self):
+        return self._prev_monomer
+    
+    @prev_monomer.setter
+    def prev_monomer(self, prev):
+        self._prev_monomer = prev
+
+    @property
+    def next_monomer(self):
+        return self._next_monomer
+    
+    @next_monomer.setter
+    def next_monomer(self, next):
+        self._next_monomer = next
+    
     def __iter__(self):
         return iter(self._coords)
 
@@ -37,7 +55,7 @@ class Polymer:
     __number__ = 0
     def __init__(self, field: Field, number = None):
         self.__field = field
-        self.__polymer = []
+        self.__polymer: list[Monomer] = []
         if number is None:
             self.__number = Polymer.__number__
             Polymer.__number__ += 1
@@ -49,6 +67,10 @@ class Polymer:
     
     def add_monomer(self, monomer):
         m = Monomer(monomer, MonomerType.Usual)
+        if len(self.__polymer) != 0:
+            self.__polymer[-1].next_monomer = m
+            m.prev_monomer = self.__polymer[-1]
+
         self.__polymer.append(m)
         
     def len(self):
