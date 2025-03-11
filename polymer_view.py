@@ -8,7 +8,7 @@ from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DRender import QObjectPicker
 from alg.config import Axis
 from space import Space
-from alg.polymer_lib import Polymer
+from alg.polymer_lib import Polymer, Monomer, MonomerType
 
 class Entity:
     def __init__(self, name: str, rootEntity: QEntity) -> None:
@@ -17,12 +17,16 @@ class Entity:
         if rootEntity is not None:
             self.transform = QTransform()
 
-            self.material = QPhongMaterial()
-            self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
+            self.usual_material = QPhongMaterial()
+            #self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
+            self.usual_material.setAmbient(QColor.fromRgb(0, 0, 0))
+
+            self.Owise_material = QPhongMaterial()
+            self.Owise_material.setAmbient(QColor.fromRgb(255, 0, 0))
 
             self.entity = QEntity(rootEntity)
             self.entity.addComponent(self.transform)
-            self.entity.addComponent(self.material)
+            self.entity.addComponent(self.usual_material)
 
     @property
     def name(self):
@@ -75,7 +79,7 @@ class PolymerView(Entity):
         
         return (self.polymer.get_monomer_by_idx(0), self.polymer.get_monomer_by_idx(self.polymer.len() - 1))
 
-    def __add_monomer__(self, monomer):
+    def __add_monomer__(self, monomer: Monomer):
         sphereMesh = QSphereMesh()
         sphereMesh.setRadius(0.3)
 
@@ -91,7 +95,7 @@ class PolymerView(Entity):
         sphereEntity = QEntity(self.entity)
         sphereEntity.addComponent(sphereMesh)
         sphereEntity.addComponent(sphereTransform)
-        sphereEntity.addComponent(self.material)
+        sphereEntity.addComponent(self.__get_material_by_monomer_type(monomer.type))
     
     def __add_connection__(self, monomer1, monomer2):
         cylinderMesh = QCylinderMesh()
@@ -111,7 +115,15 @@ class PolymerView(Entity):
         cylinderEntity = QEntity(self.entity)
         cylinderEntity.addComponent(cylinderMesh)
         cylinderEntity.addComponent(cylinderTransform)
-        cylinderEntity.addComponent(self.material)
+        cylinderEntity.addComponent(self.usual_material)
+
+    def __get_material_by_monomer_type(self, type: MonomerType):
+        if type == MonomerType.Usual:
+            return self.usual_material
+        elif type == MonomerType.Owise:
+            return self.Owise_material
+        else:
+            raise Exception(f"Wrong monomer type: {type.value}")
 
     def __rotate_connection__(self, monomer1, monomer2):
         if monomer1[0] == monomer2[0] and monomer1[2] == monomer2[2]:
