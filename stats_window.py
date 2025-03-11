@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QDialog, QListWidgetItem, QMessageBox, QLabel
 from PyQt6.QtCore import Qt
 from polymer_view import GlobulaView, PolymerView
 from math import sqrt, ceil
-from common_funcs import distance
+from alg.common_funcs import distance
 from graphics_window import DlgGraphicsWindow, EndToEndDistanceSettings
 
 class StatsInput:
@@ -92,3 +92,6 @@ class DlgStats(QDialog):
         # Рассчитываем стандартное отклонение
         stdDeviation = sqrt(dispersity)
         self.ui.stdDeviationLabel.setText(str(round(stdDeviation, 2)))
+
+        monomers_count = sum([pol.len() for pol in self.globula])
+        self.ui.monomersCountLabel.setText(str(monomers_count))

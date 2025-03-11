@@ -1,6 +1,37 @@
 from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
 from alg.field_lib import Field
 from space import Space
+from alg.common_funcs import distance
+
+class MonomerType:
+    Usual = 0
+    Owise = 1
+
+class Monomer:
+    def __init__(self, coords: list[int], type: MonomerType):
+        self._coords = coords
+        self._type = type
+
+    @property
+    def coords(self):
+        return self._coords
+
+    @property
+    def type(self):
+        return self._type
+    
+    @type.setter
+    def type(self, type):
+        self._type = type
+
+    def __iter__(self):
+        return iter(self._coords)
+
+    def __len__(self):
+        return len(self._coords)
+
+    def __getitem__(self, i):
+        return self._coords[i]
 
 class Polymer:
     __number__ = 0
@@ -17,10 +48,14 @@ class Polymer:
         return iter(self.__polymer)
     
     def add_monomer(self, monomer):
-        self.__polymer.append(monomer)
+        m = Monomer(monomer, MonomerType.Usual)
+        self.__polymer.append(m)
         
     def len(self):
         return len(self.__polymer)
+
+    def front(self):
+        return self.__polymer[0]
     
     def back(self):
         return self.__polymer[-1]
@@ -64,6 +99,18 @@ class Polymer:
         for next_point in next_points:
             if Space.point_within_borders(next_point) and not self.__field.is_free(next_point) and next_point != prelast_point:
                 u += -1.0
+
+        return u
+
+    def calc_whole_energy(self):
+        u = 0.0
+        for i in range(len(self.__polymer)):
+            for j in range(len(self.__polymer)):
+                if i == j:
+                    continue
+                    
+                r_ij = 1 / distance(self.__polymer[i], self.__polymer[j])
+                u += 4 * 0.01 * ((r_ij ** 12) - (r_ij ** 6))
 
         return u
 

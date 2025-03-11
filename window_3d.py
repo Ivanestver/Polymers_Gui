@@ -83,7 +83,8 @@ class Window3D(Qt3DWindow):
         if globula not in self.globulas:
             return
         
-        globula.entity.setParent(None)
+        if globula.entity != None:
+            globula.entity.setParent(None)
         self.globulas.remove(globula)
     
     def get_globula(self, i) -> GlobulaView:

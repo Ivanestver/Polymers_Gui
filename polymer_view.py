@@ -12,15 +12,17 @@ from alg.polymer_lib import Polymer
 
 class Entity:
     def __init__(self, name: str, rootEntity: QEntity) -> None:
-        self.transform = QTransform()
-
-        self.material = QPhongMaterial()
-        self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
         self._name = name
+        self.entity = None
+        if rootEntity is not None:
+            self.transform = QTransform()
 
-        self.entity = QEntity(rootEntity)
-        self.entity.addComponent(self.transform)
-        self.entity.addComponent(self.material)
+            self.material = QPhongMaterial()
+            self.material.setAmbient(QColor.fromRgb(int(random() * 255), int(random() * 255), int(random() * 255)))
+
+            self.entity = QEntity(rootEntity)
+            self.entity.addComponent(self.transform)
+            self.entity.addComponent(self.material)
 
     @property
     def name(self):
@@ -47,17 +49,18 @@ class Entity:
 class PolymerView(Entity):
     def __init__(self, polymer: Polymer, rootEntity: QEntity):
         super().__init__(polymer.name(), rootEntity)
-        self.transform.setTranslation(QVector3D(0, 0, 0))
+        if rootEntity is not None:
+            self.transform.setTranslation(QVector3D(0, 0, 0))
+            self.objectPicker = QObjectPicker()
+            self.entity.addComponent(self.objectPicker)
 
-        for i in range(polymer.len() - 1):
-            curr_monomer = polymer.get_monomer_by_idx(i)
-            self.__add_monomer__(curr_monomer)
-            next_monomer = polymer.get_monomer_by_idx(i + 1)
-            self.__add_monomer__(next_monomer)
-            self.__add_connection__(curr_monomer, next_monomer)
+            for i in range(polymer.len() - 1):
+                curr_monomer = polymer.get_monomer_by_idx(i)
+                self.__add_monomer__(curr_monomer)
+                next_monomer = polymer.get_monomer_by_idx(i + 1)
+                self.__add_monomer__(next_monomer)
+                self.__add_connection__(curr_monomer, next_monomer)
         
-        self.objectPicker = QObjectPicker()
-        self.entity.addComponent(self.objectPicker)
         self.polymer = polymer
 
     def len(self):
@@ -144,7 +147,8 @@ class GlobulaView(Entity):
     
     def __init__(self, name: str, polymers: list[Polymer], rootEntity: QEntity) -> None:
         super().__init__(name, rootEntity)
-        self.transform.setTranslation(Space.global_zero)
+        if rootEntity is not None:
+            self.transform.setTranslation(Space.global_zero)
 
         self.polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
 

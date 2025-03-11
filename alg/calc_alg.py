@@ -8,6 +8,7 @@ from alg.config import Axis
 from alg.field_lib import Field
 from alg.polymer_lib import Polymer
 from space import Space
+from alg.common_funcs import distance
 
 class CalcAlg:
     def __init__(self, globuls_count: int = 1, polymers_count: int = 1, accept_threshold: float = 0.1, max_monomers_count = 10, sphere_radius = 1):
@@ -41,7 +42,20 @@ class CalcAlg:
 
     def __get_next_current_position_tuned(self, potential_configs: list[Polymer], U_current: float):
         deltas_of_potential_configs = np.array([U_current - pol.calc_energy() for pol in potential_configs])
-        if np.any(deltas_of_potential_configs > 0):
+        if not np.all(deltas_of_potential_configs == np.max(deltas_of_potential_configs)):
+            max_values_indices = np.argwhere(deltas_of_potential_configs == np.amax(deltas_of_potential_configs)).flatten()
+            choice = np.random.randint(0, len(max_values_indices))
+            return potential_configs[max_values_indices[choice]].back()
+        else:
+            while True:
+                choice = np.random.randint(0, len(potential_configs))
+                r = np.random.uniform(0.0, 1.0, 1)
+                if r < self._accept_threshold:
+                    return potential_configs[choice].back()
+
+    def __get_next_current_position_considering_mass_center(self, potential_configs: list[Polymer], U_current: float):
+        deltas_of_potential_configs = np.array([U_current - pol.calc_whole_energy() for pol in potential_configs])
+        if not np.all(deltas_of_potential_configs == np.max(deltas_of_potential_configs)):
             max_values_indices = np.argwhere(deltas_of_potential_configs == np.amax(deltas_of_potential_configs)).flatten()
             choice = np.random.randint(0, len(max_values_indices))
             return potential_configs[max_values_indices[choice]].back()
@@ -145,7 +159,7 @@ class CalcAlg:
 
                 continuations = self.__get_continuations(len(available_cells), available_cells)
                 potential_configs = [self.__get_next_config(polymer, next_step) for next_step in continuations]
-                current_position = self.__get_next_current_position_tuned(potential_configs, polymer.calc_energy())
+                current_position = self.__get_next_current_position_considering_mass_center(potential_configs, polymer.calc_whole_energy())
 
                 polymer.add_monomer(current_position)
                 polymer_cache.append(current_position)

@@ -2,7 +2,7 @@ from uis.ui_graphics import Ui_DlgGraphics
 from PyQt6.QtWidgets import QDialog
 from polymer_view import GlobulaView
 from math import ceil, pi
-from common_funcs import distance
+from alg.common_funcs import distance
 from chart_window import LineChartWindow, BarChartWindow
 
 class Settings:

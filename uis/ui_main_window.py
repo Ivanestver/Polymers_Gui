@@ -48,7 +48,7 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_4)
         self.monomersCountSpinBox = QtWidgets.QSpinBox(parent=MainWindow)
         self.monomersCountSpinBox.setMinimum(10)
-        self.monomersCountSpinBox.setMaximum(2048)
+        self.monomersCountSpinBox.setMaximum(100000)
         self.monomersCountSpinBox.setObjectName("monomersCountSpinBox")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.monomersCountSpinBox)
         self.sphereRadiusText = QtWidgets.QLabel(parent=MainWindow)
