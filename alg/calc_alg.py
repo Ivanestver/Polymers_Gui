@@ -1,14 +1,9 @@
 # Protein folding
 # Here the nPERMss is implemented
 import numpy as np
-import math
-import os
 
-from alg.config import Axis
 from alg.field_lib import Field
 from alg.polymer_lib import Polymer
-from space import Space
-from alg.common_funcs import distance
 
 class CalcAlg:
     def __init__(self, globuls_count: int = 1, polymers_count: int = 1, accept_threshold: float = 0.1, max_monomers_count = 10, sphere_radius = 1):

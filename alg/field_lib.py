@@ -1,6 +1,6 @@
 import math
 from typing import Iterable
-from alg.config import axis_count, MoveDirection, Axis, move_cell, move_cell_no_borders, Side, get_side
+from alg.config import axis_count, MoveDirection, Axis, Side, get_side
 import numpy as np
 from space import Space
 from alg.monomer_lib import Monomer, MonomerType

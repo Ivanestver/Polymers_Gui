@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QDialog
 from polymer_view import GlobulaView
 from math import ceil, pi
 from alg.common_funcs import distance
-from chart_window import LineChartWindow, BarChartWindow
+from chart_window import BarChartWindow
 
 class Settings:
     def __init__(self, globula: GlobulaView):

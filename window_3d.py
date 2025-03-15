@@ -1,12 +1,9 @@
-import typing
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QVector3D, QQuaternion, QColor, QKeyEvent
-from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QSphereMesh, QCylinderMesh
+from PyQt6.QtGui import QVector3D, QQuaternion, QColor
+from PyQt6.Qt3DExtras import Qt3DWindow, QPhongMaterial, QOrbitCameraController, QCylinderMesh
 from PyQt6.Qt3DCore import QEntity, QTransform
-from PyQt6.Qt3DInput import QMouseEvent
 from alg.polymer_lib import Polymer
 from space import Space
-from polymer_view import PolymerView, GlobulaView
+from polymer_view import GlobulaView
 
 class Window3D(Qt3DWindow):
     

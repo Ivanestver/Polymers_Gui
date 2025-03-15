@@ -1,12 +1,9 @@
 import math
-import os
-from random import random
-from PyQt6.QtCore import QJsonValue, QJsonDocument
+from PyQt6.QtCore import QJsonValue
 from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DRender import QObjectPicker
-from alg.config import Axis
 from space import Space
 from alg.polymer_lib import Polymer, Monomer, MonomerType
 
