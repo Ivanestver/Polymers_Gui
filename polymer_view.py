@@ -73,6 +73,9 @@ class PolymerView(Entity):
     def __iter__(self):
         return iter(self.polymer)
 
+    def __getitem__(self, i):
+        return self.polymer.get_monomer_by_idx(i)
+
     def get_start_end_monomers(self):
         if self.polymer.len() == 0:
             raise Exception("The PolymerView cannot contain an empty polymer")

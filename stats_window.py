@@ -4,6 +4,7 @@ from PyQt6.QtCore import Qt
 from polymer_view import GlobulaView, PolymerView
 from math import sqrt, ceil
 from alg.common_funcs import distance
+from alg.polymer_lib import MonomerType
 from graphics_window import DlgGraphicsWindow, EndToEndDistanceSettings
 
 class StatsInput:
@@ -95,3 +96,14 @@ class DlgStats(QDialog):
 
         monomers_count = sum([pol.len() for pol in self.globula])
         self.ui.monomersCountLabel.setText(str(monomers_count))
+
+        # Рассчитываем степень кристалличности
+        crystall_power = sum(
+            [
+                sum(
+                    [1 if monomer.type == MonomerType.Owise else 0 for monomer in pol]
+                ) for pol in self.globula
+            ]
+        ) / monomers_count
+
+        self.ui.crystall_power_label.setText(str(round(crystall_power, 2) * 100))

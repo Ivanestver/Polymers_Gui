@@ -1,6 +1,7 @@
 from alg.config import Axis
 from polymer_view import PolymerView, GlobulaView
 from space import Space
+from alg.polymer_lib import MonomerType
 
 class SaveToFile:
     def __init__(self, file_label, file_extension):
@@ -78,7 +79,7 @@ class SaveToLammps(SaveToFile):
         self.add_new_line()
 
         self.add_string(f'{self.__get_atoms_count(globula)} atoms')
-        self.add_string(f'{globula.len()} atom types')
+        self.add_string(f'2 atom types')
         self.add_string(f'{self.__get_bonds_count(globula)} bonds')
         self.add_string(f'1 bond types')
         self.add_new_line()
@@ -91,8 +92,8 @@ class SaveToLammps(SaveToFile):
         self.add_string("Masses")
         self.add_new_line()
 
-        for i in range(globula.len()):
-            self.add_string(f'{i + 1} 1 # {self._finished_polimers_labels[i]}')
+        self.add_string(f'1 1 # C')
+        self.add_string(f'2 1 # O')
         self.add_new_line()
 
         self.add_string('Bond Coeffs # harmonic')
@@ -107,7 +108,7 @@ class SaveToLammps(SaveToFile):
         monomer_number = 1
         for pol_number, pol in enumerate(globula):
             for monomer in pol:
-                self.add_string(f'{monomer_number} 1 {pol_number + 1} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
+                self.add_string(f'{monomer_number} 1 {1 if monomer.type == MonomerType.Usual else 2} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
                 monomer_number += 1
         self.add_new_line()
 
@@ -122,3 +123,9 @@ class SaveToLammps(SaveToFile):
                 bond_number += 1
                 monomer_number += 1
             monomer_number += 1
+
+        angle_number = 1
+        for pol in globula:
+            for i in range(1, pol.len() - 1):
+                self.add_string(f'{angle_number} 1 {i - 1} {i} {i + 1}')
+                angle_number += 1
