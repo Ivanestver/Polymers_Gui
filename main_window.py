@@ -6,15 +6,13 @@ from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
 from window_3d import Window3D
 from alg.calc_alg import CalcAlg
-from alg.polymer_lib import Monomer, MonomerType
 from space import Space
 from PyQt6.QtGui import QVector3D, QColor, QAction
 from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from operator import sub
-from enum import IntEnum
+from cluster_analysis.mark_O import mark_O_part
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -108,43 +106,8 @@ class MainWindow(QDialog):
         self.ui.polymersListWidget.takeItem(self.ui.polymersListWidget.currentRow())
 
     def __mark_O_part(self):
-        class Direction(IntEnum):
-            Up = 0 * 100 + 0 * 10 + 1,
-            Down = 0 * 100 + 0 * 10 + -1,
-            Left = 0 * 100 + 1 * 10 + 0,
-            Right = 0 * 100 + -1 * 10 + 0,
-            Forward = 1 * 100 + 0 * 10 + 0,
-            Backward = -1 * 100 + 0 * 10 + 0
-
-        def get_direction(prev: tuple, curr: tuple) -> Direction:
-            tuples_sub = tuple(map(sub, curr, prev))
-            return Direction(sum(tuples_sub[i] * (10 ** i) for i in range(len(tuples_sub))))
-        
         current_globula = self.__get_current_globula()
-        for polymer in current_globula:
-            previous_monomer = polymer[0]
-            first_monomer_in_row = polymer[0]
-            current_direction = Direction.Up
-            monomers_in_row = 1
-            for i in range(1, polymer.len()):
-                current_monomer = polymer[i]
-                direction = get_direction(previous_monomer, current_monomer)
-                if direction == current_direction:
-                    monomers_in_row += 1
-                else:
-                    if monomers_in_row >= self.ui.chainLengthSpinBox.value():
-                        # Помечаем полученную цепочку кислородом
-                        m: Monomer = first_monomer_in_row
-                        while m != previous_monomer:
-                            m.type = MonomerType.Owise
-                            m = m.next_monomer
-                        m.type = MonomerType.Owise
-
-                    monomers_in_row = 2
-                    current_direction = direction
-                    first_monomer_in_row = previous_monomer
-                previous_monomer = current_monomer
-
+        mark_O_part(current_globula)
         self.repaint()
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
