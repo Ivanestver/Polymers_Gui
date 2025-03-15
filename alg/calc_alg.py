@@ -22,11 +22,14 @@ class CalcAlg:
     def __get_continuations(self, k_free, available_cells):
         chosen_continuations_idxs = np.arange(k_free)
         np.random.shuffle(chosen_continuations_idxs)
-        return np.array([available_cells[i] for i in chosen_continuations_idxs])
+        continuations = []
+        for i in chosen_continuations_idxs:
+            continuations.append(available_cells[i])
+        return continuations
 
     def __get_next_config(self, curr_config: Polymer, continuation):
         config_copy = curr_config.copy()
-        config_copy.add_monomer(tuple(continuation))
+        config_copy.add_monomer(continuation)
         return config_copy
 
     def __get_next_current_position(self, potential_configs: list[Polymer], U_current: float):

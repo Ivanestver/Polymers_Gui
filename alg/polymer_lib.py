@@ -1,56 +1,8 @@
-from alg.config import axis_count, MoveDirection, Axis, move_cell, move_cell_no_borders
+from alg.config import axis_count, MoveDirection, Axis, move_cell, move_cell_no_borders, Side
 from alg.field_lib import Field
 from space import Space
 from alg.common_funcs import distance
-from enum import IntEnum
-
-class MonomerType(IntEnum):
-    Usual = 0
-    Owise = 1
-
-class Monomer:
-    def __init__(self, coords: list[int], type: MonomerType):
-        self._coords = coords
-        self._type = type
-        self._prev_monomer = None
-        self._next_monomer = None
-
-    @property
-    def coords(self):
-        return self._coords
-
-    @property
-    def type(self):
-        return self._type
-    
-    @type.setter
-    def type(self, type):
-        self._type = type
-
-    @property
-    def prev_monomer(self):
-        return self._prev_monomer
-    
-    @prev_monomer.setter
-    def prev_monomer(self, prev):
-        self._prev_monomer = prev
-
-    @property
-    def next_monomer(self):
-        return self._next_monomer
-    
-    @next_monomer.setter
-    def next_monomer(self, next):
-        self._next_monomer = next
-    
-    def __iter__(self):
-        return iter(self._coords)
-
-    def __len__(self):
-        return len(self._coords)
-
-    def __getitem__(self, i):
-        return self._coords[i]
+from alg.monomer_lib import Monomer, MonomerType
 
 class Polymer:
     __number__ = 0
@@ -66,8 +18,7 @@ class Polymer:
     def __iter__(self):
         return iter(self.__polymer)
     
-    def add_monomer(self, monomer):
-        m = Monomer(monomer, MonomerType.Usual)
+    def add_monomer(self, m: Monomer):
         if len(self.__polymer) != 0:
             self.__polymer[-1].next_monomer = m
             m.prev_monomer = self.__polymer[-1]
@@ -115,12 +66,8 @@ class Polymer:
             prelast_point = self.__polymer[-2]
         else:
             prelast_point = last_point
-        next_points = []
-        for axis in range(axis_count()):
-            for direction in [MoveDirection.DIRECTION_BACKWARD, MoveDirection.DIRECTION_FORWARD]:
-                next_points.append(move_cell_no_borders(last_point, Axis(axis), direction))
-        for next_point in next_points:
-            if Space.point_within_borders(next_point) and not self.__field.is_free(next_point) and next_point != prelast_point:
+        for side in Side:
+            if last_point.sides[side] is not None and not last_point.sides[side].is_of_type(MonomerType.Undefined) and last_point.sides[side] != prelast_point:
                 u += -1.0
 
         return u
