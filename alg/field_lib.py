@@ -1,6 +1,6 @@
 import math
 from typing import Iterable
-from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
+from alg.config import axis_count, MoveDirection, Axis, move_cell, move_cell_no_borders
 import numpy as np
 from space import Space
 
@@ -52,7 +52,7 @@ class Field:
     def get_available_cells(self, curr_pos):
         available_cells = []
         for axis in range(axis_count()):
-            for dir in [Direction.DIRECTION_BACKWARD, Direction.DIRECTION_FORWARD]:
+            for dir in [MoveDirection.DIRECTION_BACKWARD, MoveDirection.DIRECTION_FORWARD]:
                 curr_moved = move_cell_no_borders(curr_pos, Axis(axis), dir)
                 if self.is_within_borders(curr_moved) and self.is_free(curr_moved):
                     available_cells.append(curr_moved)
@@ -66,6 +66,6 @@ class Field:
             if len(available_cells) != 0:
                 return available_cells[np.random.randint(0, len(available_cells))]
             random_axis = np.random.randint(0, Axis.AXIS_COUNT.value)
-            random_direction = np.random.randint(0, Direction.DIRECTION_COUNT.value)
-            start_position = move_cell(start_position, Axis(random_axis), Direction.DIRECTION_FORWARD if random_direction == 0 else Direction.DIRECTION_BACKWARD)
+            random_direction = np.random.randint(0, MoveDirection.DIRECTION_COUNT.value)
+            start_position = move_cell(start_position, Axis(random_axis), MoveDirection.DIRECTION_FORWARD if random_direction == 0 else MoveDirection.DIRECTION_BACKWARD)
         return start_position

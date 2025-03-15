@@ -1,9 +1,10 @@
-from alg.config import axis_count, Direction, Axis, move_cell, move_cell_no_borders
+from alg.config import axis_count, MoveDirection, Axis, move_cell, move_cell_no_borders
 from alg.field_lib import Field
 from space import Space
 from alg.common_funcs import distance
+from enum import IntEnum
 
-class MonomerType:
+class MonomerType(IntEnum):
     Usual = 0
     Owise = 1
 
@@ -116,7 +117,7 @@ class Polymer:
             prelast_point = last_point
         next_points = []
         for axis in range(axis_count()):
-            for direction in [Direction.DIRECTION_BACKWARD, Direction.DIRECTION_FORWARD]:
+            for direction in [MoveDirection.DIRECTION_BACKWARD, MoveDirection.DIRECTION_FORWARD]:
                 next_points.append(move_cell_no_borders(last_point, Axis(axis), direction))
         for next_point in next_points:
             if Space.point_within_borders(next_point) and not self.__field.is_free(next_point) and next_point != prelast_point:
