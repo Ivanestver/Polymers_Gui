@@ -22,6 +22,20 @@ class Side(enum.Enum):
 def get_side(axis: Axis, move_direction: MoveDirection) -> Side:
     return Side((axis.value + 1) * move_direction.value)
 
+def get_reversed_side(side: Side) -> Side:
+    if side == Side.Forward:
+        return Side.Backward
+    elif side == Side.Backward:
+        return Side.Forward
+    elif side == Side.Up:
+        return Side.Down
+    elif side == Side.Down:
+        return Side.Up
+    elif side == Side.Left:
+        return Side.Right
+    else:
+        return Side.Left
+
 def axis_count():
     return Axis.AXIS_COUNT.value
 

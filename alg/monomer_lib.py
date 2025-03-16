@@ -5,6 +5,7 @@ class MonomerType(IntEnum):
     Undefined = -1
     Usual = 0
     Owise = 1
+    Nwise = 2
 
 class Monomer:
     def __init__(self, coords: list[int], type: MonomerType = MonomerType.Undefined):
@@ -16,6 +17,9 @@ class Monomer:
 
     def is_of_type(self, type: MonomerType):
         return self.type == type
+
+    def is_not_of_type(self, type: MonomerType):
+        return self.type != type
 
     def get_sibling(self, side: Side):
         return self.sides[side]

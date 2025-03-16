@@ -12,7 +12,7 @@ from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from cluster_analysis.mark_O import mark_O_part
+from cluster_analysis.mark_O import mark_O_part, mark_clusters
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -55,7 +55,8 @@ class MainWindow(QDialog):
         
         add_action("Save to mol", self.__on_save_to_file_action_triggered)
         add_action("Save to lammps", self.__on_save_to_lammps_btn_clicked)
-        add_action("Mark O", self.__mark_O_part)
+        add_action("Mark O", self.__mark_O)
+        add_action("Mark clusters", self.__mark_clusters)
         add_action("Remove", self.__on_remove_globula_triggered)
 
     def __on_save_to_file_action_triggered(self):
@@ -105,9 +106,16 @@ class MainWindow(QDialog):
         self.view.remove_globula(current_globula)
         self.ui.polymersListWidget.takeItem(self.ui.polymersListWidget.currentRow())
 
-    def __mark_O_part(self):
+    def __mark_O(self):
         current_globula = self.__get_current_globula()
         mark_O_part(current_globula)
+
+    def __mark_clusters(self):
+        current_globula = self.__get_current_globula()
+        # Создаём потенциальные кластеры
+        mark_O_part(current_globula)
+        # Из потенциальных кластеров выделяем реальные
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value())
         self.repaint()
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
