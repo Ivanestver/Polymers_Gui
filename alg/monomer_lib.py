@@ -7,6 +7,18 @@ class MonomerType(IntEnum):
     Owise = 1
     Nwise = 2
 
+def monomer_type_to_literal(type: MonomerType):
+    if type == MonomerType.Undefined:
+        raise Exception("There's no letter for Undefined monomer type")
+    elif type == MonomerType.Usual:
+        return 'C'
+    elif type == MonomerType.Owise:
+        return 'O'
+    elif type == MonomerType.Nwise:
+        return 'N'
+    else:
+        raise Exception(f"There's no letter for type {type}")
+
 class Monomer:
     def __init__(self, coords: list[int], type: MonomerType = MonomerType.Undefined):
         self._coords = coords

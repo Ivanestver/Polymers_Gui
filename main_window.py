@@ -1,5 +1,4 @@
 import os
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem, QFileDialog
 from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
@@ -13,6 +12,7 @@ from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
 from cluster_analysis.mark_O import mark_O_part, mark_clusters
+from alg.polymer_lib import MonomerType
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -55,8 +55,9 @@ class MainWindow(QDialog):
         
         add_action("Save to mol", self.__on_save_to_file_action_triggered)
         add_action("Save to lammps", self.__on_save_to_lammps_btn_clicked)
-        add_action("Mark O", self.__mark_O)
-        add_action("Mark clusters", self.__mark_clusters)
+        add_action("Mark horizontal clusters", self.__mark_O)
+        add_action("Mark vertical clusters", self.__mark_clusters)
+        add_action("Mark as C", self.__mark_carbon)
         add_action("Remove", self.__on_remove_globula_triggered)
 
     def __on_save_to_file_action_triggered(self):
@@ -108,15 +109,17 @@ class MainWindow(QDialog):
 
     def __mark_O(self):
         current_globula = self.__get_current_globula()
-        mark_O_part(current_globula)
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), True)
 
     def __mark_clusters(self):
         current_globula = self.__get_current_globula()
-        # Создаём потенциальные кластеры
-        mark_O_part(current_globula)
-        # Из потенциальных кластеров выделяем реальные
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value())
-        self.repaint()
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), False)
+
+    def __mark_carbon(self):
+        current_globula = self.__get_current_globula()
+        for pol in current_globula:
+            for monomer in pol:
+                monomer.type = MonomerType.Usual
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()

@@ -22,36 +22,7 @@ class Cluster:
         sides_to_look = self.sides_to_look[self.side]
         reversed_side = get_reversed_side(self.side)
         monomers_queue = [self.start_monomer]
-        while len(monomers_queue) != 0:
-            # Получаем текущий мономер
-            curr_monomer = monomers_queue.pop(0)
-            # Если уже добавлен в кластер, то незачем проверять ещё раз
-            if curr_monomer.is_of_type(MonomerType.Nwise):
-                continue
 
-            # Находим тот, который является первым на данной оси
-            while curr_monomer.sides[reversed_side] is not None and curr_monomer.sides[reversed_side].is_of_type(MonomerType.Owise):
-                curr_monomer = curr_monomer.sides[reversed_side]
-
-            self.first_monomers.append(curr_monomer)
-
-            while True:
-                # Мономер входит в кластер. Помечаем и добавляем в список мономеров
-                curr_monomer.type = MonomerType.Nwise
-                self.monomers.append(curr_monomer)
-
-                # Добавляем другие мономеры в очередь для проверки
-                for side_to_look in sides_to_look:
-                    sibling = curr_monomer.sides[side_to_look]
-                    if sibling is not None and sibling.is_of_type(MonomerType.Owise):
-                        monomers_queue.append(sibling)
-
-                # Если дальше нет смысла двигаться, то и не двигаемся
-                if curr_monomer.sides[self.side] is None or curr_monomer.sides[self.side].is_not_of_type(MonomerType.Owise):
-                    break
-
-                # Двигаемся дальше
-                curr_monomer = curr_monomer.sides[self.side]
 
     def fits_constraint_avg(self, avg: float):
         def calc_chain_length(first_monomer: Monomer):

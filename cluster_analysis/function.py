@@ -5,10 +5,10 @@ from alg.config import Side
 class Direction(IntEnum):
     Left = 0 * 100 + 0 * 10 + 1,
     Right = 0 * 100 + 0 * 10 + -1,
-    Up = 0 * 100 + 1 * 10 + 0,
-    Down = 0 * 100 + -1 * 10 + 0,
-    Forward = 1 * 100 + 0 * 10 + 0,
-    Backward = -1 * 100 + 0 * 10 + 0
+    Forward = 0 * 100 + 1 * 10 + 0,
+    Backward = 0 * 100 + -1 * 10 + 0
+    Up = 1 * 100 + 0 * 10 + 0,
+    Down = -1 * 100 + 0 * 10 + 0,
 
 def get_direction(prev: tuple, curr: tuple) -> Direction:
     tuples_sub = tuple(map(sub, curr, prev))

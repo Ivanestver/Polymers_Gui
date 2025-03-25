@@ -2,6 +2,7 @@ from alg.config import Axis
 from polymer_view import PolymerView, GlobulaView
 from space import Space
 from alg.polymer_lib import MonomerType
+from alg.monomer_lib import monomer_type_to_literal
 
 class SaveToFile:
     def __init__(self, file_label, file_extension):
@@ -74,12 +75,21 @@ class SaveToLammps(SaveToFile):
     def __get_bonds_count(self, globula: GlobulaView):
         return sum([pol.len() - 1 for pol in globula])
 
+    def __get_monomer_types(self, globula: GlobulaView):
+        types_set = set[MonomerType]()
+        for pol in globula:
+            for monomer in pol:
+                types_set.add(monomer.type)
+
+        return types_set
+
     def _build_contents(self, globula: GlobulaView):
         self.add_string("LAMMPS data file via write_data, version 24 Dec 2020, timestep = 40000000")
         self.add_new_line()
 
+        types_set = self.__get_monomer_types(globula)
         self.add_string(f'{self.__get_atoms_count(globula)} atoms')
-        self.add_string(f'2 atom types')
+        self.add_string(f'{len(types_set)} atom types')
         self.add_string(f'{self.__get_bonds_count(globula)} bonds')
         self.add_string(f'1 bond types')
         self.add_new_line()
@@ -92,8 +102,13 @@ class SaveToLammps(SaveToFile):
         self.add_string("Masses")
         self.add_new_line()
 
-        self.add_string(f'1 1 # C')
-        self.add_string(f'2 1 # O')
+        for i, type in enumerate(types_set):
+            try:
+                self.add_string(f'{i + 1} 1 # {monomer_type_to_literal(type)}')
+            except Exception as err:
+                print(err.with_traceback())
+                return
+
         self.add_new_line()
 
         self.add_string('Bond Coeffs # harmonic')
