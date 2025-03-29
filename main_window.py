@@ -11,8 +11,9 @@ from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from cluster_analysis.mark_O import mark_O_part, mark_clusters
+from cluster_analysis.mark_O import mark_clusters
 from alg.polymer_lib import MonomerType
+from alg.config import Axis
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -55,8 +56,9 @@ class MainWindow(QDialog):
         
         add_action("Save to mol", self.__on_save_to_file_action_triggered)
         add_action("Save to lammps", self.__on_save_to_lammps_btn_clicked)
-        add_action("Mark horizontal clusters", self.__mark_O)
-        add_action("Mark vertical clusters", self.__mark_clusters)
+        add_action("Mark X clusters", self.__mark_x_axis)
+        add_action("Mark Y clusters", self.__mark_y_axis)
+        add_action("Mark Z clusters", self.__mark_z_axis)
         add_action("Mark as C", self.__mark_carbon)
         add_action("Remove", self.__on_remove_globula_triggered)
 
@@ -107,13 +109,17 @@ class MainWindow(QDialog):
         self.view.remove_globula(current_globula)
         self.ui.polymersListWidget.takeItem(self.ui.polymersListWidget.currentRow())
 
-    def __mark_O(self):
+    def __mark_x_axis(self):
         current_globula = self.__get_current_globula()
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), True)
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.X_AXIS)
+    
+    def __mark_y_axis(self):
+        current_globula = self.__get_current_globula()
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.Y_AXIS)
 
-    def __mark_clusters(self):
+    def __mark_z_axis(self):
         current_globula = self.__get_current_globula()
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), False)
+        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.Z_AXIS)
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()

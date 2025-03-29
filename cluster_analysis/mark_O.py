@@ -1,44 +1,6 @@
-from cluster_analysis.function import Direction, get_direction
 from alg.polymer_lib import Monomer, MonomerType
 from polymer_view import GlobulaView
-from alg.config import Side
-
-def mark_O_part(current_globula: GlobulaView):
-    min_chain_length = 3
-    for polymer in current_globula:
-        previous_monomer = polymer[0]
-        first_monomer_in_row = polymer[0]
-        current_monomer = polymer[1]
-        current_direction = get_direction(previous_monomer, current_monomer)
-        previous_monomer = current_monomer
-        monomers_in_row = 2
-        for i in range(2, polymer.len()):
-            current_monomer = polymer[i]
-            direction = get_direction(previous_monomer, current_monomer)
-            if direction == current_direction:
-                monomers_in_row += 1
-            else:
-                if monomers_in_row >= min_chain_length: # Сейчас считаем размер таким
-                    # Помечаем полученную цепочку кислородом
-                    m: Monomer = first_monomer_in_row
-                    while m != previous_monomer:
-                        m.type = MonomerType.Owise
-                        m = m.next_monomer
-                    m.type = MonomerType.Owise
-
-                monomers_in_row = 2
-                current_direction = direction
-                first_monomer_in_row = previous_monomer
-            previous_monomer = current_monomer
-        
-        # Осталось обработать последний в цепочке полимер
-        if monomers_in_row >= min_chain_length: # Сейчас считаем размер таким
-            # Помечаем полученную цепочку кислородом
-            m: Monomer = first_monomer_in_row
-            while m != previous_monomer:
-                m.type = MonomerType.Owise
-                m = m.next_monomer
-            m.type = MonomerType.Owise
+from alg.config import Side, Axis
 
 def get_direction(monomer: Monomer):
     next_monomer = monomer.next_monomer
@@ -80,7 +42,7 @@ def do_traverse(main_direction: Side, directions: list[Side], curr_monomer: Mono
     else:
         pot_cluster.clear()
 
-def mark_clusters(current_globula: GlobulaView, avg: float, take_horizontal: bool = False):
+def mark_clusters(current_globula: GlobulaView, avg: float, axis: Axis):
     clusters = set[Monomer]()
     def fill_clusters(directions):
         pot_cluster: list[Monomer] = [monomer, monomer.sides[main_direction]]
@@ -92,28 +54,29 @@ def mark_clusters(current_globula: GlobulaView, avg: float, take_horizontal: boo
             main_direction = get_direction(monomer)
             if main_direction == Side.Undefined:
                 continue
-            if take_horizontal:
-                if main_direction in [Side.Up, Side.Down]:
-                    continue
 
-                if main_direction in [Side.Left, Side.Right]:
-                    fill_clusters([Side.Backward, Side.Down, Side.Forward])
-                    fill_clusters([Side.Backward, Side.Up, Side.Forward])
-                    fill_clusters([Side.Forward, Side.Down, Side.Backward])
-                    fill_clusters([Side.Forward, Side.Up, Side.Backward])
-                else:
-                    fill_clusters([Side.Left, Side.Down, Side.Right])
-                    fill_clusters([Side.Left, Side.Up, Side.Right])
-                    fill_clusters([Side.Right, Side.Down, Side.Left])
-                    fill_clusters([Side.Right, Side.Up, Side.Left])
-            else:
-                if main_direction not in [Side.Up, Side.Down]:
-                    continue
-
+            if axis == Axis.X_AXIS and main_direction in [Side.Forward, Side.Backward]:
+                fill_clusters([Side.Left, Side.Down, Side.Right])
+                fill_clusters([Side.Left, Side.Up, Side.Right])
+                fill_clusters([Side.Right, Side.Down, Side.Left])
+                fill_clusters([Side.Right, Side.Up, Side.Left])
+            elif axis == Axis.Y_AXIS and main_direction in [Side.Left, Side.Right]:
+                fill_clusters([Side.Backward, Side.Down, Side.Forward])
+                fill_clusters([Side.Backward, Side.Up, Side.Forward])
+                fill_clusters([Side.Forward, Side.Down, Side.Backward])
+                fill_clusters([Side.Forward, Side.Up, Side.Backward])
+            elif axis == Axis.Z_AXIS and main_direction in [Side.Up, Side.Down]:
                 fill_clusters([Side.Left, Side.Forward, Side.Right])
                 fill_clusters([Side.Left, Side.Backward, Side.Right])
                 fill_clusters([Side.Right, Side.Forward, Side.Left])
                 fill_clusters([Side.Right, Side.Backward, Side.Left])
-
+            else:
+                continue
+            
+    axis_type_dict = {
+        Axis.X_AXIS: MonomerType.Owise,
+        Axis.Y_AXIS: MonomerType.Nwise,
+        Axis.Z_AXIS: MonomerType.Fwise
+    }
     for monomer in clusters:
-        monomer.type = MonomerType.Owise if take_horizontal else MonomerType.Nwise
+        monomer.type = axis_type_dict[axis]
