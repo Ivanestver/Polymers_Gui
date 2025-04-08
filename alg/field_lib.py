@@ -97,6 +97,7 @@ class Field:
             if len(available_cells) != 0:
                 return available_cells[np.random.randint(0, len(available_cells))]
             random_axis = Axis(np.random.randint(0, Axis.AXIS_COUNT.value))
-            random_direction = MoveDirection(np.random.randint(0, MoveDirection.DIRECTION_COUNT.value))
+            rint = np.random.randint(0, MoveDirection.DIRECTION_COUNT.value)
+            random_direction = MoveDirection(-1 if rint % 2 == 0 else 1)
             start_position = self.get_monomer_by_coords(start_position).get_sibling(get_side(random_axis, random_direction)).coords
         return self.get_monomer_by_coords(start_position)

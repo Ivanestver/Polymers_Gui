@@ -6,7 +6,8 @@ class MonomerType(IntEnum):
     Usual = 0
     Owise = 1
     Nwise = 2
-    Fwise = 3
+    Fwise = 3,
+    Clwise = 4
 
 def monomer_type_to_literal(type: MonomerType):
     if type == MonomerType.Undefined:
@@ -19,6 +20,8 @@ def monomer_type_to_literal(type: MonomerType):
         return 'N'
     elif type == MonomerType.Fwise:
         return 'F'
+    elif type == MonomerType.Clwise:
+        return 'Cl'
     else:
         raise Exception(f"There's no letter for type {type}")
 

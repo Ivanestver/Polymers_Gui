@@ -11,9 +11,10 @@ from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from cluster_analysis.mark_O import mark_clusters
+from cluster_analysis.mark_O import mark_clusters, mark_common_clusters
 from alg.polymer_lib import MonomerType
 from alg.config import Axis
+from choose_axis_dlg import DlgChooseAxis
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -59,6 +60,7 @@ class MainWindow(QDialog):
         add_action("Mark X clusters", self.__mark_x_axis)
         add_action("Mark Y clusters", self.__mark_y_axis)
         add_action("Mark Z clusters", self.__mark_z_axis)
+        add_action("Mark common_clusters", self.__mark_common_clusters)
         add_action("Mark as C", self.__mark_carbon)
         add_action("Remove", self.__on_remove_globula_triggered)
 
@@ -109,17 +111,29 @@ class MainWindow(QDialog):
         self.view.remove_globula(current_globula)
         self.ui.polymersListWidget.takeItem(self.ui.polymersListWidget.currentRow())
 
-    def __mark_x_axis(self):
+    def __mark_axis(self, axis: Axis):
         current_globula = self.__get_current_globula()
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.X_AXIS)
+        avg = self.ui.chainLengthSpinBox.value()
+        if avg <= 0:
+            mark_clusters(current_globula, axis)
+        else:
+            dlg = DlgChooseAxis(axis, self)
+            if dlg.exec() == QDialog.DialogCode.Accepted:
+                chosen_axis = dlg.get_chosen_axis()
+                mark_clusters(current_globula, axis, (self.ui.chainLengthSpinBox.value(), chosen_axis))
+
+    def __mark_x_axis(self):
+        self.__mark_axis(Axis.X_AXIS)
     
     def __mark_y_axis(self):
-        current_globula = self.__get_current_globula()
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.Y_AXIS)
+        self.__mark_axis(Axis.Y_AXIS)
 
     def __mark_z_axis(self):
+        self.__mark_axis(Axis.Z_AXIS)
+
+    def __mark_common_clusters(self):
         current_globula = self.__get_current_globula()
-        mark_clusters(current_globula, self.ui.chainLengthSpinBox.value(), Axis.Z_AXIS)
+        mark_common_clusters(current_globula)
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()

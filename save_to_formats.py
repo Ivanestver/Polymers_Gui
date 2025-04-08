@@ -102,9 +102,11 @@ class SaveToLammps(SaveToFile):
         self.add_string("Masses")
         self.add_new_line()
 
-        for i, type in enumerate(types_set):
+        d_types = { type: i + 1 for i, type in enumerate(types_set)}
+
+        for type, i in d_types.items():
             try:
-                self.add_string(f'{i + 1} 1 # {monomer_type_to_literal(type)}')
+                self.add_string(f'{i} 1 # {monomer_type_to_literal(type)}')
             except Exception as err:
                 print(err.with_traceback())
                 return
@@ -123,7 +125,7 @@ class SaveToLammps(SaveToFile):
         monomer_number = 1
         for pol_number, pol in enumerate(globula):
             for monomer in pol:
-                self.add_string(f'{monomer_number} 1 {1 if monomer.type == MonomerType.Usual else 2} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
+                self.add_string(f'{monomer_number} 1 {d_types[monomer.type]} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
                 monomer_number += 1
         self.add_new_line()
 

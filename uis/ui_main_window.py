@@ -96,7 +96,7 @@ class Ui_MainWindow(object):
         self.label_5.setObjectName("label_5")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_5)
         self.chainLengthSpinBox = QtWidgets.QSpinBox(parent=MainWindow)
-        self.chainLengthSpinBox.setMinimum(1)
+        self.chainLengthSpinBox.setMinimum(0)
         self.chainLengthSpinBox.setObjectName("chainLengthSpinBox")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.FieldRole, self.chainLengthSpinBox)
         self.horizontalLayout.addLayout(self.formLayout)
