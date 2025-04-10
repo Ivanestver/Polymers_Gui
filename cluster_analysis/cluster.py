@@ -19,16 +19,22 @@ class Cluster:
     def axis(self):
         return self._axis
 
+    @property
+    def size(self):
+        return len(self._monomers)
+
     def set_type_of_monomers(self, type: MonomerType):
         for mon in self.monomers:
             mon.type = type
 
     def remove_monomer(self, monomer: Monomer):
-        idx = self._monomers.index(monomer)
-        if idx >= 0:
-            del self._monomers[idx]
-            return True
-        return False
+        try:
+            idx = self._monomers.index(monomer)
+            if idx >= 0:
+                del self._monomers[idx]
+                return True
+        except ValueError as er:
+            return False
 
     def get_avg_length_by_axis(self, required_axis: Axis):
         side_backward = get_reversed_side(self.main_direction)

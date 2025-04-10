@@ -11,7 +11,7 @@ from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from cluster_analysis.mark_O import mark_clusters, mark_common_clusters
+from cluster_analysis.mark_O import mark_clusters, mark_common_clusters, mark_biggest_clusters
 from alg.polymer_lib import MonomerType
 from alg.config import Axis
 from choose_axis_dlg import DlgChooseAxis
@@ -61,6 +61,7 @@ class MainWindow(QDialog):
         add_action("Mark Y clusters", self.__mark_y_axis)
         add_action("Mark Z clusters", self.__mark_z_axis)
         add_action("Mark common_clusters", self.__mark_common_clusters)
+        add_action("Mark biggest clusters", self.__mark_biggest_clusters)
         add_action("Mark as C", self.__mark_carbon)
         add_action("Remove", self.__on_remove_globula_triggered)
 
@@ -134,6 +135,12 @@ class MainWindow(QDialog):
     def __mark_common_clusters(self):
         current_globula = self.__get_current_globula()
         mark_common_clusters(current_globula)
+        
+    def __mark_biggest_clusters(self):
+        current_globula = self.__get_current_globula()
+        for ret, percentage in mark_biggest_clusters(current_globula):
+            QMessageBox.information(self, "Сохранение файла", f"Сейчас будет происходить сохранение {percentage}%")
+            self.__on_save_to_lammps_btn_clicked()
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()

@@ -205,3 +205,69 @@ def mark_common_clusters(current_globula: GlobulaView):
         for cluster in clusters_Z:
             if cluster.remove_monomer(mon):
                 break
+
+def mark_biggest_clusters(current_globula: GlobulaView):
+    clusters_X = gather_clusters(find_clusters(current_globula, Axis.X_AXIS), (0, Axis.X_AXIS))
+    clusters_Y = gather_clusters(find_clusters(current_globula, Axis.Y_AXIS), (0, Axis.Y_AXIS))
+    clusters_Z = gather_clusters(find_clusters(current_globula, Axis.Z_AXIS), (0, Axis.Z_AXIS))
+    total_monomers_count = sum([pol.len() for pol in current_globula])
+
+    clusters_X = sorted(clusters_X, key=lambda c1: c1.size, reverse=True)
+    clusters_Y = sorted(clusters_Y, key=lambda c1: c1.size, reverse=True)
+    clusters_Z = sorted(clusters_Z, key=lambda c1: c1.size, reverse=True)
+
+    chosen_clusters: list[Cluster] = []
+    
+    def clusters_monomers_count():
+        return sum([c.size for c in chosen_clusters]) if len(chosen_clusters) > 0 else 0
+
+    def test(testing, first, second):
+        if len(testing) == 0:
+            return False
+        
+        if len(first) != 0 and len(second) != 0:
+            return testing[0].size >= first[0].size and testing[0].size >= second[0].size
+        elif len(first) != 0:
+            return testing[0].size >= first[0].size
+        elif len(second) != 0:
+            return testing[0].size >= second[0].size
+        else:
+            return True
+    
+    prev_crystallization_ratio = clusters_monomers_count() / total_monomers_count
+    while True:
+        percentage = prev_crystallization_ratio * 100
+        if percentage > 55 or sum([len(clusters_X), len(clusters_Y), len(clusters_Z)]) == 0:
+            break
+
+        if 20 <= percentage:
+            for cluster in chosen_clusters:
+                if cluster.axis == Axis.X_AXIS:
+                    cluster.set_type_of_monomers(MonomerType.Owise)
+                elif cluster.axis == Axis.Y_AXIS:
+                    cluster.set_type_of_monomers(MonomerType.Nwise)
+                else:
+                    cluster.set_type_of_monomers(MonomerType.Fwise)
+            yield (True, percentage)
+            for cluster in chosen_clusters:
+                cluster.set_type_of_monomers(MonomerType.Usual)
+            
+        if test(clusters_X, clusters_Y, clusters_Z):
+            chosen_clusters.append(clusters_X[0])
+            clusters_X = clusters_X[1:]
+        elif test(clusters_Y, clusters_X, clusters_Z):
+            chosen_clusters.append(clusters_Y[0])
+            clusters_Y = clusters_Y[1:]
+        elif test(clusters_Z, clusters_X, clusters_Y):
+            chosen_clusters.append(clusters_Z[0])
+            clusters_Z = clusters_Z[1:]
+        else:
+            assert False, "It couldn't happen"
+
+        prev_crystallization_ratio = clusters_monomers_count() / total_monomers_count
+
+
+    for clusters in [clusters_X, clusters_Y, clusters_Z]:
+        for cluster in clusters:
+            cluster.set_type_of_monomers(MonomerType.Usual)
+    return (False, 0)
