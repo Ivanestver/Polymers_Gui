@@ -1,13 +1,4 @@
-from enum import IntEnum
-from alg.config import Side
-
-class MonomerType(IntEnum):
-    Undefined = -1
-    Usual = 0
-    Owise = 1
-    Nwise = 2
-    Fwise = 3,
-    Clwise = 4
+from alg.config import Side, MonomerType
 
 def monomer_type_to_literal(type: MonomerType):
     if type == MonomerType.Undefined:

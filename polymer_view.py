@@ -6,6 +6,8 @@ from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DRender import QObjectPicker
 from space import Space
 from alg.polymer_lib import Polymer, Monomer, MonomerType
+from cluster_analysis.cluster import intersect_clusters, Cluster, join_clusters
+from alg.config import Axis, get_axis_color, Side
 
 class Entity:
     def __init__(self, name: str, rootEntity: QEntity) -> None:
@@ -154,6 +156,31 @@ class PolymerView(Entity):
         }
         return QJsonValue(json_dict)
 
+class ClusterView:
+    def __init__(self, globula, avg_tuple: tuple[int, Axis]):
+        self._avg, self._axis = avg_tuple
+        self._clusters = find_clusters(globula, self._axis, avg_tuple)
+
+    @property
+    def clusters(self):
+        return self._clusters
+
+    def colorize(self, reset=False):
+        for cluster in self._clusters:
+            cluster.set_type_of_monomers(MonomerType.Usual if reset else get_axis_color(self._axis))
+
+    def __iter__(self):
+        return iter(self._clusters)
+
+    def len(self):
+        return len(self._clusters)
+
+    def sort(self, lamb, reverse=True):
+        self._clusters = sorted(self._clusters, key=lambda c: lamb(c), reverse=reverse)
+
+    def get_cluster_by_number(self, num: int):
+        return self._clusters[num]
+
 class GlobulaView(Entity):
     _finished_polimers_labels = ['C', 'N', 'H', 'O', 'F', 'Na', 'Mg', 'Al', 'P', 'S']
     
@@ -162,22 +189,26 @@ class GlobulaView(Entity):
         if rootEntity is not None:
             self.transform.setTranslation(Space.global_zero)
 
-        self.polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
+        self.__polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
+        self.__x_clusters: ClusterView = None
+        self.__y_clusters: ClusterView = None
+        self.__z_clusters: ClusterView = None
+        self.__common_cluster_done = False
 
     def __iter__(self):
-        return iter(self.polymers)
+        return iter(self.__polymers)
 
     def len(self):
-        return len(self.polymers)
+        return len(self.__polymers)
     
     def to_json(self):
         json_dict = {
             'polymers_count': {
-                'value': len(self.polymers),
+                'value': len(self.__polymers),
                 'name': "Количество полимеров"
             },
             'polymers': {
-                'value': QJsonValue([polymer.to_json() for polymer in self.polymers]),
+                'value': QJsonValue([polymer.to_json() for polymer in self.__polymers]),
                 'name': "Полимеры"
             }
         }
@@ -187,9 +218,292 @@ class GlobulaView(Entity):
     def get_mass_center(self):
         center = (0, 0, 0)
         N = 0
-        for polymer in self.polymers:
+        for polymer in self.__polymers:
             for monomer in polymer:
                 center = tuple(c + m for c, m in zip(center, monomer))
             N += polymer.len()
         
         return tuple((i / N for i in center)) if N > 0 else (0, 0, 0)
+
+    def x_clusters(self, avg: int = 0):
+        if self.__x_clusters is None:
+            self.__x_clusters = ClusterView(self, (avg, Axis.X_AXIS))
+
+        return self.__x_clusters
+
+    def y_clusters(self, avg: int = 0):
+        if self.__y_clusters is None:
+            self.__y_clusters = ClusterView(self, (avg, Axis.Y_AXIS))
+
+        return self.__y_clusters
+
+    def z_clusters(self, avg: int = 0):
+        if self.__z_clusters is None:
+            self.__z_clusters = ClusterView(self, (avg, Axis.Z_AXIS))
+
+        return self.__z_clusters
+
+    def common_clusters(self):
+        if not self.__common_cluster_done:
+            clusters_X = self.x_clusters().clusters
+            clusters_Y = self.y_clusters().clusters
+            clusters_Z = self.z_clusters().clusters
+
+            clusters_X_Y = list([intersect_clusters(cluster_X, cluster_Y) for cluster_X in clusters_X for cluster_Y in clusters_Y])
+            clusters_X_Y = list([mon for cluster in clusters_X_Y for mon in cluster])
+
+            clusters_X_Z = list([intersect_clusters(cluster_X, cluster_Z) for cluster_X in clusters_X for cluster_Z in clusters_Z])
+            clusters_X_Z = list([mon for cluster in clusters_X_Z for mon in cluster])
+
+            clusters_Y_Z = list([intersect_clusters(cluster_Y, cluster_Z) for cluster_Y in clusters_Y for cluster_Z in clusters_Z])
+            clusters_Y_Z = list([mon for cluster in clusters_Y_Z for mon in cluster])
+
+            for mon in clusters_X_Y:
+                for cluster in clusters_X:
+                    if cluster.remove_monomer(mon):
+                        break
+                for cluster in clusters_Y:
+                    if cluster.remove_monomer(mon):
+                        break
+
+            for mon in clusters_X_Z:
+                for cluster in clusters_X:
+                    if cluster.remove_monomer(mon):
+                        break
+                for cluster in clusters_Z:
+                    if cluster.remove_monomer(mon):
+                        break
+
+            for mon in clusters_Y_Z:
+                for cluster in clusters_Y:
+                    if cluster.remove_monomer(mon):
+                        break
+                for cluster in clusters_Z:
+                    if cluster.remove_monomer(mon):
+                        break
+
+        return (self.__x_clusters, self.__y_clusters, self.__z_clusters)
+    
+    def biggest_common_clusters(self, desired_percentage):
+        clusters_X, clusters_Y, clusters_Z = self.common_clusters()
+        total_monomers_count = sum([pol.len() for pol in self.__polymers])
+
+        clusters_X.sort(lambda c1: c1.size, True)
+        clusters_Y.sort(lambda c1: c1.size, True)
+        clusters_Z.sort(lambda c1: c1.size, True)
+
+        chosen_clusters: list[ClusterView] = []
+        
+        def chosen_clusters_monomers_count():
+            return sum([c.size for c in chosen_clusters]) if len(chosen_clusters) > 0 else 0
+
+        def test(testing: ClusterView, first: ClusterView, second: ClusterView):
+            if testing.len() == 0:
+                return False
+            
+            if first.len() != 0 and second.len() != 0:
+                return testing.get_cluster_by_number(0).size >= first.get_cluster_by_number(0).size and testing.get_cluster_by_number(0).size >= second.get_cluster_by_number(0).size
+            elif first.len() != 0:
+                return testing.get_cluster_by_number(0).size >= first.get_cluster_by_number(0).size
+            elif second.len() != 0:
+                return testing.get_cluster_by_number(0).size >= second.get_cluster_by_number(0).size
+            else:
+                return True
+        
+        percentage = 0
+        while percentage <= desired_percentage:
+            if test(clusters_X, clusters_Y, clusters_Z):
+                chosen_clusters.append(clusters_X.get_cluster_by_number(0))
+                clusters_X = clusters_X[1:]
+            elif test(clusters_Y, clusters_X, clusters_Z):
+                chosen_clusters.append(clusters_Y.get_cluster_by_number(0))
+                clusters_Y = clusters_Y[1:]
+            elif test(clusters_Z, clusters_X, clusters_Y):
+                chosen_clusters.append(clusters_Z.get_cluster_by_number(0))
+                clusters_Z = clusters_Z[1:]
+            else:
+                assert False, "It couldn't happen"
+
+            percentage = chosen_clusters_monomers_count() / total_monomers_count * 100
+
+        return chosen_clusters
+
+def get_direction(monomer: Monomer):
+    next_monomer = monomer.next_monomer
+    if next_monomer is None:
+        return Side.Undefined
+    
+    for side, side_monomer in monomer.sides.items():
+        if side_monomer is None:
+            continue
+        if side_monomer == next_monomer:
+            return side
+
+    return Side.Undefined
+
+def do_traverse(main_direction: Side, directions: list[Side], curr_monomer: Monomer, pot_cluster: list[Monomer]):
+    if len(directions) == 0:
+        return
+    
+    next_monomer: Monomer = curr_monomer.sides[directions[0]]
+    if next_monomer is None or next_monomer.is_of_type(MonomerType.Undefined):
+        pot_cluster.clear()
+        return
+    
+    next_in_main_direction_monomer: Monomer = next_monomer.sides[main_direction]
+    if next_in_main_direction_monomer is None:
+        pot_cluster.clear()
+        return
+
+    next_next_monomer = next_monomer.next_monomer
+    prev_next_monomer = next_monomer.prev_monomer
+    if next_next_monomer is None and prev_next_monomer is None:
+        pot_cluster.clear()
+        return
+
+    if next_next_monomer == next_in_main_direction_monomer or prev_next_monomer == next_in_main_direction_monomer:
+        pot_cluster.append(next_monomer)
+        pot_cluster.append(next_in_main_direction_monomer)
+        do_traverse(main_direction, directions[1:], next_monomer, pot_cluster)
+    else:
+        pot_cluster.clear()
+
+def find_clusters(current_globula: GlobulaView, axis: Axis, avg_tuple: tuple[int, Axis] = None):
+    clusters = list[Cluster]()
+    def fill_clusters(directions, main_direction):
+        pot_cluster: list[Monomer] = [monomer, monomer.sides[main_direction]]
+        do_traverse(main_direction, directions, monomer, pot_cluster)
+        if len(pot_cluster) == 8:
+            clusters.append(Cluster(pot_cluster, main_direction, axis))
+    for pol in current_globula:
+        for monomer in pol:
+            main_direction = get_direction(monomer)
+            if main_direction == Side.Undefined:
+                continue
+
+            old_size = len(clusters)
+            if axis == Axis.X_AXIS and main_direction in [Side.Forward, Side.Backward]:
+                fill_clusters([Side.Left, Side.Down, Side.Right], main_direction)
+                fill_clusters([Side.Left, Side.Up, Side.Right], main_direction)
+                fill_clusters([Side.Right, Side.Down, Side.Left], main_direction)
+                fill_clusters([Side.Right, Side.Up, Side.Left], main_direction)
+            elif axis == Axis.Y_AXIS and main_direction in [Side.Left, Side.Right]:
+                fill_clusters([Side.Backward, Side.Down, Side.Forward], main_direction)
+                fill_clusters([Side.Backward, Side.Up, Side.Forward], main_direction)
+                fill_clusters([Side.Forward, Side.Down, Side.Backward], main_direction)
+                fill_clusters([Side.Forward, Side.Up, Side.Backward], main_direction)
+            elif axis == Axis.Z_AXIS and main_direction in [Side.Up, Side.Down]:
+                fill_clusters([Side.Left, Side.Forward, Side.Right], main_direction)
+                fill_clusters([Side.Left, Side.Backward, Side.Right], main_direction)
+                fill_clusters([Side.Right, Side.Forward, Side.Left], main_direction)
+                fill_clusters([Side.Right, Side.Backward, Side.Left], main_direction)
+            else:
+                continue
+
+            if old_size != len(clusters):
+                clusters = gather_clusters(clusters, avg_tuple, old_size)
+
+    # Although we seem to have all the clusters already joined
+    # it is possible that some clusters can be joined.
+    # Since here we don't have a lot of them, this step shouldn't be
+    # too time-consuming
+    return gather_clusters(clusters, avg_tuple, None)
+
+def get_monomers_count_in_clusters(clusters: list[Cluster]):
+    s = set[Monomer]()
+    for cluster in clusters:
+        s.update(set(cluster.monomers))
+
+    return len(s)
+
+def gather_clusters(clusters: list[Cluster], avg_tuple : tuple[int, Axis] = None, start_from: int = None):
+    if avg_tuple is None:
+        return clusters
+
+    avg, avg_axis = avg_tuple
+    while True:
+        clusters_new = list[Cluster]()
+        # Build a dict where for each i we map a list of js that can be joined with i
+        d = dict[int, list[int]]()
+        # If start_from is None, then we need to compare all the cluster between each other
+        # to do the deep check of clusters possible to join
+        if start_from is None:
+            for i in range(len(clusters) - 1):
+                for j in range(i + 1, len(clusters)):
+                    joined_cluster = join_clusters(clusters[i], clusters[j])
+                    if joined_cluster is not None:
+                        if i not in d.keys():
+                            d[i] = list[int]()
+                            
+                        d[i].append(j)
+        # The algorithm of highlighing clusters determine that all the new clusters are added
+        # into the end of the clusters list, therefore, it is assumed it isn't able to join clusters
+        # before start_from. So we need to check only the new ones
+        else:
+            for i in range(start_from, len(clusters)):
+                for j in range(start_from):
+                    joined_cluster = join_clusters(clusters[i], clusters[j])
+                    if joined_cluster is not None:
+                        if i not in d.keys():
+                            d[i] = list[int]()
+                            
+                        d[i].append(j)
+
+        # If there's nothing to join, stop the algorithm
+        if len(d) == 0:
+            break
+
+        # Now join the extracted clusters recursively
+        # that means that if we, e.g, joined clusters 1 and 2 into a 1-2 cluster
+        # and cluster 2 and 3 into a 2-3 cluster, therefore, the joined ones have a common set of monomers
+        # which are in the cluster 2 and can be joined as well into a 1-2-3 cluster
+        def join_joined_clusters(current_node: int):
+            joined_clusters_for_current_node = list[int]()
+            # If nothing to join, come back
+            if current_node not in d.keys() or len(d[current_node]) == 0:
+                return joined_clusters_for_current_node
+            
+            for value in d[current_node]:
+                # Add the current cluster as the connection
+                joined_clusters_for_current_node.append(value)
+                # Recursively find others ready to be joined
+                received = join_joined_clusters(value)
+                for rec_value in received:
+                    if rec_value not in joined_clusters_for_current_node:
+                        joined_clusters_for_current_node.append(rec_value)
+                
+            # All clusters for this cluster are to become a part of another list,
+            # therefore, clear the current to avoid issues
+            d[current_node].clear()
+            return joined_clusters_for_current_node
+        
+        # Join the clusters. In fact, find the numbers belonging to the same cluster
+        for key in d.keys():
+            d[key] = join_joined_clusters(key) 
+        
+        # Do actual join
+        joined_clusters_indexes = set()
+        for key in d.keys():
+            joined_clusters_indexes.add(key)
+            joined_clusters_indexes.update(d[key])
+
+            if len(d[key]) == 0:
+                continue
+
+            curr_cluster = clusters[key]
+            for value in d[key]:
+                c = join_clusters(curr_cluster, clusters[value])
+                if c is None:
+                    continue
+                curr_cluster = c
+            clusters_new.append(curr_cluster)
+
+        # Those clusters not been touched must be moved as well
+        indexes_not_joined = set([i for i in range(len(clusters)) if i not in joined_clusters_indexes])
+        for i in indexes_not_joined:
+            clusters_new.append(clusters[i])
+        
+        clusters = clusters_new
+
+    # return those which satisfy the condition
+    return list(set([c for c in clusters if c.get_avg_length_by_axis(avg_axis) >= avg]))

@@ -11,7 +11,6 @@ from PyQt6.Qt3DRender import QPickEvent
 from PyQt6.Qt3DExtras import QPhongMaterial
 from stats_window import DlgStats, StatsInput
 from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
-from cluster_analysis.mark_O import mark_clusters, mark_common_clusters, mark_biggest_clusters
 from alg.polymer_lib import MonomerType
 from alg.config import Axis
 from choose_axis_dlg import DlgChooseAxis
@@ -115,13 +114,18 @@ class MainWindow(QDialog):
     def __mark_axis(self, axis: Axis):
         current_globula = self.__get_current_globula()
         avg = self.ui.chainLengthSpinBox.value()
-        if avg <= 0:
-            mark_clusters(current_globula, axis)
-        else:
+        if avg > 0:
             dlg = DlgChooseAxis(axis, self)
             if dlg.exec() == QDialog.DialogCode.Accepted:
-                chosen_axis = dlg.get_chosen_axis()
-                mark_clusters(current_globula, axis, (self.ui.chainLengthSpinBox.value(), chosen_axis))
+                axis = dlg.get_chosen_axis()
+
+        if axis == Axis.X_AXIS:
+            clusters = current_globula.x_clusters(avg)
+        elif axis == Axis.Y_AXIS:
+            clusters = current_globula.y_clusters(avg)
+        else:
+            clusters = current_globula.z_clusters(avg)
+        clusters.colorize()
 
     def __mark_x_axis(self):
         self.__mark_axis(Axis.X_AXIS)
@@ -134,13 +138,20 @@ class MainWindow(QDialog):
 
     def __mark_common_clusters(self):
         current_globula = self.__get_current_globula()
-        mark_common_clusters(current_globula)
+        common_clusters = current_globula.common_clusters()
+        for clusters in common_clusters:
+            clusters.colorize()
         
     def __mark_biggest_clusters(self):
         current_globula = self.__get_current_globula()
-        for ret, percentage in mark_biggest_clusters(current_globula):
-            QMessageBox.information(self, "Сохранение файла", f"Сейчас будет происходить сохранение {percentage}%")
+        for percentage in range(20, 51, 10):
+            clusters_percent = current_globula.biggest_common_clusters(percentage)
+            for clusterView in clusters_percent:
+                clusterView.colorize()
+            QMessageBox.information(self, "Сохранение", f"Происходит сохранение со степенью кристалличности {percentage}")
             self.__on_save_to_lammps_btn_clicked()
+            for clusterView in clusters_percent:
+                clusterView.colorize(reset=True)
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()
