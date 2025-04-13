@@ -134,6 +134,20 @@ class PolymerView(Entity):
             return QQuaternion.fromAxisAndAngle(Space.left_vector, 90.0)
         else:
             return QQuaternion.fromAxisAndAngle(Space.forward_vector, 90.0)
+        
+    def __monomer_to_json(self, monomer: Monomer):
+        return QJsonValue({
+            'coords': QJsonValue([c for c in monomer.coords]),
+            'type': QJsonValue(monomer.type),
+            'prev_monomer': QJsonValue([c for c in monomer.prev_monomer.coords] if monomer.prev_monomer is not None else []),
+            'next_monomer': QJsonValue([c for c in monomer.next_monomer.coords] if monomer.next_monomer is not None else [])
+        })
+
+    def __polymer_to_json(self, polymer: Polymer):
+        return QJsonValue({
+            'number': polymer.number(),
+            'monomers': QJsonValue([self.__monomer_to_json(mon) for mon in polymer])
+        })
 
     def to_json(self):
         start_point, end_point = self.get_start_end_monomers()
@@ -147,6 +161,7 @@ class PolymerView(Entity):
                 'value': self.len(),
                 'name': "Количество мономеров"
             },
+            'polymer': self.__polymer_to_json(self.polymer),
             'statistics': {
                 'end-to-end length': {
                     'value': length,
