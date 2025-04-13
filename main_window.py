@@ -14,6 +14,7 @@ from save_to_formats import SaveToFile, SaveToMol, SaveToLammps
 from alg.polymer_lib import MonomerType
 from alg.config import Axis
 from choose_axis_dlg import DlgChooseAxis
+from cluster_analysis_ui import DlgClusterAnalysis
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
@@ -61,6 +62,7 @@ class MainWindow(QDialog):
         add_action("Mark Z clusters", self.__mark_z_axis)
         add_action("Mark common_clusters", self.__mark_common_clusters)
         add_action("Mark biggest clusters", self.__mark_biggest_clusters)
+        add_action("Cluster analysis", self.__open_cluster_analysis_window)
         add_action("Mark as C", self.__mark_carbon)
         add_action("Remove", self.__on_remove_globula_triggered)
 
@@ -152,6 +154,11 @@ class MainWindow(QDialog):
             self.__on_save_to_lammps_btn_clicked()
             for clusterView in clusters_percent:
                 clusterView.colorize(reset=True)
+
+    def __open_cluster_analysis_window(self):
+        current_globula = self.__get_current_globula()
+        dlg = DlgClusterAnalysis(current_globula, self)
+        dlg.exec()
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()
