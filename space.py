@@ -10,7 +10,7 @@ class Space:
     forward_vector = QVector3D(0, 0, 1)
     backword_vector = QVector3D(0, 0, -1)
 
-    global_zero = QVector3D(0, 0, 0)
+    space_center = QVector3D(0, 0, 0)
     space_dimention = 0
     
     def point_within_borders(point: tuple):

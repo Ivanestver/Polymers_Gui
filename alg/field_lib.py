@@ -66,7 +66,7 @@ class Field:
         True
 
     def __get_length_metrics(self, start_point):
-        end_point = Space.global_zero
+        end_point = Space.space_center
         return math.sqrt(sum([(e - s) ** 2 for e, s in zip(end_point, start_point)]))
 
     def is_within_sphere(self, point):

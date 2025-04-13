@@ -20,8 +20,8 @@ class Window3D(Qt3DWindow):
 
     def __configure_camera(self):
         camera = self.camera()
-        camera.setPosition(Space.global_zero)
-        camera.setViewCenter(Space.global_zero - QVector3D(0, 0, Space.global_zero.z()))
+        camera.setPosition(Space.space_center)
+        camera.setViewCenter(Space.space_center - QVector3D(0, 0, Space.space_center.z()))
 
         camController = QOrbitCameraController(self.rootEntity)
         camController.setLinearSpeed(100)
@@ -35,7 +35,7 @@ class Window3D(Qt3DWindow):
             mesh.setLength(1000)
         
             translation = QTransform()
-            translation.setTranslation(Space.global_zero)
+            translation.setTranslation(Space.space_center)
             translation.setRotation(rotation)
 
             entity = QEntity(self.rootEntity)

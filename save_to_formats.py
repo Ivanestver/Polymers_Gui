@@ -69,11 +69,24 @@ class SaveToLammps(SaveToFile):
     def __get_atoms_count(self, globula: GlobulaView):
         atoms_count = 0
         for pol in globula:
-            atoms_count += pol.len()
+            for mon in pol:
+                if mon.type != MonomerType.Undefined:
+                    atoms_count += 1
         return atoms_count
 
     def __get_bonds_count(self, globula: GlobulaView):
-        return sum([pol.len() - 1 for pol in globula])
+        bonds_count = 0
+        for pol in globula:
+            start_mon, end_mon = pol.get_start_end_monomers()
+            curr_mon = start_mon
+            while curr_mon != end_mon:
+                if curr_mon.type != MonomerType.Undefined \
+                    and curr_mon.next_monomer != None \
+                    and curr_mon.next_monomer.type != MonomerType.Undefined:
+                        bonds_count += 1
+                curr_mon = curr_mon.next_monomer
+
+        return bonds_count
 
     def __get_monomer_types(self, globula: GlobulaView):
         types_set = set[MonomerType]()
@@ -81,6 +94,11 @@ class SaveToLammps(SaveToFile):
             for monomer in pol:
                 types_set.add(monomer.type)
 
+        try:
+            types_set.remove(MonomerType.Undefined)
+        except KeyError as e:
+            return types_set
+        
         return types_set
 
     def _build_contents(self, globula: GlobulaView):
@@ -105,10 +123,12 @@ class SaveToLammps(SaveToFile):
         d_types = { type: i + 1 for i, type in enumerate(types_set)}
 
         for type, i in d_types.items():
+            if type == MonomerType.Undefined:
+                continue
             try:
                 self.add_string(f'{i} 1 # {monomer_type_to_literal(type)}')
             except Exception as err:
-                print(err.with_traceback())
+                print(err.with_traceback(None))
                 return
 
         self.add_new_line()
@@ -125,6 +145,8 @@ class SaveToLammps(SaveToFile):
         monomer_number = 1
         for pol_number, pol in enumerate(globula):
             for monomer in pol:
+                if monomer.type == MonomerType.Undefined:
+                    continue
                 self.add_string(f'{monomer_number} 1 {d_types[monomer.type]} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
                 monomer_number += 1
         self.add_new_line()
@@ -136,6 +158,10 @@ class SaveToLammps(SaveToFile):
         monomer_number = 1
         for pol in globula:
             for i in range(pol.len() - 1):
+                ith_mon = pol[i]
+                i_plus_oneth_mon = pol[i + 1]
+                if ith_mon.is_of_type(MonomerType.Undefined) or i_plus_oneth_mon.is_of_type(MonomerType.Undefined):
+                    continue
                 self.add_string(f'{bond_number} 1 {monomer_number} {monomer_number + 1}')
                 bond_number += 1
                 monomer_number += 1

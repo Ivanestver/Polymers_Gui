@@ -91,7 +91,7 @@ class PolymerView(Entity):
                 monomer[0], 
                 monomer[1], 
                 monomer[2]
-            ) - Space.global_zero
+            ) - Space.space_center
         )
 
         sphereEntity = QEntity(self.entity)
@@ -109,7 +109,7 @@ class PolymerView(Entity):
             (monomer1[0] + monomer2[0]) / 2,
             (monomer1[1] + monomer2[1]) / 2,
             (monomer1[2] + monomer2[2]) / 2
-            ) - Space.global_zero)
+            ) - Space.space_center)
         rotation = self.__rotate_connection__(monomer1, monomer2)
         if rotation is not None:
             cylinderTransform.setRotation(rotation)
@@ -202,7 +202,7 @@ class GlobulaView(Entity):
     def __init__(self, name: str, polymers: list[Polymer], rootEntity: QEntity) -> None:
         super().__init__(name, rootEntity)
         if rootEntity is not None:
-            self.transform.setTranslation(Space.global_zero)
+            self.transform.setTranslation(Space.space_center)
 
         self.__polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
         self.__x_clusters: ClusterView = None
@@ -343,6 +343,16 @@ class GlobulaView(Entity):
 
         return chosen_clusters
 
+    def reset(self):
+        for pol in self.__polymers:
+            for mon in pol:
+                mon.type = MonomerType.Usual
+
+        self.__x_clusters = None
+        self.__y_clusters = None
+        self.__z_clusters = None
+        self.__common_cluster_done = False
+
 def get_direction(monomer: Monomer):
     next_monomer = monomer.next_monomer
     if next_monomer is None:
@@ -393,7 +403,7 @@ def find_clusters(current_globula: GlobulaView, axis: Axis, avg_tuple: tuple[int
     for pol in current_globula:
         for monomer in pol:
             main_direction = get_direction(monomer)
-            if main_direction == Side.Undefined:
+            if main_direction == Side.Undefined or monomer.is_of_type(MonomerType.Undefined):
                 continue
 
             old_size = len(clusters)

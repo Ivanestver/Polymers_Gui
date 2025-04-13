@@ -15,13 +15,15 @@ from alg.polymer_lib import MonomerType
 from alg.config import Axis
 from choose_axis_dlg import DlgChooseAxis
 from cluster_analysis_ui import DlgClusterAnalysis
+from radius_to_cut_window import DlgRadiusToCutWindow
+from alg.common_funcs import distance
 
 class MainWindow(QDialog):
     def __init__(self, space_dimention, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         Space.space_dimention = space_dimention
-        Space.global_zero = QVector3D(space_dimention / 2, space_dimention / 2, space_dimention / 2)
+        Space.space_center = QVector3D(space_dimention / 2, space_dimention / 2, space_dimention / 2)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -64,6 +66,7 @@ class MainWindow(QDialog):
         add_action("Mark biggest clusters", self.__mark_biggest_clusters)
         add_action("Cluster analysis", self.__open_cluster_analysis_window)
         add_action("Mark as C", self.__mark_carbon)
+        add_action("Cut by the desired raduis", self.__on_cut_by_radius)
         add_action("Remove", self.__on_remove_globula_triggered)
 
     def __on_save_to_file_action_triggered(self):
@@ -83,7 +86,7 @@ class MainWindow(QDialog):
         if not os.path.isdir(path_to_save_dir):
             os.mkdir(path_to_save_dir)
 
-        full_file_name = f'{path_to_save_dir}/Globula.ext'
+        full_file_name = f'{path_to_save_dir}/Globula'
         real_full_file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить", full_file_name, file_filters)
         if len(real_full_file_name) == 0:
             return
@@ -163,9 +166,7 @@ class MainWindow(QDialog):
 
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()
-        for pol in current_globula:
-            for monomer in pol:
-                monomer.type = MonomerType.Usual
+        current_globula.reset()
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()
@@ -205,6 +206,19 @@ class MainWindow(QDialog):
                 self.ui.monomersCountSpinBox.value(),
                 self.ui.radiusSphereSpinBox.value())
 
+    def __on_cut_by_radius(self):
+        dlg = DlgRadiusToCutWindow(self.ui.radiusSphereSpinBox.value(), self)
+        if dlg.exec() == QDialog.DialogCode.Rejected:
+            return
+
+        desired_radius = dlg.get_desired_radius()
+        current_globula = self.__get_current_globula()
+        current_globula.reset()
+        for pol in current_globula:
+            for mon in pol:
+                dist = distance(mon.coords, [Space.space_center.x(), Space.space_center.y(), Space.space_center.z()])
+                if dist > desired_radius:
+                    mon.type = MonomerType.Undefined
 
     def on_calc_btn_clicked(self):
         globuls_count = self.ui.filesCountSpinBox.value()
