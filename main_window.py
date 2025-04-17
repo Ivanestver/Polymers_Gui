@@ -1,5 +1,5 @@
 import os
-from PyQt6.QtWidgets import QDialog, QWidget, QMessageBox, QListWidgetItem, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QWidget, QMessageBox, QListWidgetItem, QFileDialog
 from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
@@ -18,7 +18,7 @@ from cluster_analysis_ui import DlgClusterAnalysis
 from radius_to_cut_window import DlgRadiusToCutWindow
 from alg.common_funcs import distance
 
-class MainWindow(QDialog):
+class MainWindow(QMainWindow):
     def __init__(self, space_dimention, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
