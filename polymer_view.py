@@ -8,6 +8,7 @@ from space import Space
 from alg.polymer_lib import Polymer, Monomer, MonomerType
 from cluster_analysis.cluster import intersect_clusters, Cluster, join_clusters
 from alg.config import Axis, get_axis_color, Side
+from alg.field_lib import Field
 
 class Entity:
     def __init__(self, name: str, rootEntity: QEntity) -> None:
@@ -171,6 +172,25 @@ class PolymerView(Entity):
         }
         return QJsonValue(json_dict)
 
+    def from_json(json: QJsonValue, field: Field):
+        pol = Polymer(field, json['polymer']['number'].toInt())
+        monomers = json['polymer']['monomers'].toArray()
+        for monomer in monomers:
+            coords = monomer['coords'].toArray()
+            coords = list([v.toInt() for v in coords])
+            next_monomer = monomer['next_monomer'].toArray()
+            next_monomer = list([v.toInt() for v in next_monomer])
+            prev_monomer = monomer['prev_monomer'].toArray()
+            prev_monomer = list([v.toInt() for v in prev_monomer])
+            t = monomer['type'].toInt()
+            m = field.get_monomer_by_coords(coords)
+            m.type = t
+            m.next_monomer = field.get_monomer_by_coords(next_monomer) if len(next_monomer) != 0 else None
+            m.prev_monomer = field.get_monomer_by_coords(prev_monomer) if len(prev_monomer) != 0 else None
+            pol._polymer.append(m)
+
+        return PolymerView(pol, None)
+
 class ClusterView:
     def __init__(self, globula, avg_tuple: tuple[int, Axis]):
         self._avg, self._axis = avg_tuple
@@ -229,7 +249,15 @@ class GlobulaView(Entity):
         }
 
         return QJsonValue(json_dict)
-    
+
+    def from_json(json: QJsonValue, sphere_radius: int):
+        polymers_json = json['value']['polymers']['value'].toArray()
+        new_globula = GlobulaView(json['name'].toString(), list(), None)
+        field = Field(sphere_radius)
+        for polymer_json in polymers_json:
+            new_globula.__polymers.append(PolymerView.from_json(polymer_json, field))
+        return new_globula
+
     def get_mass_center(self):
         center = (0, 0, 0)
         N = 0

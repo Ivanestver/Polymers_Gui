@@ -1,5 +1,5 @@
 import os
-from PyQt6.QtWidgets import QMainWindow, QWidget, QMessageBox, QListWidgetItem, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QDialog, QWidget, QMessageBox, QListWidgetItem, QFileDialog
 from polymer_view import GlobulaView
 from uis.ui_main_window import Ui_MainWindow
 import PyQt6.QtCore as core
@@ -22,8 +22,7 @@ class MainWindow(QMainWindow):
     def __init__(self, space_dimention, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        Space.space_dimention = space_dimention
-        Space.space_center = QVector3D(space_dimention / 2, space_dimention / 2, space_dimention / 2)
+        Space.set_space_dimention(space_dimention)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -43,6 +42,7 @@ class MainWindow(QMainWindow):
         self.ui.btnDown.clicked.connect(self.on_btn_down_clicked)
         self.ui.btnRight.clicked.connect(self.on_btn_right_clicked)
         self.setup_context_menu()
+        self.ui.loadFromDataFileBtn.triggered.connect(self.__load_from_data_file)
 
         self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {Space.space_dimention})")
         self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
@@ -167,6 +167,33 @@ class MainWindow(QMainWindow):
     def __mark_carbon(self):
         current_globula = self.__get_current_globula()
         current_globula.reset()
+
+    def __load_from_data_file(self):
+        file_path = QFileDialog.getOpenFileName(self, "Выбрать частицу", "./slices", "*.json")
+        if len(file_path[0]) == 0:
+            return
+
+        with open(file_path[0], 'r', encoding='utf-8') as file:
+            contents = file.read()
+            self.__read_from_json(contents)
+            
+
+    def __read_from_json(self, json_str: str):
+        json = core.QByteArray(json_str.encode())
+        doc = core.QJsonDocument.fromJson(json)
+        Space.set_space_dimention(doc['space_dimention']['value'].toInt())
+        self.ui.thresholdSpinBox.setValue(doc['threshold']['value'].toInt())
+        self.ui.monomersCountSpinBox.setValue(doc['max_monomers_count']['value'].toInt())
+        self.ui.polymersCountSpinBox.setValue(doc['polymers_count']['value'].toInt())
+        self.ui.radiusSphereSpinBox.setMaximum(Space.space_dimention)
+        radius_sphere = doc['radius_sphere']['value'].toInt()
+        self.ui.radiusSphereSpinBox.setValue(radius_sphere)
+        self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {radius_sphere})")
+        new_globula: GlobulaView = GlobulaView.from_json(doc['globula'], self.ui.radiusSphereSpinBox.value())
+        self.view.add_globula(new_globula)
+        globula_item = QListWidgetItem(new_globula.name)
+        globula_item.setData(self.GLOBULA_ROLE, new_globula)
+        self.ui.polymersListWidget.addItem(globula_item)
 
     def __get_modelling_info_as_json(self, globula: GlobulaView):
         space_dimention, polymers_count, threshold, monomers_count, radius_sphere = self.__get_modelling_parameters()

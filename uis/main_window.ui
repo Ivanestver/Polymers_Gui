@@ -198,8 +198,20 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Меню</string>
+    </property>
+    <addaction name="loadFromDataFileBtn"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="loadFromDataFileBtn">
+   <property name="text">
+    <string>Загрузить из файла .data</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

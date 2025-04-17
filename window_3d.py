@@ -76,6 +76,9 @@ class Window3D(Qt3DWindow):
         self.globulas.append(new_globula)
         return new_globula
 
+    def add_globula(self, globula: GlobulaView):
+        self.globulas.append(globula)
+
     def remove_globula(self, globula: GlobulaView):
         if globula not in self.globulas:
             return

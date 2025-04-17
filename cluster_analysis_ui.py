@@ -25,9 +25,9 @@ class DlgClusterAnalysis(QDialog):
     def __get_distro(self):
         clusters_x, clusters_y, clusters_z = self.globula.common_clusters()
         max_mass = max([
-            max([cluster.size for cluster in clusters_x]),
-            max([cluster.size for cluster in clusters_y]),
-            max([cluster.size for cluster in clusters_z]),
+            max([cluster.size for cluster in clusters_x]) if clusters_x.len() != 0 else 0,
+            max([cluster.size for cluster in clusters_y]) if clusters_y.len() != 0 else 0,
+            max([cluster.size for cluster in clusters_z]) if clusters_z.len() != 0 else 0,
         ])
 
         self.H = int(max_mass / self.division)

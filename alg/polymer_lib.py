@@ -8,7 +8,7 @@ class Polymer:
     __number__ = 0
     def __init__(self, field: Field, number = None):
         self.__field = field
-        self.__polymer: list[Monomer] = []
+        self._polymer: list[Monomer] = []
         if number is None:
             self.__number = Polymer.__number__
             Polymer.__number__ += 1
@@ -16,23 +16,23 @@ class Polymer:
             self.__number = number
         
     def __iter__(self):
-        return iter(self.__polymer)
+        return iter(self._polymer)
     
     def add_monomer(self, m: Monomer):
-        if len(self.__polymer) != 0:
-            self.__polymer[-1].next_monomer = m
-            m.prev_monomer = self.__polymer[-1]
+        if len(self._polymer) != 0:
+            self._polymer[-1].next_monomer = m
+            m.prev_monomer = self._polymer[-1]
 
-        self.__polymer.append(m)
+        self._polymer.append(m)
         
     def len(self):
-        return len(self.__polymer)
+        return len(self._polymer)
 
     def front(self):
-        return self.__polymer[0]
+        return self._polymer[0]
     
     def back(self):
-        return self.__polymer[-1]
+        return self._polymer[-1]
     
     def name(self):
         return f"Polymer {self.__number}"
@@ -45,25 +45,25 @@ class Polymer:
     
     def copy(self):
         new_polymer = Polymer(self.__field, self.number())
-        new_polymer.__polymer = self.__polymer.copy()
+        new_polymer._polymer = self._polymer.copy()
         return new_polymer
         
     def get_monomer_idx(self, curr_monomer):
-        for i, monomer in enumerate(self.__polymer):
+        for i, monomer in enumerate(self._polymer):
             if all([item.left == item.right for item in list(zip(curr_monomer, monomer))]):
                 return i
         return -1
 
     def get_monomer_by_idx(self, idx: int):
-        if (idx < 0 or idx >= len(self.__polymer)):
+        if (idx < 0 or idx >= len(self._polymer)):
             return None
-        return self.__polymer[idx]
+        return self._polymer[idx]
 
     def calc_energy(self):
         u = 0.0
-        last_point = self.__polymer[-1]
-        if len(self.__polymer) > 1:
-            prelast_point = self.__polymer[-2]
+        last_point = self._polymer[-1]
+        if len(self._polymer) > 1:
+            prelast_point = self._polymer[-2]
         else:
             prelast_point = last_point
         for side in Side:
@@ -74,20 +74,20 @@ class Polymer:
 
     def calc_whole_energy(self):
         u = 0.0
-        for i in range(len(self.__polymer)):
-            for j in range(len(self.__polymer)):
+        for i in range(len(self._polymer)):
+            for j in range(len(self._polymer)):
                 if i == j:
                     continue
                     
-                r_ij = 1 / distance(self.__polymer[i], self.__polymer[j])
+                r_ij = 1 / distance(self._polymer[i], self._polymer[j])
                 u += 4 * 0.01 * ((r_ij ** 12) - (r_ij ** 6))
 
         return u
 
     def make_step_back(self):
-        if (len(self.__polymer) <= 1):
+        if (len(self._polymer) <= 1):
             return False
-        self.__polymer.remove(self.__polymer[-1])
+        self._polymer.remove(self._polymer[-1])
         return True
 
     def get_min_max_width_height(self):
@@ -96,7 +96,7 @@ class Polymer:
         min_height = Space.space_dimention
         max_height = 0
 
-        for monomer in self.__polymer:
+        for monomer in self._polymer:
             min_width = min(min_width, monomer[Axis.X_AXIS.value])
             max_width = max(max_width, monomer[Axis.Y_AXIS.value])
             min_height = min(min_height, monomer[Axis.X_AXIS.value])

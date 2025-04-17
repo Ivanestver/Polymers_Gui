@@ -15,3 +15,7 @@ class Space:
     
     def point_within_borders(point: tuple):
         return all([0 <= c <= Space.space_dimention for c in point])
+
+    def set_space_dimention(space_dimention):
+        Space.space_dimention = space_dimention
+        Space.space_center = QVector3D(space_dimention / 2, space_dimention / 2, space_dimention / 2)
