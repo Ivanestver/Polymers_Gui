@@ -1,8 +1,19 @@
-from alg.config import Axis
+from alg.config import Axis, ConnectionType, get_all_sides
 from polymer_view import PolymerView, GlobulaView
 from space import Space
 from alg.polymer_lib import MonomerType
 from alg.monomer_lib import monomer_type_to_literal
+from math import sqrt
+
+def bond_type_mass(type: ConnectionType):
+    if type == ConnectionType.TypeOne:
+        return 1
+    elif type == ConnectionType.TypeTwo:
+        return sqrt(2)
+    elif type == ConnectionType.TypeThree:
+        return sqrt(3)
+    else:
+        assert False, "Unknown connection type"
 
 class SaveToFile:
     def __init__(self, file_label, file_extension):
@@ -101,15 +112,32 @@ class SaveToLammps(SaveToFile):
         
         return types_set
 
+    def __get_bond_types(self, globula: GlobulaView):
+        types_set = set[ConnectionType]()
+        all_sides = get_all_sides()
+        bonds_count = 0
+        for pol in globula:
+            for mon in pol:
+                for side in all_sides:
+                    type = mon.get_type_of_connection_with_side(side)
+                    sibling = mon.get_sibling(side)
+                    if type != ConnectionType.TypeUndefined and sibling is not None and sibling.number != -1:
+                        types_set.add(type)
+                        bonds_count += 1
+                        
+        return types_set, int(bonds_count / 2)
+                
+
     def _build_contents(self, globula: GlobulaView):
         self.add_string("LAMMPS data file via write_data, version 24 Dec 2020, timestep = 40000000")
         self.add_new_line()
 
-        types_set = self.__get_monomer_types(globula)
+        monomer_types_set = self.__get_monomer_types(globula)
+        bond_types_set, bonds_count = self.__get_bond_types(globula)
         self.add_string(f'{self.__get_atoms_count(globula)} atoms')
-        self.add_string(f'{len(types_set)} atom types')
-        self.add_string(f'{self.__get_bonds_count(globula)} bonds')
-        self.add_string(f'1 bond types')
+        self.add_string(f'{len(monomer_types_set)} atom types')
+        self.add_string(f'{bonds_count} bonds')
+        self.add_string(f'{len(bond_types_set)} bond types')
         self.add_new_line()
 
         self.add_string(f'0 {Space.space_dimention} xlo xhi')
@@ -120,7 +148,7 @@ class SaveToLammps(SaveToFile):
         self.add_string("Masses")
         self.add_new_line()
 
-        d_types = { type: i + 1 for i, type in enumerate(types_set)}
+        d_types = { type: i + 1 for i, type in enumerate(monomer_types_set)}
 
         for type, i in d_types.items():
             if type == MonomerType.Undefined:
@@ -136,36 +164,40 @@ class SaveToLammps(SaveToFile):
         self.add_string('Bond Coeffs # harmonic')
         self.add_new_line()
 
-        self.add_string(f'1 10000 # 1')
+        for i, bond_type in enumerate(bond_types_set):
+            self.add_string(f'{i + 1} 10000 # {bond_type_mass(bond_type)}')
         self.add_new_line()
 
-        self.add_string('Atoms # molecular')
+        self.add_string('Atoms # full')
         self.add_new_line()
 
-        monomer_number = 1
         for pol_number, pol in enumerate(globula):
             for monomer in pol:
                 if monomer.type == MonomerType.Undefined:
                     continue
-                self.add_string(f'{monomer_number} 1 {d_types[monomer.type]} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
-                monomer_number += 1
+                self.add_string(f'{monomer.number} 1 {d_types[monomer.type]} 0.00000 {monomer[Axis.X_AXIS.value]} {monomer[Axis.Y_AXIS.value]} {monomer[Axis.Z_AXIS.value]} 0 0 0')
         self.add_new_line()
 
         self.add_string('Bonds')
         self.add_new_line()
 
         bond_number = 1
-        monomer_number = 1
+        used_pairs = set()
+        all_sides = get_all_sides()
         for pol in globula:
-            for i in range(pol.len() - 1):
-                ith_mon = pol[i]
-                i_plus_oneth_mon = pol[i + 1]
-                if ith_mon.is_of_type(MonomerType.Undefined) or i_plus_oneth_mon.is_of_type(MonomerType.Undefined):
-                    continue
-                self.add_string(f'{bond_number} 1 {monomer_number} {monomer_number + 1}')
-                bond_number += 1
-                monomer_number += 1
-            monomer_number += 1
+            for mon in pol:
+                for side in all_sides:
+                    other_mon= mon.get_sibling(side)
+                    if other_mon is not None and other_mon.number != -1:
+                        pair = tuple(sorted((mon.number, other_mon.number)))
+                        if pair not in used_pairs:
+                            self.add_string(f'{bond_number} 1 {mon.number} {other_mon.number}')
+                            bond_number += 1
+                            used_pairs.add(pair)
+
+        self.add_new_line()
+        self.add_string('Angles')
+        self.add_new_line()
 
         angle_number = 1
         for pol in globula:

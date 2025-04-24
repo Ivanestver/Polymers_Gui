@@ -1,4 +1,4 @@
-from alg.config import Axis, Side
+from alg.config import Axis, Side, get_movement_sides
 from alg.field_lib import Field
 from space import Space
 from alg.common_funcs import distance
@@ -66,8 +66,9 @@ class Polymer:
             prelast_point = self._polymer[-2]
         else:
             prelast_point = last_point
-        for side in Side:
-            if last_point.sides[side] is not None and not last_point.sides[side].is_of_type(MonomerType.Undefined) and last_point.sides[side] != prelast_point:
+        for side in get_movement_sides():
+            sibling: Monomer = last_point.get_sibling(side)
+            if sibling is not None and not sibling.is_of_type(MonomerType.Undefined) and sibling != prelast_point:
                 u += -1.0
 
         return u

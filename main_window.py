@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
         self.ui.radiusSphereSpinBox.setValue(radius_sphere)
         self.ui.sphereRadiusText.setText(f"Радиус сферы (не больше {radius_sphere})")
         new_globula: GlobulaView = GlobulaView.from_json(doc['globula'], self.ui.radiusSphereSpinBox.value())
-        self.view.add_globula(new_globula)
+        self.view.add_ready_made_globula(new_globula)
         globula_item = QListWidgetItem(new_globula.name)
         globula_item.setData(self.GLOBULA_ROLE, new_globula)
         self.ui.polymersListWidget.addItem(globula_item)

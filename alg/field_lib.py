@@ -1,9 +1,9 @@
 import math
 from typing import Iterable
-from alg.config import axis_count, MoveDirection, Axis, Side, get_side
+from alg.config import axis_count, MoveDirection, Axis, Side, get_side, get_movement_sides
 import numpy as np
 from space import Space
-from alg.monomer_lib import Monomer, MonomerType
+from alg.monomer_lib import Monomer, MonomerType, make_connection, ConnectionType
 
 class Field:
     def __init__(self, sphere_radius):
@@ -24,12 +24,12 @@ class Field:
             for j in range(shape[1]):
                 for k in range(shape[2]):
                     monomer = self._field[i][j][k]
-                    monomer.sides[Side.Forward] = self._field[i + 1][j][k] if i < shape[0] - 1 else None
-                    monomer.sides[Side.Backward] = self._field[i - 1][j][k] if i > 0 else None
-                    monomer.sides[Side.Left] = self._field[i][j + 1][k] if j < shape[1] - 1 else None
-                    monomer.sides[Side.Right] = self._field[i][j - 1][k] if j > 0 else None
-                    monomer.sides[Side.Up] = self._field[i][j][k + 1] if k < shape[2] - 1 else None
-                    monomer.sides[Side.Down] = self._field[i][j][k - 1] if k > 0 else None
+                    make_connection(monomer, self._field[i + 1][j][k] if i < shape[0] - 1 else None, Side.Forward, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i - 1][j][k] if i > 0 else None, Side.Backward, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i][j + 1][k] if j < shape[1] - 1 else None, Side.Left, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i][j - 1][k] if j > 0 else None, Side.Right, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i][j][k + 1] if k < shape[2] - 1 else None, Side.Up, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i][j][k - 1] if k > 0 else None, Side.Down, ConnectionType.TypeOne)
         
     def __set_cell_state(self, position_to_set: Iterable, state: MonomerType):
         item = self._field
@@ -84,9 +84,10 @@ class Field:
     def get_available_cells(self, curr_pos: tuple):
         available_cells: list[Monomer] = []
         monomer = self.get_monomer_by_coords(curr_pos)
-        for side in Side:
-            if monomer.sides[side] is not None and monomer.sides[side].is_of_type(MonomerType.Undefined):
-                available_cells.append(monomer.sides[side])
+        for side in get_movement_sides():
+            sibling: Monomer = monomer.get_sibling(side)
+            if sibling is not None and sibling.is_of_type(MonomerType.Undefined):
+                available_cells.append(sibling)
 
         return available_cells
     

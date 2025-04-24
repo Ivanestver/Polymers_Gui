@@ -225,6 +225,11 @@ class GlobulaView(Entity):
             self.transform.setTranslation(Space.space_center)
 
         self.__polymers = [PolymerView(polymer, self.entity) for polymer in polymers]
+        monomer_number = 1
+        for pol in self.__polymers:
+            for mon in pol:
+                mon.number = monomer_number
+                monomer_number += 1
         self.__x_clusters: ClusterView = None
         self.__y_clusters: ClusterView = None
         self.__z_clusters: ClusterView = None
@@ -386,24 +391,18 @@ def get_direction(monomer: Monomer):
     if next_monomer is None:
         return Side.Undefined
     
-    for side, side_monomer in monomer.sides.items():
-        if side_monomer is None:
-            continue
-        if side_monomer == next_monomer:
-            return side
-
-    return Side.Undefined
+    return monomer.get_side_of_sibling(next_monomer)
 
 def do_traverse(main_direction: Side, directions: list[Side], curr_monomer: Monomer, pot_cluster: list[Monomer]):
     if len(directions) == 0:
         return
     
-    next_monomer: Monomer = curr_monomer.sides[directions[0]]
+    next_monomer: Monomer = curr_monomer.get_sibling(directions[0])
     if next_monomer is None or next_monomer.is_of_type(MonomerType.Undefined):
         pot_cluster.clear()
         return
     
-    next_in_main_direction_monomer: Monomer = next_monomer.sides[main_direction]
+    next_in_main_direction_monomer: Monomer = next_monomer.get_sibling(main_direction)
     if next_in_main_direction_monomer is None:
         pot_cluster.clear()
         return
@@ -424,10 +423,12 @@ def do_traverse(main_direction: Side, directions: list[Side], curr_monomer: Mono
 def find_clusters(current_globula: GlobulaView, axis: Axis, avg_tuple: tuple[int, Axis] = None):
     clusters = list[Cluster]()
     def fill_clusters(directions, main_direction):
-        pot_cluster: list[Monomer] = [monomer, monomer.sides[main_direction]]
+        pot_cluster: list[Monomer] = [monomer, monomer.get_sibling(main_direction)]
         do_traverse(main_direction, directions, monomer, pot_cluster)
         if len(pot_cluster) == 8:
-            clusters.append(Cluster(pot_cluster, main_direction, axis))
+            new_cluster = Cluster(pot_cluster, main_direction, axis)
+            new_cluster.make_fully_connected()
+            clusters.append(new_cluster)
     for pol in current_globula:
         for monomer in pol:
             main_direction = get_direction(monomer)
