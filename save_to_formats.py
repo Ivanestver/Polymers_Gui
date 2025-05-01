@@ -188,7 +188,8 @@ class SaveToLammps(SaveToFile):
             for mon in pol:
                 for side in all_sides:
                     other_mon= mon.get_sibling(side)
-                    if other_mon is not None and other_mon.number != -1:
+                    conn_type = mon.get_type_of_connection_with_side(side)
+                    if conn_type != ConnectionType.TypeUndefined and other_mon is not None and other_mon.number != -1:
                         pair = tuple(sorted((mon.number, other_mon.number)))
                         if pair not in used_pairs:
                             self.add_string(f'{bond_number} 1 {mon.number} {other_mon.number}')

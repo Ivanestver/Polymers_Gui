@@ -4,10 +4,11 @@ from PyQt6.QtGui import QVector3D, QQuaternion, QColor
 from PyQt6.Qt3DCore import QEntity, QTransform
 from PyQt6.Qt3DExtras import QPhongMaterial, QSphereMesh, QCylinderMesh
 from PyQt6.Qt3DRender import QObjectPicker
+from alg.monomer_lib import make_connection
 from space import Space
 from alg.polymer_lib import Polymer, Monomer, MonomerType
 from cluster_analysis.cluster import intersect_clusters, Cluster, join_clusters
-from alg.config import Axis, get_axis_color, Side
+from alg.config import Axis, get_axis_color, Side, ConnectionType
 from alg.field_lib import Field
 
 class Entity:
@@ -66,6 +67,13 @@ class PolymerView(Entity):
                 self.__add_connection__(curr_monomer, next_monomer)
         
         self.polymer = polymer
+        prev = polymer.get_monomer_by_idx(0)
+        curr = polymer.get_monomer_by_idx(1)
+        while curr is not None:
+            make_connection(prev, curr, ConnectionType.TypeOne)
+            prev = curr
+            curr = curr.next_monomer
+            
 
     def len(self):
         return self.polymer.len()

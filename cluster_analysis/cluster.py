@@ -12,12 +12,10 @@ class Cluster:
             for j in range(i + 1, len(self._monomers)):
                 if i == j:
                     continue
-                side = get_side_by_monomers(self._monomers[i], self._monomers[j])
                 make_connection( \
                     self._monomers[i], \
                     self._monomers[j],\
-                    side,\
-                    get_connection_type(self._monomers[i], self._monomers[j], side)
+                    get_connection_type(self._monomers[i], self._monomers[j], get_side_by_monomers(self._monomers[i], self._monomers[j]))
                 )
 
     @property

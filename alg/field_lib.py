@@ -24,12 +24,12 @@ class Field:
             for j in range(shape[1]):
                 for k in range(shape[2]):
                     monomer = self._field[i][j][k]
-                    make_connection(monomer, self._field[i + 1][j][k] if i < shape[0] - 1 else None, Side.Forward, ConnectionType.TypeOne)
-                    make_connection(monomer, self._field[i - 1][j][k] if i > 0 else None, Side.Backward, ConnectionType.TypeOne)
-                    make_connection(monomer, self._field[i][j + 1][k] if j < shape[1] - 1 else None, Side.Left, ConnectionType.TypeOne)
-                    make_connection(monomer, self._field[i][j - 1][k] if j > 0 else None, Side.Right, ConnectionType.TypeOne)
-                    make_connection(monomer, self._field[i][j][k + 1] if k < shape[2] - 1 else None, Side.Up, ConnectionType.TypeOne)
-                    make_connection(monomer, self._field[i][j][k - 1] if k > 0 else None, Side.Down, ConnectionType.TypeOne)
+                    make_connection(monomer, self._field[i + 1][j][k] if i < shape[0] - 1 else None, ConnectionType.TypeUndefined)
+                    make_connection(monomer, self._field[i - 1][j][k] if i > 0 else None, ConnectionType.TypeUndefined)
+                    make_connection(monomer, self._field[i][j + 1][k] if j < shape[1] - 1 else None, ConnectionType.TypeUndefined)
+                    make_connection(monomer, self._field[i][j - 1][k] if j > 0 else None, ConnectionType.TypeUndefined)
+                    make_connection(monomer, self._field[i][j][k + 1] if k < shape[2] - 1 else None, ConnectionType.TypeUndefined)
+                    make_connection(monomer, self._field[i][j][k - 1] if k > 0 else None, ConnectionType.TypeUndefined)
         
     def __set_cell_state(self, position_to_set: Iterable, state: MonomerType):
         item = self._field

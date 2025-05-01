@@ -32,6 +32,10 @@ class Connection:
     def type(self):
         return self.__type
 
+    @type.setter
+    def type(self, other_type):
+        self.__type = other_type
+
 class Monomer:
     def __init__(self, coords: list[int], type: MonomerType = MonomerType.Undefined):
         self._coords = coords
@@ -107,10 +111,11 @@ class Monomer:
         return self._coords[i]
 
         
-def make_connection(mon1: Monomer, mon2: Monomer, side: Side, type: ConnectionType):
-    if mon1 is None or mon2 is None or side == Side.Undefined or type == ConnectionType.TypeUndefined:
+def make_connection(mon1: Monomer, mon2: Monomer, type: ConnectionType):
+    if mon1 is None or mon2 is None:
         return
 
+    side = get_side_by_monomers(mon1.coords, mon2.coords)
     conn = mon1.sides[side]
     reversed_side = get_reversed_side(side)
     if conn is None:
@@ -121,6 +126,7 @@ def make_connection(mon1: Monomer, mon2: Monomer, side: Side, type: ConnectionTy
         other_side = conn.get_other_side(mon1)
         if mon2 != other_side:
             raise Exception("Two monomers occupy the same location")
+        conn.type = type
 
 def break_connection(mon1: Monomer, mon2: Monomer, side: Side):
     if side in get_movement_sides():
