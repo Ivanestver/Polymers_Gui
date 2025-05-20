@@ -105,7 +105,7 @@ func (this *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterV
 
 		ForEachCluster(clusters_X, func(cluster_X *Cluster) {
 			ForEachCluster(clusters_Y, func(cluster_Y *Cluster) {
-				common_monomers := IntersectClusters(cluster_X, cluster_Y)
+				common_monomers := IntersectClusters_Soft(cluster_X, cluster_Y)
 				for _, common_monomer := range common_monomers {
 					ForEachCluster(clusters_X, func(cluster *Cluster) {
 						cluster.RemoveMonomer(common_monomer)
@@ -119,7 +119,7 @@ func (this *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterV
 
 		ForEachCluster(clusters_Y, func(cluster_Y *Cluster) {
 			ForEachCluster(clusters_Z, func(cluster_Z *Cluster) {
-				common_monomers := IntersectClusters(cluster_Y, cluster_Z)
+				common_monomers := IntersectClusters_Soft(cluster_Y, cluster_Z)
 				for _, common_monomer := range common_monomers {
 					ForEachCluster(clusters_Y, func(cluster *Cluster) {
 						cluster.RemoveMonomer(common_monomer)
@@ -133,7 +133,7 @@ func (this *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterV
 
 		ForEachCluster(clusters_X, func(cluster_X *Cluster) {
 			ForEachCluster(clusters_Z, func(cluster_Z *Cluster) {
-				common_monomers := IntersectClusters(cluster_X, cluster_Z)
+				common_monomers := IntersectClusters_Soft(cluster_X, cluster_Z)
 				for _, common_monomer := range common_monomers {
 					ForEachCluster(clusters_X, func(cluster *Cluster) {
 						cluster.RemoveMonomer(common_monomer)
@@ -144,6 +144,22 @@ func (this *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterV
 				}
 			})
 		})
+		// In case we have empty cluster, we need to remove them
+		clusters_X.Trunkate()
+		clusters_Y.Trunkate()
+		clusters_Z.Trunkate()
+
+		// Everything is done. We're ready to fully-connect them
+		for _, cluster := range []*ClusterView{clusters_X, clusters_Y, clusters_Z} {
+			ForEachCluster(cluster, func(c *Cluster) {
+				c.MakeFullyConnected()
+			})
+		}
+		// Now let's colorize them
+		clusters_X.Colorize(false)
+		clusters_Y.Colorize(false)
+		clusters_Z.Colorize(false)
+
 		this.commonClusterDone = true
 	}
 	return this.xClusters, this.yClusters, this.zClusters

@@ -5,22 +5,105 @@ import (
 	dt "polymers/datatypes"
 )
 
-type Cluster struct {
-	monomers      []*dt.Monomer
+const c_CLUSTER_UNIT_SIZE int = 8
+
+type ClusterUnit struct {
+	monomers      [c_CLUSTER_UNIT_SIZE]*dt.Monomer
 	mainDirection dt.Side
 	axis          dt.Axis
 }
 
-func NewCluster(monomers []*dt.Monomer, mainDirection dt.Side, axis dt.Axis) *Cluster {
+func NewClusterUnit(monomers []*dt.Monomer, mainDirection dt.Side, axis dt.Axis) *ClusterUnit {
+	if len(monomers) != c_CLUSTER_UNIT_SIZE {
+		return nil
+	}
+	newClusterUnit := new(ClusterUnit)
+	for i := 0; i < c_CLUSTER_UNIT_SIZE; i++ {
+		newClusterUnit.monomers[i] = monomers[i]
+	}
+	newClusterUnit.mainDirection = mainDirection
+	newClusterUnit.axis = axis
+	return newClusterUnit
+}
+
+func (this *ClusterUnit) Size() int {
+	return c_CLUSTER_UNIT_SIZE
+}
+
+func (this *ClusterUnit) MakeFullyConnected() {
+	for i := 0; i < this.Size()-1; i++ {
+		currMon := this.monomers[i]
+		for j := i + 1; j < this.Size(); j++ {
+			sideMon := this.monomers[j]
+			side := dt.GetSideByMonomers(currMon, sideMon)
+			if side != dt.SIDE_Undefined {
+				dt.MakeConnection(currMon, sideMon, dt.GetConnectionType(currMon, sideMon))
+			}
+		}
+	}
+}
+
+func (this *ClusterUnit) contains(monomer *dt.Monomer) bool {
+	for _, mon := range this.monomers {
+		if dt.MonomersAreEqual(mon, monomer) {
+			return true
+		}
+	}
+	return false
+}
+
+func (this *ClusterUnit) setTypeOfMonomers(monomerType dt.MonomerType) {
+	for i := 0; i < this.Size(); i++ {
+		currMon := this.monomers[i]
+		currMon.MonomerType = monomerType
+	}
+}
+
+func clusterUnitsAreEqual(unit1, unit2 *ClusterUnit) bool {
+	if unit1 == nil && unit2 == nil {
+		return true
+	}
+	if unit1 == nil || unit2 == nil {
+		return false
+	}
+
+	if unit1.axis != unit2.axis &&
+		unit1.mainDirection != unit2.mainDirection &&
+		unit1.mainDirection != dt.GetReversedSide(unit2.mainDirection) {
+		return false
+	}
+
+	for _, mon := range unit1.monomers {
+		contains := false
+		for _, m := range unit2.monomers {
+			if dt.MonomersAreEqual(mon, m) {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			return false
+		}
+	}
+	return true
+}
+
+type Cluster struct {
+	units         []*ClusterUnit
+	mainDirection dt.Side
+	axis          dt.Axis
+}
+
+func NewCluster(unit []*ClusterUnit, mainDirection dt.Side, axis dt.Axis) *Cluster {
 	newCluster := new(Cluster)
-	newCluster.monomers = monomers
+	newCluster.units = unit
 	newCluster.mainDirection = mainDirection
 	newCluster.axis = axis
 	return newCluster
 }
 
-func (this *Cluster) Monomers() []*dt.Monomer {
-	return this.monomers
+func (this *Cluster) Size() int {
+	return len(this.units)
 }
 
 func (this *Cluster) MainDirection() dt.Side {
@@ -31,121 +114,20 @@ func (this *Cluster) Axis() dt.Axis {
 	return this.axis
 }
 
-func (this *Cluster) Size() int {
-	return len(this.monomers)
-}
-
 func (this *Cluster) SetTypeOfMonomers(monomerType dt.MonomerType) {
-	for _, mon := range this.monomers {
-		mon.MonomerType = monomerType
-		additionalSides := dt.GetAdditionalSides()
-		if monomerType == dt.MONOMER_TYPE_UNDEFINED || monomerType == dt.MONOMER_TYPE_USUAL {
-			for _, side := range additionalSides {
-				sideMon, err := mon.GetSibling(side)
-				if err == nil {
-					dt.BreakConnection(mon, sideMon, side)
-				}
-			}
-		}
+	for _, unit := range this.units {
+		unit.setTypeOfMonomers(monomerType)
 	}
 }
 
 func (this *Cluster) RemoveMonomer(monomer *dt.Monomer) bool {
-	idx := base.Index[*dt.Monomer](this.monomers, monomer)
-	if idx < 0 {
-		return false
-	}
-
-	additionalSides := dt.GetAdditionalSides()
-	if monomer.MonomerType == dt.MONOMER_TYPE_UNDEFINED || monomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-		// Break all the connections between the current monomer and the others.
-		// Meanwhile, gather those other monomers in order to break connections between them
-		candidates := make([]*dt.Monomer, 0)
-		currMon := this.monomers[idx]
-		for _, side := range additionalSides {
-			sideMon, err := currMon.GetSibling(side)
-			// It's essential to remove only those monomers which belong to the cluster
-			if err == nil && base.Contains(this.monomers, sideMon) {
-				candidates = append(candidates, sideMon)
-				dt.BreakConnection(currMon, sideMon, side)
-			}
-		}
-		for _, side := range dt.GetMovementSides() {
-			sideMon, err := currMon.GetSibling(side)
-			if err == nil && base.Contains(this.monomers, sideMon) {
-				candidates = append(candidates, sideMon)
-				if !dt.MonomersAreEqual(sideMon, currMon.NextMonomer) &&
-					!dt.MonomersAreEqual(sideMon, currMon.PrevMonomer) {
-					dt.BreakConnection(currMon, sideMon, side)
-				}
-			}
-		}
-		this.monomers = append(this.monomers[:idx], this.monomers[idx+1:]...)
-
-		// Unattached the current monomer. It's time to break all the connections
-		// between candidates. We gotta consider all the possible pairs
-		for i := 0; i < len(candidates); i++ {
-			for j := i + 1; j < len(candidates); j++ {
-				dt.BreakConnection(candidates[i], candidates[j], dt.GetSideByMonomers(candidates[i], candidates[j]))
-			}
-		}
-		// Now we may have the situation when a candidate has no connection to the cluster's monomers
-		// Therefore, such candidates must be removed as well
-
-		// Firstly, don't consider those which don't belong to this cluster
-		candidates_temp := make([]*dt.Monomer, 0)
-		for _, candidate := range candidates {
-			idx := base.Index_if(this.monomers, func(m *dt.Monomer) bool { return dt.MonomersAreEqual(m, candidate) })
-			if idx >= 0 {
-				candidates_temp = append(candidates_temp, candidate)
-			}
-		}
-		candidates = candidates_temp
-
-		// Then, the idea is that if a candidate doesn't have any additional connections
-		// excepting potential connections as the polymer's part, it has to be removed
-		candidates_temp = make([]*dt.Monomer, 0)
-		for _, candidate := range candidates {
-			// If there is any additional side connection, skip this monomer
-			noConnection := true
-			for _, side := range additionalSides {
-				if candidate.GetTypeOfConnectionWithSide(side) != dt.CONNECTION_TYPE_UNDEFINED {
-					noConnection = false
-					break
-				}
-			}
-			if !noConnection {
-				continue
-			}
-			nextMonSide := candidate.GetSideOfSibling(candidate.NextMonomer)
-			prevMonSide := candidate.GetSideOfSibling(candidate.PrevMonomer)
-			noConnection = true
-			for _, side := range dt.GetMovementSides() {
-				// If this is the side of the polymer's chain, skip
-				if nextMonSide != dt.SIDE_Undefined && side == nextMonSide {
-					continue
-				}
-				if prevMonSide != dt.SIDE_Undefined && side == prevMonSide {
-					continue
-				}
-				connType := candidate.GetTypeOfConnectionWithSide(side)
-				if connType != dt.CONNECTION_TYPE_UNDEFINED {
-					noConnection = false
-					break
-				}
-			}
-			if noConnection {
-				candidates_temp = append(candidates_temp, candidate)
-			}
-		}
-		for _, candidate := range candidates_temp {
-			idx := base.Index_if(this.monomers, func(m *dt.Monomer) bool { return dt.MonomersAreEqual(m, candidate) })
-			if idx >= 0 {
-				this.monomers = append(this.monomers[:idx], this.monomers[idx+1:]...)
-			}
+	for i, unit := range this.units {
+		if unit.contains(monomer) {
+			this.units = append(this.units[:i], this.units[i+1:]...)
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func containsMonomer(usedMonomers *[]*dt.Monomer, mon *dt.Monomer) bool {
@@ -158,18 +140,24 @@ func containsMonomer(usedMonomers *[]*dt.Monomer, mon *dt.Monomer) bool {
 }
 
 func (this *Cluster) GetAvgLengthByAxis() float64 {
+	allMonomers := make([]*dt.Monomer, 0)
+	for _, unit := range this.units {
+		for _, mon := range unit.monomers {
+			allMonomers = append(allMonomers, mon)
+		}
+	}
 	sideBackward := dt.GetReversedSide(this.mainDirection)
 
 	lengths := make([]float64, 0)
 	usedMonomers := make([]*dt.Monomer, 0)
-	for _, mon := range this.monomers {
+	for _, mon := range allMonomers {
 		if containsMonomer(&usedMonomers, mon) {
 			continue
 		}
 
 		currMonomer := mon
 		sibling, err := currMonomer.GetSibling(sideBackward)
-		for err == nil && containsMonomer(&this.monomers, sibling) {
+		for err == nil && containsMonomer(&allMonomers, sibling) {
 			currMonomer = sibling
 			sibling, err = currMonomer.GetSibling(sideBackward)
 		}
@@ -177,7 +165,7 @@ func (this *Cluster) GetAvgLengthByAxis() float64 {
 		usedMonomers = append(usedMonomers, currMonomer)
 		length := 1.0
 		sibling, err = currMonomer.GetSibling(this.mainDirection)
-		for err == nil && containsMonomer(&this.monomers, sibling) {
+		for err == nil && containsMonomer(&allMonomers, sibling) {
 			currMonomer = sibling
 			usedMonomers = append(usedMonomers, currMonomer)
 			length += 1.0
@@ -190,21 +178,8 @@ func (this *Cluster) GetAvgLengthByAxis() float64 {
 }
 
 func (this *Cluster) MakeFullyConnected() {
-	// for i, mon_i := range this.monomers {
-	// 	for j := i + 1; j < len(this.monomers); j++ {
-	// 		dt.MakeConnection(mon_i, this.monomers[j], dt.GetConnectionType(mon_i, this.monomers[j]))
-	// 	}
-	// }
-
-	for i := 0; i < len(this.monomers)-1; i++ {
-		currMon := this.monomers[i]
-		for j := i + 1; j < len(this.monomers); j++ {
-			sideMon := this.monomers[j]
-			side := dt.GetSideByMonomers(currMon, sideMon)
-			if side != dt.SIDE_Undefined {
-				dt.MakeConnection(currMon, sideMon, dt.GetConnectionType(currMon, sideMon))
-			}
-		}
+	for _, unit := range this.units {
+		unit.MakeFullyConnected()
 	}
 }
 
@@ -215,37 +190,75 @@ func JoinClusters(cluster1, cluster2 *Cluster) *Cluster {
 		return nil
 	}
 
-	intersection := IntersectClusters(cluster1, cluster2)
+	intersection := IntersectClusters_StickToDirection(cluster1, cluster2)
 
-	// If there's no or only one point to join, then they're possibly of different cluster
+	// If there's nothing to connect, these are probably different clusters
 	if len(intersection) < 2 {
 		return nil
 	}
-	monomers := make([]*dt.Monomer, 0)
-	for _, mon := range cluster1.monomers {
-		monomers = append(monomers, mon)
+
+	units := make([]*ClusterUnit, 0)
+	for _, unit1 := range cluster1.units {
+		units = append(units, unit1)
 	}
-	for _, mon := range cluster2.monomers {
-		if !base.Any(intersection, func(m *dt.Monomer) bool { return dt.MonomersAreEqual(m, mon) }) {
-			monomers = append(monomers, mon)
+
+	for _, unit2 := range cluster2.units {
+		contains := false
+		for _, unit := range units {
+			if clusterUnitsAreEqual(unit, unit2) {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			units = append(units, unit2)
 		}
 	}
 
-	return NewCluster(monomers, cluster1.mainDirection, cluster1.axis)
+	return NewCluster(units, cluster1.mainDirection, cluster1.axis)
 }
 
-func IntersectClusters(cluster1, cluster2 *Cluster) []*dt.Monomer {
+func intersectClusterUnits(unit1, unit2 *ClusterUnit) []*dt.Monomer {
 	m := make(map[*dt.Monomer]bool)
-	for _, mon := range cluster1.monomers {
+	for _, mon := range unit1.monomers {
 		m[mon] = true
 	}
 	intersection := make([]*dt.Monomer, 0)
-	for _, mon := range cluster2.monomers {
+	for _, mon := range unit2.monomers {
 		if _, ok := m[mon]; ok {
 			intersection = append(intersection, mon)
 		}
 	}
 	return intersection
+}
+
+func IntersectClusters_Soft(cluster1, cluster2 *Cluster) []*dt.Monomer {
+	intersectedClusterUnits_map := make(map[*dt.Monomer]bool, 0)
+	for i := 0; i < cluster1.Size(); i++ {
+		for j := 0; j < cluster2.Size(); j++ {
+			inters := intersectClusterUnits(cluster1.units[i], cluster2.units[j])
+			if len(inters) > 0 {
+				for _, mon := range inters {
+					intersectedClusterUnits_map[mon] = true
+				}
+			}
+		}
+	}
+	intersection := make([]*dt.Monomer, 0)
+	for key := range intersectedClusterUnits_map {
+		intersection = append(intersection, key)
+	}
+	return intersection
+}
+
+func IntersectClusters_StickToDirection(cluster1, cluster2 *Cluster) []*dt.Monomer {
+	if cluster1.mainDirection != cluster2.mainDirection &&
+		cluster1.mainDirection != dt.GetReversedSide(cluster2.mainDirection) &&
+		cluster1.axis != cluster2.axis {
+		return nil
+	}
+
+	return IntersectClusters_Soft(cluster1, cluster2)
 }
 
 type ClusterView struct {
@@ -269,6 +282,19 @@ func (this *ClusterView) Colorize(reset bool) {
 		} else {
 			cluster.SetTypeOfMonomers(dt.GetAxisColor(this.axis))
 		}
+	}
+}
+
+func (this *ClusterView) Trunkate() {
+	idxsToRemove := make([]int, 0)
+	for i, cluster := range this.clusters {
+		if cluster.Size() == 0 {
+			idxsToRemove = append(idxsToRemove, i)
+		}
+	}
+
+	for i := len(idxsToRemove) - 1; i >= 0; i-- {
+		this.clusters = append(this.clusters[:idxsToRemove[i]], this.clusters[idxsToRemove[i]+1:]...)
 	}
 }
 
@@ -326,8 +352,8 @@ func fillClusters(directions []dt.Side, mainDirection dt.Side, axis dt.Axis, mon
 	potCluster[1] = sibling
 	doTraverse(mainDirection, directions, monomer, &potCluster)
 	if len(potCluster) == 8 {
-		new_cluster := NewCluster(potCluster, mainDirection, axis)
-		new_cluster.MakeFullyConnected()
+		new_cluster := NewCluster([]*ClusterUnit{NewClusterUnit(potCluster, mainDirection, axis)}, mainDirection, axis)
+		//new_cluster.MakeFullyConnected()
 		*clusters = append(*clusters, new_cluster)
 	}
 }
@@ -377,9 +403,9 @@ func findClusters(currentGlobula *GlobulaView, axis dt.Axis, avg float64) []*Clu
 }
 
 func get_monomers_count_in_clusters(clusters []*Cluster) int {
-	s := make(map[*dt.Monomer]bool)
+	s := make(map[*ClusterUnit]bool)
 	for _, cluster := range clusters {
-		for _, mon := range cluster.monomers {
+		for _, mon := range cluster.units {
 			s[mon] = true
 		}
 	}
