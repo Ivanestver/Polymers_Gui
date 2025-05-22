@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
@@ -9,13 +10,14 @@ import (
 	"polymers/savers"
 	"polymers/views"
 	"strconv"
+	"time"
 )
 
 var inputData build_globula.CalcAlgInputData
 var globulas []*views.GlobulaView
 
 func main() {
-	//rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 	fileNumber := 1
 	printInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention int64 = 10
@@ -25,16 +27,16 @@ func main() {
 	printlnInfo("Configuring the global data")
 	global_data.ConfigureGlobalData(spaceDimention)
 	printlnInfo("Configuring the global data finished")
-	/*
-		inputData.PolymersCount = 5
-		inputData.AcceptThreshold = 0.1
-		inputData.MaxMonomersCount = 10000
-		inputData.SphereRadius = 100
-	*/
-	inputData.PolymersCount = 3
+	inputData.PolymersCount = 5
 	inputData.AcceptThreshold = 0.1
-	inputData.MaxMonomersCount = 40
-	inputData.SphereRadius = 10
+	inputData.MaxMonomersCount = 10000
+	inputData.SphereRadius = 100
+	/*
+		inputData.PolymersCount = 3
+		inputData.AcceptThreshold = 0.1
+		inputData.MaxMonomersCount = 40
+		inputData.SphereRadius = 10
+	*/
 	printlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	//cmdReader := bufio.NewReader(os.Stdin)
 	isWorking := true
