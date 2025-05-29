@@ -27,16 +27,16 @@ func main() {
 	printlnInfo("Configuring the global data")
 	global_data.ConfigureGlobalData(spaceDimention)
 	printlnInfo("Configuring the global data finished")
-	inputData.PolymersCount = 5
-	inputData.AcceptThreshold = 0.1
-	inputData.MaxMonomersCount = 10000
-	inputData.SphereRadius = 100
 	/*
-		inputData.PolymersCount = 3
+		inputData.PolymersCount = 5
 		inputData.AcceptThreshold = 0.1
-		inputData.MaxMonomersCount = 40
-		inputData.SphereRadius = 10
+		inputData.MaxMonomersCount = 10000
+		inputData.SphereRadius = 100
 	*/
+	inputData.PolymersCount = 3
+	inputData.AcceptThreshold = 0.1
+	inputData.MaxMonomersCount = 40
+	inputData.SphereRadius = 10
 	printlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	//cmdReader := bufio.NewReader(os.Stdin)
 	isWorking := true

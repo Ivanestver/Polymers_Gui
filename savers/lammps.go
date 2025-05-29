@@ -124,7 +124,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 				if err == nil && connType != dt.CONNECTION_TYPE_UNDEFINED && otherMon.Number != -1 {
 					newPair := makeOrderedIntPair(mon.Number, otherMon.Number)
 					if _, ok := used_pairs[newPair]; !ok {
-						addString(&content, strconv.Itoa(bondNumber)+" 1 "+strconv.Itoa(int(mon.Number))+" "+strconv.Itoa(int(otherMon.Number)))
+						addString(&content, strconv.Itoa(bondNumber)+" "+strconv.Itoa(int(connType))+" "+strconv.Itoa(int(mon.Number))+" "+strconv.Itoa(int(otherMon.Number)))
 						bondNumber += 1
 						used_pairs[newPair] = true
 					}
@@ -133,17 +133,19 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 		})
 	})
 
-	addNewLine(&content)
-	addString(&content, "Angles")
-	addNewLine(&content)
+	/*
+		addNewLine(&content)
+		addString(&content, "Angles")
+		addNewLine(&content)
 
-	angleNumber := 1
-	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		for i := 1; i < pol.Len(); i++ {
-			addString(&content, strconv.Itoa(angleNumber)+" 1 "+strconv.Itoa(i)+" "+strconv.Itoa(i+1)+" "+strconv.Itoa(i+1))
-			angleNumber++
-		}
-	})
+		angleNumber := 1
+		views.ForEachPolymer(globula, func(pol *views.PolymerView) {
+			for i := 1; i < pol.Len(); i++ {
+				addString(&content, strconv.Itoa(angleNumber)+" 1 "+strconv.Itoa(i)+" "+strconv.Itoa(i+1)+" "+strconv.Itoa(i+1))
+				angleNumber++
+			}
+		})
+	*/
 
 	return content, nil
 }
