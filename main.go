@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
@@ -10,40 +9,48 @@ import (
 	"polymers/savers"
 	"polymers/views"
 	"strconv"
-	"time"
 )
 
 var inputData build_globula.CalcAlgInputData
 var globulas []*views.GlobulaView
 
+func getGlobulaByName(name string) *views.GlobulaView {
+	for _, glob := range globulas {
+		if glob.Name() == name {
+			return glob
+		}
+	}
+	return nil
+}
+
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	//rand.Seed(time.Now().UnixNano())
 	fileNumber := 1
 	printInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
-	var spaceDimention int64 = 10
+	var spaceDimention int64 = 100
 	//fmt.Scanln(&spaceDimention)
 	printfInfo("The space dimention set by user is %d\n", spaceDimention)
 
 	printlnInfo("Configuring the global data")
 	global_data.ConfigureGlobalData(spaceDimention)
 	printlnInfo("Configuring the global data finished")
+	inputData.PolymersCount = 5
+	inputData.AcceptThreshold = 0.1
+	inputData.MaxMonomersCount = 2000
+	inputData.SphereRadius = 100
 	/*
 		inputData.PolymersCount = 5
 		inputData.AcceptThreshold = 0.1
-		inputData.MaxMonomersCount = 10000
-		inputData.SphereRadius = 100
+		inputData.MaxMonomersCount = 40
+		inputData.SphereRadius = 20
 	*/
-	inputData.PolymersCount = 3
-	inputData.AcceptThreshold = 0.1
-	inputData.MaxMonomersCount = 40
-	inputData.SphereRadius = 10
 	printlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	//cmdReader := bufio.NewReader(os.Stdin)
 	isWorking := true
 	commands := make([]string, 0)
 	commands = append(commands, "build  ")
 	commands = append(commands, "save \"Globula 0\"  ")
-	commands = append(commands, "clusters \"Globula 0\" all  ")
+	commands = append(commands, "age \"Globula 0\"  5000  ")
 	commands = append(commands, "save \"Globula 0\"  ")
 	commands = append(commands, "exit  ")
 	for isWorking {
@@ -89,13 +96,7 @@ func main() {
 			break
 		case interp.COMMAND_SHOW_GLOBULA:
 			globulaName := data.(string)
-			var globula *views.GlobulaView
-			for _, glob := range globulas {
-				if glob.Name() == globulaName {
-					globula = glob
-					break
-				}
-			}
+			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			if globula != nil {
 				printGlobulaInfo(globula)
 			} else {
@@ -104,39 +105,43 @@ func main() {
 			break
 		case interp.COMMAND_SAVE_GLOBULA:
 			globulaName := data.(string)
-			var globula *views.GlobulaView
-			for _, glob := range globulas {
-				if glob.Name() == globulaName {
-					globula = glob
-					break
-				}
-			}
+			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			content, _ := savers.SaveToLammps(globula)
 			f, err := os.Create(globulaName + strconv.Itoa(fileNumber) + ".data")
-			fileNumber++
 			if err != nil {
 				printlnError(err.Error())
 				break
 			}
 			f.Write([]byte(content))
-			// if err := json.NewEncoder(os.Stdout).Encode(globula); err != nil {
-			// 	printlnError(err.Error())
-			// }
+			/*f, err = os.Create(globulaName + strconv.Itoa(fileNumber) + ".json")
+			if err != nil {
+				printlnError(err.Error())
+				break
+			}
+			if err := json.NewEncoder(f).Encode(globula); err != nil {
+				printlnError(err.Error())
+			}*/
+			fileNumber++
 			break
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
 			globulaName := data.(string)
-			var globula *views.GlobulaView
-			for _, glob := range globulas {
-				if glob.Name() == globulaName {
-					globula = glob
-					break
-				}
-			}
+			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			fmt.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			xClusters.Colorize(false)
 			yClusters.Colorize(false)
 			zClusters.Colorize(false)
+		case interp.COMMAND_AGE:
+			data := data.(map[string]interface{})
+			groupsCount := data["count"].(int)
+			if groupsCount < 10 {
+				fmt.Println("GroupsCount must be positive and not less than 10")
+				break
+			}
+			globulaName := data["globula"].(string)
+			globula := getGlobulaByName(globulaName)
+			globula.DoAging(groupsCount)
+
 		case interp.COMMAND_EXIT:
 			isWorking = false
 			break

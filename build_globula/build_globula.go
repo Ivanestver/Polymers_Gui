@@ -83,7 +83,7 @@ func (this *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.F
 				fmt.Printf("\t\t%s. Done: %d percent out of 100.\n", polymer.Name(), intPersentage)
 			}
 
-			fmt.Printf("%s's monomersc count: %d\n", polymer.Name(), polymer.Len())
+			//fmt.Printf("%s's monomersc count: %d\n", polymer.Name(), polymer.Len())
 			if polymer.Len() == this.inputData.MaxMonomersCount {
 				finishedPolymers = append(finishedPolymers, polymer)
 				blacklist = append(blacklist, i)

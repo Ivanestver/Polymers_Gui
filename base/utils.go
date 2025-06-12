@@ -16,6 +16,15 @@ func Contains[T comparable](container []T, value T) bool {
 	return false
 }
 
+func Contains_if[T comparable](container []T, value T, pred func(it T, value T) bool) bool {
+	for _, v := range container {
+		if pred(v, value) {
+			return true
+		}
+	}
+	return false
+}
+
 func All[T comparable](container []T, pred func(T) bool) bool {
 	for _, value := range container {
 		if !pred(value) {

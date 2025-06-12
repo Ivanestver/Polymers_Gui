@@ -75,6 +75,28 @@ func BreakConnection(mon1, mon2 *Monomer, side Side) error {
 	return nil
 }
 
+func TierConnection(mon1, mon2 *Monomer, side Side) error {
+	if mon1 == nil || mon2 == nil {
+		return errors.New("One of monomers is nil")
+	}
+
+	reversed_side := GetReversedSide(side)
+	curr_conn, ok := mon1.sides[side]
+	if !ok {
+		return errors.New("Could not receive the connection")
+	}
+	other_conn, ok := mon2.sides[reversed_side]
+	if !ok {
+		return errors.New("Could not receive the connection on the other side")
+	}
+	if curr_conn != other_conn {
+		return errors.New("Two connection occupy the same place")
+	}
+	curr_conn.ConnType = CONNECTION_TYPE_UNDEFINED
+
+	return nil
+}
+
 func GetConnectionType(sideOne, sideTwo *Monomer) ConnectionType {
 	side := GetSideByMonomers(sideOne, sideTwo)
 	if base.Contains[Side](GetMovementSides(), side) {

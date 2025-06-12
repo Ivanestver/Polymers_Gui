@@ -21,6 +21,7 @@ const (
 	COMMAND_SAVE_STR            = "save"
 	COMMAND_CLUSTERS_STR        = "clusters"
 	COMMAND_CLUSTERS_ALL_STR    = "all"
+	COMMAND_AGE_STR             = "age"
 )
 
 type Command = int
@@ -38,6 +39,7 @@ const (
 	COMMAND_SHOW_GLOBULA
 	COMMAND_SAVE_GLOBULA
 	COMMAND_HIGHLIGHT_CLUSTERS_ALL
+	COMMAND_AGE
 	COMMAND_EXIT
 )
 
@@ -84,6 +86,34 @@ func getNextToken() (string, error) {
 	return token, nil
 }
 
+func getGlobulaName() (string, error) {
+	getNextToken() // skip all the empty spaces until " or the end
+	if finished() {
+		return "", nil
+	}
+
+	if string(getCurrChar()) != "\"" {
+		return "", errors.New("Usage: show globula \"<globula name>\"")
+	}
+	moveForward()
+	var globulaName string
+	for !finished() {
+		token, err := getNextToken()
+		if err != nil {
+			return "", err
+		}
+		if len(globulaName) == 0 {
+			globulaName += token
+		} else {
+			globulaName += " " + token
+		}
+		if string(getCurrChar()) == "\"" {
+			return globulaName, nil
+		}
+	}
+	return "", errors.New("Globula name must be wrapped with \"\"")
+}
+
 func Interpret(program string) (Command, interface{}) {
 	reset()
 	currProgram = program
@@ -118,6 +148,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_CLUSTERS_STR {
 		return clusters()
+	}
+
+	if token == COMMAND_AGE_STR {
+		return age()
 	}
 
 	if token == COMMAND_EXIT_STR {
@@ -309,4 +343,35 @@ func clusters() (Command, interface{}) {
 	}
 
 	return COMMAND_UNDEFINED, "Usage: clusters \"<globula name>\" <param>"
+}
+
+func age() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	if finished() {
+		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+	}
+	getNextToken() // skip empty spaces
+	if finished() {
+		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+	}
+	moveForward()
+	if finished() {
+		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+	}
+	token, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	groupCount, err := strconv.Atoi(token)
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	m := make(map[string]interface{})
+	m["globula"] = globulaName
+	m["count"] = groupCount
+	return COMMAND_AGE, m
 }
