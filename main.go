@@ -140,7 +140,7 @@ func main() {
 			}
 			globulaName := data["globula"].(string)
 			globula := getGlobulaByName(globulaName)
-			globula.DoAging(groupsCount)
+			globula.DoAging1(groupsCount)
 
 		case interp.COMMAND_EXIT:
 			isWorking = false

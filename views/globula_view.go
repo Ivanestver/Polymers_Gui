@@ -170,7 +170,7 @@ func (globula *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *Clust
 // var turn int = 0
 // var Bs_ = make([]*dt.Monomer, 0)
 
-func (globula *GlobulaView) DoAging(groupsCount int) {
+func (globula *GlobulaView) DoAging1(groupsCount int) {
 	/*
 		The aging process consists of 4 stages:
 		1. Break connections and randomly assign the new ends as B and C so that we have 26% of B and 26% of C
@@ -215,10 +215,10 @@ func (globula *GlobulaView) DoAging(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount) * 0.26))
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_NWISE)
 
 	// 2. Turn some Bs into C
-	turnBIntoC(&Bs_, int(float64(groupsCount)*0.03))
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_OWISE)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -226,10 +226,10 @@ func (globula *GlobulaView) DoAging(groupsCount int) {
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 
 	// 4. Create connections
-	globula.createBConnections(int(float64(groupsCount)*0.59), &Bs_)
+	globula.createCrosslinks(int(float64(groupsCount)*0.59), &Bs_)
 }
 
-func (globula *GlobulaView) breakConnections(groupsCount int) []*dt.Monomer {
+func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
 	Bs := make([]*dt.Monomer, 0)
 	for len(Bs) != groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
@@ -249,18 +249,27 @@ func (globula *GlobulaView) breakConnections(groupsCount int) []*dt.Monomer {
 		if rand.Intn(2) == 0 {
 			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
 			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
-			Bs = append(Bs, chosenMonomer)
+			if monomerTypeToGather == dt.MONOMER_TYPE_NWISE {
+				Bs = append(Bs, chosenMonomer)
+			} else {
+				Bs = append(Bs, nextMonomer)
+			}
 		} else {
 			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
 			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
 			Bs = append(Bs, nextMonomer)
+			if monomerTypeToGather == dt.MONOMER_TYPE_OWISE {
+				Bs = append(Bs, chosenMonomer)
+			} else {
+				Bs = append(Bs, nextMonomer)
+			}
 		}
 	}
 
 	return Bs
 }
 
-func turnBIntoC(Bs *[]*dt.Monomer, groupsCount int) {
+func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn datatypes.MonomerType) {
 	mapUsedBs := make(map[int]bool)
 	for len(mapUsedBs) != groupsCount {
 		mapUsedBs[rand.Intn(len(*Bs))] = true
@@ -273,7 +282,7 @@ func turnBIntoC(Bs *[]*dt.Monomer, groupsCount int) {
 	sort.Ints(arr)
 
 	for i := len(arr) - 1; i >= 0; i-- {
-		(*Bs)[arr[i]].MonomerType = dt.MONOMER_TYPE_OWISE
+		(*Bs)[arr[i]].MonomerType = monomerTypeToTurn
 		*Bs = append((*Bs)[:arr[i]], (*Bs)[arr[i]+1:]...)
 	}
 }
@@ -292,7 +301,7 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 	}
 }
 
-func (globula *GlobulaView) createBConnections(groupsCount int, Bs *[]*dt.Monomer) {
+func (globula *GlobulaView) createCrosslinks(groupsCount int, Bs *[]*dt.Monomer) {
 	for len(*Bs) != groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
