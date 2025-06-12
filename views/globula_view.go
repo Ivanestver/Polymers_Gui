@@ -226,7 +226,7 @@ func (globula *GlobulaView) DoAging(groupsCount int) {
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 
 	// 4. Create connections
-	globula.createHConnections(int(float64(groupsCount)*0.59), &Bs_)
+	globula.createBConnections(int(float64(groupsCount)*0.59), &Bs_)
 }
 
 func (globula *GlobulaView) breakConnections(groupsCount int) []*dt.Monomer {
@@ -247,12 +247,12 @@ func (globula *GlobulaView) breakConnections(groupsCount int) []*dt.Monomer {
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		datatypes.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
-			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
-			Bs = append(Bs, chosenMonomer)
-		} else {
 			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
 			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
+			Bs = append(Bs, chosenMonomer)
+		} else {
+			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
+			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
 			Bs = append(Bs, nextMonomer)
 		}
 	}
@@ -273,7 +273,7 @@ func turnBIntoC(Bs *[]*dt.Monomer, groupsCount int) {
 	sort.Ints(arr)
 
 	for i := len(arr) - 1; i >= 0; i-- {
-		(*Bs)[arr[i]].MonomerType = dt.MONOMER_TYPE_NWISE
+		(*Bs)[arr[i]].MonomerType = dt.MONOMER_TYPE_OWISE
 		*Bs = append((*Bs)[:arr[i]], (*Bs)[arr[i]+1:]...)
 	}
 }
@@ -286,13 +286,13 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
+			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
 			i++
 		}
 	}
 }
 
-func (globula *GlobulaView) createHConnections(groupsCount int, Bs *[]*dt.Monomer) {
+func (globula *GlobulaView) createBConnections(groupsCount int, Bs *[]*dt.Monomer) {
 	for len(*Bs) != groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
@@ -308,8 +308,8 @@ func (globula *GlobulaView) createHConnections(groupsCount int, Bs *[]*dt.Monome
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
-				chosenMonomer.MonomerType = dt.MONOMER_TYPE_OWISE
-				nextMonomer.MonomerType = dt.MONOMER_TYPE_OWISE
+				chosenMonomer.MonomerType = dt.MONOMER_TYPE_NWISE
+				nextMonomer.MonomerType = dt.MONOMER_TYPE_NWISE
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
