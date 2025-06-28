@@ -50,7 +50,7 @@ func main() {
 	commands := make([]string, 0)
 	commands = append(commands, "build  ")
 	commands = append(commands, "save \"Globula 0\"  ")
-	commands = append(commands, "age \"Globula 0\"  5000  ")
+	commands = append(commands, "age \"Globula 0\"  3000  ")
 	commands = append(commands, "save \"Globula 0\"  ")
 	commands = append(commands, "exit  ")
 	for isWorking {
@@ -140,7 +140,7 @@ func main() {
 			}
 			globulaName := data["globula"].(string)
 			globula := getGlobulaByName(globulaName)
-			globula.DoAging1(groupsCount)
+			globula.DoAging2(groupsCount)
 
 		case interp.COMMAND_EXIT:
 			isWorking = false

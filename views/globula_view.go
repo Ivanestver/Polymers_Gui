@@ -6,6 +6,7 @@ import (
 	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"sort"
+	"strconv"
 )
 
 type GlobulaView struct {
@@ -215,10 +216,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_NWISE)
+	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_NWISE)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_OWISE)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_OWISE)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -226,7 +227,23 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 
 	// 4. Create connections
-	globula.createCrosslinks(int(float64(groupsCount)*0.59), &Bs_)
+	globula.createCrosslinks1(int(float64(groupsCount)*0.59), &Cs_)
+}
+
+func (globula *GlobulaView) DoAging2(groupsCount int) {
+	// 1. Break connections
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_OWISE)
+
+	// 2. Turn some Bs into C
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_NWISE)
+
+	// 3. Turn random bins into Cs (excluding Bs)
+	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
+	// Do it twice
+	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
+
+	// 4. Create connections
+	globula.createCrosslinks2(int(float64(groupsCount) * 0.50))
 }
 
 func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
@@ -257,7 +274,6 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		} else {
 			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
 			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
-			Bs = append(Bs, nextMonomer)
 			if monomerTypeToGather == dt.MONOMER_TYPE_OWISE {
 				Bs = append(Bs, chosenMonomer)
 			} else {
@@ -301,7 +317,7 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 	}
 }
 
-func (globula *GlobulaView) createCrosslinks(groupsCount int, Bs *[]*dt.Monomer) {
+func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 	for len(*Bs) != groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
@@ -323,5 +339,42 @@ func (globula *GlobulaView) createCrosslinks(groupsCount int, Bs *[]*dt.Monomer)
 				break
 			}
 		}
+	}
+}
+
+func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
+	currentCount := 0
+	timesRepeated := 0
+	const maxTimesRepeated = 1000
+	for currentCount != crosslinksCount && timesRepeated != maxTimesRepeated {
+		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
+		poly := globula.polymers[chosenPoly]
+		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
+		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
+		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			timesRepeated++
+			continue
+		}
+
+		movementSides := dt.GetMovementSides()
+		for i := 0; i < len(movementSides); i++ {
+			chosenSide := movementSides[rand.Intn(len(movementSides))]
+			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
+			if err == nil &&
+				nextMonomer != nil &&
+				nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL &&
+				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
+					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
+				chosenMonomer.MonomerType = dt.MONOMER_TYPE_HWISE
+				nextMonomer.MonomerType = dt.MONOMER_TYPE_HWISE
+				currentCount += 1
+				timesRepeated = 0
+				break
+			}
+		}
+	}
+	if timesRepeated == maxTimesRepeated {
+		print("Didn't make all crosslinks! The number of crosslinks done: " + strconv.FormatInt(int64(currentCount), 10))
 	}
 }
