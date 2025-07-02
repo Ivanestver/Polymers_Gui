@@ -52,10 +52,10 @@ const (
 	BOND_DESTINATION_ATOM = 3
 )
 
-func readUntilAtoms(scanner *bufio.Scanner) {
+func readUntilSection(scanner *bufio.Scanner, sectionName string) {
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Contains(line, "Atom") {
+		if strings.Contains(line, sectionName) {
 			scanner.Scan()
 			return
 		}
@@ -67,7 +67,6 @@ func readAtomsSection(scanner *bufio.Scanner) ([]Atom, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 {
-			scanner.Scan()
 			return atoms, nil
 		}
 
@@ -140,12 +139,14 @@ func readBondsSection(scanner *bufio.Scanner) (Bonds, error) {
 func extractInfoFromFile(f *os.File) ([]Atom, Bonds, error) {
 	scanner := bufio.NewScanner(f)
 	// Read until the Atoms section
-	readUntilAtoms(scanner)
+	readUntilSection(scanner, "Atoms")
 
 	atoms, err := readAtomsSection(scanner)
 	if err != nil {
 		return atoms, Bonds{}, err
 	}
+
+	readUntilSection(scanner, "Bonds")
 
 	bonds, err := readBondsSection(scanner)
 	return atoms, bonds, err
