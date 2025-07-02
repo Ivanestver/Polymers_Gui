@@ -22,6 +22,8 @@ const (
 	COMMAND_CLUSTERS_STR        = "clusters"
 	COMMAND_CLUSTERS_ALL_STR    = "all"
 	COMMAND_AGE_STR             = "age"
+	COMMAND_RESET_STR           = "reset"
+	COMMAND_FULL_STR            = "full"
 )
 
 type Command = int
@@ -40,7 +42,10 @@ const (
 	COMMAND_SAVE_GLOBULA
 	COMMAND_HIGHLIGHT_CLUSTERS_ALL
 	COMMAND_AGE
+	COMMAND_RESET
+	COMMAND_RESET_FULL
 	COMMAND_EXIT
+	COMMAND_READ_DATA
 )
 
 var currProgram string
@@ -351,27 +356,55 @@ func age() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	if finished() {
-		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
 	}
 	getNextToken() // skip empty spaces
 	if finished() {
-		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
 	}
 	moveForward()
 	if finished() {
-		return COMMAND_UNDEFINED, errors.New("Usage: age <globula_name> <groups_count>")
+		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
 	}
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return COMMAND_UNDEFINED, err
 	}
 
 	groupCount, err := strconv.Atoi(token)
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return COMMAND_UNDEFINED, err
 	}
 	m := make(map[string]interface{})
 	m["globula"] = globulaName
 	m["count"] = groupCount
 	return COMMAND_AGE, m
+}
+
+func resetGlobula() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	getNextToken() // skip empty spaces
+	if finished() {
+		m := make(map[string]interface{})
+		m["globula"] = globulaName
+		m["full"] = false
+		return COMMAND_RESET, m
+	}
+	moveForward()
+	token, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	if token == COMMAND_FULL_STR {
+		m := make(map[string]interface{})
+		m["globula"] = globulaName
+		m["full"] = false
+		return COMMAND_RESET_FULL, m
+	}
+
+	return COMMAND_UNDEFINED, string("Usage: reset <globula_name> full")
 }

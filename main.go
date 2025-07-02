@@ -50,7 +50,19 @@ func main() {
 	commands := make([]string, 0)
 	commands = append(commands, "build  ")
 	commands = append(commands, "save \"Globula 0\"  ")
+	commands = append(commands, "age \"Globula 0\"  1000  ")
+	commands = append(commands, "save \"Globula 0\"  ")
+	commands = append(commands, "reset \"Globula 0\" full  ")
+	commands = append(commands, "age \"Globula 0\"  2000  ")
+	commands = append(commands, "save \"Globula 0\"  ")
+	commands = append(commands, "reset \"Globula 0\" full  ")
 	commands = append(commands, "age \"Globula 0\"  3000  ")
+	commands = append(commands, "save \"Globula 0\"  ")
+	commands = append(commands, "reset \"Globula 0\" full  ")
+	commands = append(commands, "age \"Globula 0\"  4000  ")
+	commands = append(commands, "save \"Globula 0\"  ")
+	commands = append(commands, "reset \"Globula 0\" full  ")
+	commands = append(commands, "age \"Globula 0\"  5000  ")
 	commands = append(commands, "save \"Globula 0\"  ")
 	commands = append(commands, "exit  ")
 	for isWorking {
@@ -141,6 +153,20 @@ func main() {
 			globulaName := data["globula"].(string)
 			globula := getGlobulaByName(globulaName)
 			globula.DoAging2(groupsCount)
+			break
+
+		case interp.COMMAND_RESET:
+			data := data.(map[string]interface{})
+			globulaName := data["globula"].(string)
+			globula := getGlobulaByName(globulaName)
+			globula.Reset()
+			break
+
+		case interp.COMMAND_RESET_FULL:
+			data := data.(map[string]interface{})
+			globulaName := data["globula"].(string)
+			globula := getGlobulaByName(globulaName)
+			globula.FullReset()
 
 		case interp.COMMAND_EXIT:
 			isWorking = false

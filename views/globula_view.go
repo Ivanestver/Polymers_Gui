@@ -50,6 +50,29 @@ func (globula *GlobulaView) Reset() {
 	}
 }
 
+/*
+The idea is to break all the connections and recover the original globula
+using the polumer's connections information
+*/
+func (globula *GlobulaView) FullReset() {
+	for _, pol := range globula.polymers {
+		ForEachMonomer(pol, func(mon *dt.Monomer) {
+			// Make monomer as usual
+			mon.MonomerType = dt.MONOMER_TYPE_USUAL
+			// Break all the connections
+			for _, side := range dt.GetAllSides() {
+				sibling, err := mon.GetSibling(side)
+				if err != nil || sibling == nil {
+					continue
+				}
+				dt.BreakConnection(mon, sibling, side)
+			}
+			// Connection with the next monomer in the chain
+			dt.MakeConnection(mon, mon.NextMonomer, dt.CONNECTION_TYPE_ONE)
+		})
+	}
+}
+
 // func (globula *GlobulaView) ToJson() ([]byte, error) {
 // 	pols_countMap := make(map[string]interface{})
 // 	pols_countMap["value"] = len(globula.polymers)
