@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	dt "data_visualizer/datatypes"
 	"errors"
 	"fmt"
 	"os"
@@ -24,20 +25,6 @@ func getInputFileName() (string, error) {
 	}
 	return os.Args[inputFileNamePosition], nil
 }
-
-type Point struct {
-	m_X int
-	m_Y int
-	m_Z int
-}
-
-type Atom struct {
-	m_Number   int
-	m_AtomType int
-	m_Point    Point
-}
-
-type Bonds map[int][]int
 
 const (
 	ATOMS_INFO_COUNT     = 10 // see the Atoms section structure in a .data file
@@ -62,8 +49,8 @@ func readUntilSection(scanner *bufio.Scanner, sectionName string) {
 	}
 }
 
-func readAtomsSection(scanner *bufio.Scanner) ([]Atom, error) {
-	atoms := make([]Atom, 0)
+func readAtomsSection(scanner *bufio.Scanner) ([]dt.Atom, error) {
+	atoms := make([]dt.Atom, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 {
@@ -72,46 +59,46 @@ func readAtomsSection(scanner *bufio.Scanner) ([]Atom, error) {
 
 		parts := strings.Split(line, " ")
 		if len(parts) != ATOMS_INFO_COUNT {
-			return []Atom{}, errors.New("(In Atoms): '" + line + "' was not apropriately been built")
+			return []dt.Atom{}, errors.New("(In Atoms): '" + line + "' was not apropriately been built")
 		}
 
 		number, err := strconv.Atoi(parts[ATOM_NUMBER_POSITION])
 		if err != nil {
-			return []Atom{}, errors.New("(In Atoms): " + err.Error())
+			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
 		atomType, err := strconv.Atoi(parts[ATOM_TYPE_POSITION])
 		if err != nil {
-			return []Atom{}, errors.New("(In Atoms): " + err.Error())
+			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
 		pointX, err := strconv.Atoi(parts[ATOM_POINT_X])
 		if err != nil {
-			return []Atom{}, errors.New("(In Atoms): " + err.Error())
+			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
 		pointY, err := strconv.Atoi(parts[ATOM_POINT_Y])
 		if err != nil {
-			return []Atom{}, errors.New("(In Atoms): " + err.Error())
+			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
 		pointZ, err := strconv.Atoi(parts[ATOM_POINT_Z])
 		if err != nil {
-			return []Atom{}, errors.New("(In Atoms): " + err.Error())
+			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
 
-		atoms = append(atoms, Atom{
-			m_Number:   number,
-			m_AtomType: atomType,
-			m_Point: Point{
-				m_X: pointX,
-				m_Y: pointY,
-				m_Z: pointZ,
+		atoms = append(atoms, dt.Atom{
+			M_Number:   number,
+			M_AtomType: atomType,
+			M_Point: dt.Point{
+				M_X: pointX,
+				M_Y: pointY,
+				M_Z: pointZ,
 			},
 		})
 	}
 
-	return []Atom{}, errors.New("(In Atoms): Unexpected end of file")
+	return []dt.Atom{}, errors.New("(In Atoms): Unexpected end of file")
 }
 
-func readBondsSection(scanner *bufio.Scanner) (Bonds, error) {
-	bonds := make(Bonds)
+func readBondsSection(scanner *bufio.Scanner) (dt.Bonds, error) {
+	bonds := make(dt.Bonds)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 {
@@ -119,16 +106,16 @@ func readBondsSection(scanner *bufio.Scanner) (Bonds, error) {
 		}
 		parts := strings.Split(line, " ")
 		if len(parts) != BOND_INFO_COUNT {
-			return Bonds{}, errors.New("(In Bonds): '" + line + "' was not apropriately been built")
+			return dt.Bonds{}, errors.New("(In Bonds): '" + line + "' was not apropriately been built")
 		}
 
 		sourceAtomNumber, err := strconv.Atoi(parts[BOND_SOURCE_ATOM])
 		if err != nil {
-			return Bonds{}, errors.New("(In Bonds): " + err.Error())
+			return dt.Bonds{}, errors.New("(In Bonds): " + err.Error())
 		}
 		destinationAtomNumber, err := strconv.Atoi(parts[BOND_SOURCE_ATOM])
 		if err != nil {
-			return Bonds{}, errors.New("(In Bonds): " + err.Error())
+			return dt.Bonds{}, errors.New("(In Bonds): " + err.Error())
 		}
 		bonds[sourceAtomNumber] = append(bonds[sourceAtomNumber], destinationAtomNumber)
 	}
@@ -136,14 +123,14 @@ func readBondsSection(scanner *bufio.Scanner) (Bonds, error) {
 	return bonds, nil
 }
 
-func extractInfoFromFile(f *os.File) ([]Atom, Bonds, error) {
+func extractInfoFromFile(f *os.File) ([]dt.Atom, dt.Bonds, error) {
 	scanner := bufio.NewScanner(f)
 	// Read until the Atoms section
 	readUntilSection(scanner, "Atoms")
 
 	atoms, err := readAtomsSection(scanner)
 	if err != nil {
-		return atoms, Bonds{}, err
+		return atoms, dt.Bonds{}, err
 	}
 
 	readUntilSection(scanner, "Bonds")
