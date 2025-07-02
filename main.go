@@ -85,7 +85,7 @@ func readAtomsSection(scanner *bufio.Scanner) ([]dt.Atom, error) {
 		}
 
 		atoms = append(atoms, dt.Atom{
-			M_Number:   number,
+			M_Number:   number - 1,
 			M_AtomType: atomType,
 			M_Point: dt.Point{
 				M_X: pointX,
@@ -114,11 +114,16 @@ func readBondsSection(scanner *bufio.Scanner) (dt.Bonds, error) {
 		if err != nil {
 			return dt.Bonds{}, errors.New("(In Bonds): " + err.Error())
 		}
-		destinationAtomNumber, err := strconv.Atoi(parts[BOND_SOURCE_ATOM])
+		sourceAtomNumber--
+
+		destinationAtomNumber, err := strconv.Atoi(parts[BOND_DESTINATION_ATOM])
 		if err != nil {
 			return dt.Bonds{}, errors.New("(In Bonds): " + err.Error())
 		}
+		destinationAtomNumber--
+
 		bonds[sourceAtomNumber] = append(bonds[sourceAtomNumber], destinationAtomNumber)
+		bonds[destinationAtomNumber] = append(bonds[destinationAtomNumber], sourceAtomNumber)
 	}
 
 	return bonds, nil
