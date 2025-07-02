@@ -175,12 +175,12 @@ func main() {
 			fmt.Println("\t" + desc)
 		}
 		fmt.Println("Please, specify the visualizer:")
-		choice := 0
-		_, err := fmt.Scanf("%i", &choice)
+		choice := 1
+		/*_, err := fmt.Scanln(&choice)
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
-		}
+		}*/
 		visualizer := visualizers.NewVisualizer(choice)
 		visualizer.Visualize(atoms, bonds)
 	}
