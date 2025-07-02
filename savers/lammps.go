@@ -105,7 +105,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 				strconv.FormatInt(monCoords.X, 10)+" "+
 				strconv.FormatInt(monCoords.Y, 10)+" "+
 				strconv.FormatInt(monCoords.Z, 10)+" "+
-				" 0 0 0")
+				"0 0 0")
 		})
 	})
 	addNewLine(&content)
