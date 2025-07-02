@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	dt "data_visualizer/datatypes"
+	"data_visualizer/visualizers"
 	"errors"
 	"fmt"
 	"os"
@@ -140,23 +141,42 @@ func extractInfoFromFile(f *os.File) ([]dt.Atom, dt.Bonds, error) {
 }
 
 func main() {
+	// Get the file name specified
 	inputFileName, err := getInputFileName()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
+	// Open the specified file
 	file, err := os.Open(inputFileName)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
+	// Parse the file and extract the atoms and bonds
 	atoms, bonds, err := extractInfoFromFile(file)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println(len(atoms))
-	fmt.Println(len(bonds))
+
+	fmt.Println("Data has successfully been loaded.")
+	for {
+		fmt.Println("Available visualizers:")
+		visualizersDescriptions := visualizers.GetAllVisualizersDescription()
+		for _, desc := range visualizersDescriptions {
+			fmt.Println("\t" + desc)
+		}
+		fmt.Println("Please, specify the visualizer:")
+		choice := 0
+		_, err := fmt.Scanf("%i", &choice)
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+		visualizer := visualizers.NewVisualizer(choice)
+		visualizer.Visualize(atoms, bonds)
+	}
 }
