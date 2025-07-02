@@ -8,3 +8,5 @@ uis/__pycache__/
 __pycache__
 slices/
 .idea/
+.vscode/
+*.data
