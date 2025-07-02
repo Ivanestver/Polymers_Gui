@@ -10,3 +10,4 @@ slices/
 .idea/
 .vscode/
 *.data
+*.html
