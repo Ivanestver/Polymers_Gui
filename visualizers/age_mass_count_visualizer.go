@@ -50,12 +50,12 @@ type sAgeMassCountVisualizer struct {
 	bonds *dt.Bonds
 }
 
-func (visualizer *sAgeMassCountVisualizer) Visualize(atoms []dt.Atom, bonds dt.Bonds) {
+func (visualizer *sAgeMassCountVisualizer) Visualize(atoms []dt.Atom, bonds dt.Bonds, outputName string) {
 	// cache the values to use them across the methods
 	visualizer.atoms = &atoms
 	visualizer.bonds = &bonds
 	partsMasses := visualizer.dst()
-	visualizer.showMasses(partsMasses)
+	visualizer.showMasses(partsMasses, outputName)
 }
 
 func allIsTrue(usedAtoms *map[int]bool) bool {
@@ -145,11 +145,11 @@ func getXYValues(distribution map[int]int) ([]string, []opts.BarData) {
 	return xValues, yValues
 }
 
-func (visualizer *sAgeMassCountVisualizer) showMasses(masses []int) {
+func (visualizer *sAgeMassCountVisualizer) showMasses(masses []int, outputName string) {
 	distribution := visualizer.makeDistributions(masses)
 	bar := charts.NewBar()
 	xValues, yValues := getXYValues(distribution)
 	bar.SetXAxis(xValues).AddSeries("Placeholder", yValues)
-	f, _ := os.Create("bar.html")
+	f, _ := os.Create(outputName + ".html")
 	bar.Render(f)
 }

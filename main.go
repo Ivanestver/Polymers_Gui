@@ -174,14 +174,25 @@ func main() {
 		for _, desc := range visualizersDescriptions {
 			fmt.Println("\t" + desc)
 		}
+
 		fmt.Println("Please, specify the visualizer:")
 		choice := 1
-		/*_, err := fmt.Scanln(&choice)
+		_, err := fmt.Scanln(&choice)
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
-		}*/
+		}
+
+		fmt.Println("Please, specify the output name:")
+		var outputName string = "Globula_1000"
+		_, err = fmt.Scanln(&outputName)
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+
 		visualizer := visualizers.NewVisualizer(choice)
-		visualizer.Visualize(atoms, bonds)
+		visualizer.Visualize(atoms, bonds, outputName)
+		fmt.Println("Done!")
 	}
 }

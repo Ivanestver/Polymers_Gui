@@ -26,7 +26,7 @@ func GetAllVisualizersDescription() []string {
 }
 
 type IVisualizer interface {
-	Visualize(atoms []dt.Atom, bonds dt.Bonds)
+	Visualize(atoms []dt.Atom, bonds dt.Bonds, outputName string)
 }
 
 func NewVisualizer(visualizerType VisualizerType) IVisualizer {
