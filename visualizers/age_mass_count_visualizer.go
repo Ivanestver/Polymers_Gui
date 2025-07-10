@@ -43,7 +43,7 @@ func (s *sStack) isNotEmpty() bool {
 	return len(s.s) != 0
 }
 
-const STEPS_COUNT = 10
+const STEPS_COUNT = 1000
 
 type sAgeMassCountVisualizer struct {
 	atoms *[]dt.Atom
@@ -113,7 +113,7 @@ func (visualizer *sAgeMassCountVisualizer) makeDistributions(masses []int) map[i
 			maxMass = mass
 		}
 	}
-	step := int(math.Ceil(float64(maxMass-minMass) / STEPS_COUNT))
+	step := int(math.Ceil(float64(len(*visualizer.atoms)) / STEPS_COUNT))
 	distribution := make(map[int]int)
 	if step == 0 {
 		return distribution
@@ -123,16 +123,27 @@ func (visualizer *sAgeMassCountVisualizer) makeDistributions(masses []int) map[i
 	}
 
 	for _, mass := range masses {
-		i := int(math.Ceil(float64(mass-minMass) / float64(step)))
+		i := int(math.Ceil(float64(mass) / float64(step)))
 		distribution[minMass+step*i] += 1
 	}
-
-	return distribution
-}
-
-func getXYValues(distribution map[int]int) ([]string, []opts.BarData) {
 	keys := make([]int, 0)
 	for k := range distribution {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	finalDistribution := make(map[int]int)
+	for _, key := range keys {
+		if distribution[key] != 0 {
+			finalDistribution[key] = distribution[key]
+		}
+	}
+
+	return finalDistribution
+}
+
+func getXYValues(distribution *map[int]int) ([]string, []opts.BarData) {
+	keys := make([]int, 0)
+	for k := range *distribution {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
@@ -140,7 +151,7 @@ func getXYValues(distribution map[int]int) ([]string, []opts.BarData) {
 	yValues := make([]opts.BarData, 0)
 	for _, key := range keys {
 		xValues = append(xValues, strconv.Itoa(key))
-		yValues = append(yValues, opts.BarData{Value: distribution[key]})
+		yValues = append(yValues, opts.BarData{Value: (*distribution)[key]})
 	}
 	return xValues, yValues
 }
@@ -148,7 +159,7 @@ func getXYValues(distribution map[int]int) ([]string, []opts.BarData) {
 func (visualizer *sAgeMassCountVisualizer) showMasses(masses []int, outputName string) {
 	distribution := visualizer.makeDistributions(masses)
 	bar := charts.NewBar()
-	xValues, yValues := getXYValues(distribution)
+	xValues, yValues := getXYValues(&distribution)
 	bar.SetXAxis(xValues).AddSeries("Placeholder", yValues)
 	f, _ := os.Create(outputName + ".html")
 	bar.Render(f)
