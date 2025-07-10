@@ -6,6 +6,7 @@ import (
 	dt "polymers/datatypes"
 	"polymers/global_data"
 	"polymers/views"
+	"slices"
 	"strconv"
 )
 
@@ -174,6 +175,7 @@ func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
 	for key := range monomersTypes_map {
 		monomersTypes = append(monomersTypes, key)
 	}
+	slices.Sort(monomersTypes)
 	return monomersTypes
 }
 
@@ -197,5 +199,6 @@ func getBondTypes(globula *views.GlobulaView) ([]dt.ConnectionType, int) {
 	for key := range connTypes_map {
 		types = append(types, key)
 	}
+	slices.Sort(types)
 	return types, int(bondsCount / 2)
 }
