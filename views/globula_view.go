@@ -401,3 +401,20 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 		print("Didn't make all crosslinks! The number of crosslinks done: " + strconv.FormatInt(int64(currentCount), 10))
 	}
 }
+
+func (globula *GlobulaView) DeepCopy() *GlobulaView {
+	newPolymers := make([]*PolymerView, len(globula.polymers))
+	if len(globula.polymers) > 0 {
+		newPolymers[0] = globula.polymers[0].DeepCopy(nil)
+		underlinedField := newPolymers[0].GetUnderlinedField()
+		for i := 1; i < len(globula.polymers); i++ {
+			newPolymers[i] = globula.polymers[i].DeepCopy(underlinedField)
+		}
+	}
+
+	newGlobula := new(GlobulaView)
+	newGlobula.name = globula.name
+	newGlobula.commonClusterDone = false
+	newGlobula.polymers = newPolymers
+	return newGlobula
+}

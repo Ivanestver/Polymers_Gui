@@ -57,8 +57,8 @@ func (mon *Monomer) GetSideOfSibling(otherMon *Monomer) Side {
 	return SIDE_Undefined
 }
 
-func (this *Monomer) GetTypeOfConnectionWithSide(side Side) ConnectionType {
-	conn, ok := this.sides[side]
+func (monomer *Monomer) GetTypeOfConnectionWithSide(side Side) ConnectionType {
+	conn, ok := monomer.sides[side]
 	if conn != nil && ok {
 		return conn.ConnType
 	} else {
@@ -70,12 +70,32 @@ func (mon *Monomer) Coords() base.Vector3D {
 	return mon.coords
 }
 
-func (this *Monomer) Copy() *Monomer {
-	newMon := NewMonomer(this.coords, this.MonomerType)
-	newMon.NextMonomer = this.NextMonomer
-	newMon.PrevMonomer = this.PrevMonomer
-	newMon.Number = this.Number
-	newMon.sides = this.sides
+func (monomer *Monomer) Copy() *Monomer {
+	newMon := NewMonomer(monomer.coords, monomer.MonomerType)
+	newMon.NextMonomer = monomer.NextMonomer
+	newMon.PrevMonomer = monomer.PrevMonomer
+	newMon.Number = monomer.Number
+	newMon.sides = monomer.sides
+	return newMon
+}
+
+func (monomer *Monomer) DeepCopy(field *Field) *Monomer {
+	newMon := NewMonomer(monomer.coords, monomer.MonomerType)
+
+	if monomer.NextMonomer != nil {
+		newMon.NextMonomer = field.GetMonomerByCoords(monomer.NextMonomer.coords)
+	} else {
+		newMon.NextMonomer = nil
+	}
+
+	if monomer.PrevMonomer != nil {
+		newMon.PrevMonomer = field.GetMonomerByCoords(monomer.PrevMonomer.coords)
+	} else {
+		newMon.PrevMonomer = nil
+	}
+
+	newMon.Number = monomer.Number
+	newMon.sides = monomer.sides
 	return newMon
 }
 
@@ -193,20 +213,20 @@ type MonomerJSON struct {
 	Number      int64
 }
 
-func (this *Monomer) ToJson() MonomerJSON {
+func (monomer *Monomer) ToJson() MonomerJSON {
 	var obj MonomerJSON
-	obj.Coords = this.coords
-	obj.MonomerType = this.MonomerType
-	if this.PrevMonomer != nil {
-		obj.PrevMonomer = this.PrevMonomer.coords
+	obj.Coords = monomer.coords
+	obj.MonomerType = monomer.MonomerType
+	if monomer.PrevMonomer != nil {
+		obj.PrevMonomer = monomer.PrevMonomer.coords
 	}
-	if this.NextMonomer != nil {
-		obj.NextMonomer = this.NextMonomer.coords
+	if monomer.NextMonomer != nil {
+		obj.NextMonomer = monomer.NextMonomer.coords
 	}
 	obj.Sides = make(map[Side]ConnectionJSON)
-	for key, value := range this.sides {
+	for key, value := range monomer.sides {
 		obj.Sides[key] = value.ToJson()
 	}
-	obj.Number = this.Number
+	obj.Number = monomer.Number
 	return obj
 }

@@ -21,55 +21,72 @@ func NewPolymer(field *Field, polymerNumber int64) *Polymer {
 	return newPolymer
 }
 
-func (this *Polymer) AddMonomer(monomer *Monomer) {
-	if len(this.polymer) != 0 {
-		var lastMonomer *Monomer = this.polymer[len(this.polymer)-1]
+func (polymer *Polymer) AddMonomer(monomer *Monomer) {
+	if len(polymer.polymer) != 0 {
+		var lastMonomer *Monomer = polymer.polymer[len(polymer.polymer)-1]
 		lastMonomer.NextMonomer = monomer
 		monomer.PrevMonomer = lastMonomer
 	}
-	this.polymer = append(this.polymer, monomer)
+	polymer.polymer = append(polymer.polymer, monomer)
 }
 
-func (this *Polymer) Len() int {
-	return len(this.polymer)
+func (polymer *Polymer) Len() int {
+	return len(polymer.polymer)
 }
 
-func (this *Polymer) LastMonomer() *Monomer {
-	return this.polymer[this.Len()-1]
+func (polymer *Polymer) LastMonomer() *Monomer {
+	return polymer.polymer[polymer.Len()-1]
 }
 
-func (this *Polymer) Name() string {
-	return string("Polymer ") + strconv.FormatInt(this.polymerNumber, 10)
+func (polymer *Polymer) Name() string {
+	return string("Polymer ") + strconv.FormatInt(polymer.polymerNumber, 10)
 }
 
-func (this *Polymer) Number() int64 {
-	return this.polymerNumber
+func (polymer *Polymer) Number() int64 {
+	return polymer.polymerNumber
 }
 
-func (this *Polymer) Field() *Field {
-	return this.field
+func (polymer *Polymer) Field() *Field {
+	return polymer.field
 }
 
-func (this *Polymer) Copy() *Polymer {
-	newPolymer := NewPolymer(this.field, this.polymerNumber)
-	newPolymer.polymer = this.polymer
+func (polymer *Polymer) Copy() *Polymer {
+	newPolymer := NewPolymer(polymer.field, polymer.polymerNumber)
+	newPolymer.polymer = polymer.polymer
 	return newPolymer
 }
 
-func (this *Polymer) GetMonomerByIdx(idx int) *Monomer {
-	if idx < 0 || idx >= this.Len() {
+func (polymer *Polymer) DeepCopy(field *Field) *Polymer {
+	newPolymer := new(Polymer)
+	newPolymer.polymerNumber = polymer.polymerNumber
+	if field == nil {
+		newPolymer.field = polymer.field.DeepCopy()
+	} else {
+		newPolymer.field = field
+	}
+
+	newPolymer.polymer = make([]*Monomer, len(polymer.polymer))
+	for i, mon := range polymer.polymer {
+		newPolymer.polymer[i] = newPolymer.field.GetMonomerByCoords(mon.coords)
+	}
+
+	return newPolymer
+}
+
+func (polymer *Polymer) GetMonomerByIdx(idx int) *Monomer {
+	if idx < 0 || idx >= polymer.Len() {
 		return nil
 	}
 
-	return this.polymer[idx]
+	return polymer.polymer[idx]
 }
 
-func (this *Polymer) CalcEnergy() float64 {
+func (polymer *Polymer) CalcEnergy() float64 {
 	u := 0.0
-	last_point := this.LastMonomer()
+	last_point := polymer.LastMonomer()
 	var prelast_point *Monomer
-	if this.Len() > 1 {
-		prelast_point = this.polymer[this.Len()-2]
+	if polymer.Len() > 1 {
+		prelast_point = polymer.polymer[polymer.Len()-2]
 	} else {
 		prelast_point = last_point
 	}
@@ -83,38 +100,38 @@ func (this *Polymer) CalcEnergy() float64 {
 	return u
 }
 
-func (this *Polymer) CalcLagevenEnergy() float64 {
+func (polymer *Polymer) CalcLagevenEnergy() float64 {
 	u := 0.0
-	for i := 0; i < this.Len(); i++ {
-		for j := 0; j < this.Len(); j++ {
+	for i := 0; i < polymer.Len(); i++ {
+		for j := 0; j < polymer.Len(); j++ {
 			if i == j {
 				continue
 			}
 
-			r_ij := 1 / distance_of_monomers(this.polymer[i], this.polymer[j])
+			r_ij := 1 / distance_of_monomers(polymer.polymer[i], polymer.polymer[j])
 			u += 4 * 0.01 * (math.Pow(r_ij, 12) - math.Pow(r_ij, 6))
 		}
 	}
 	return u
 }
 
-func (this *Polymer) MakeStepBack() bool {
-	if this.Len() <= 1 {
+func (polymer *Polymer) MakeStepBack() bool {
+	if polymer.Len() <= 1 {
 		return false
 	}
 
-	this.polymer = this.polymer[:this.Len()-1]
+	polymer.polymer = polymer.polymer[:polymer.Len()-1]
 	return true
 }
 
-func (this *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float64) {
+func (polymer *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float64) {
 	globalData := global_data.GetGlobalData()
 	minWidth := float64(globalData.SpaceDimention)
 	maxWidth := 0.0
 	minHeight := float64(globalData.SpaceDimention)
 	maxHeight := 0.0
 
-	for _, mon := range this.polymer {
+	for _, mon := range polymer.polymer {
 		minWidth = math.Min(minWidth, float64(mon.coords.X))
 		maxWidth = math.Max(maxWidth, float64(mon.coords.Y))
 		minHeight = math.Min(minHeight, float64(mon.coords.X))
@@ -124,9 +141,9 @@ func (this *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float64)
 	return minWidth, maxWidth, minHeight, maxHeight
 }
 
-func (this *Polymer) MarshalJSON() ([]byte, error) {
-	pol := make([]base.Vector3D, this.Len())
-	for i, item := range this.polymer {
+func (polymer *Polymer) MarshalJSON() ([]byte, error) {
+	pol := make([]base.Vector3D, polymer.Len())
+	for i, item := range polymer.polymer {
 		pol[i] = item.coords
 	}
 	return json.Marshal(&struct {
@@ -134,8 +151,8 @@ func (this *Polymer) MarshalJSON() ([]byte, error) {
 		Polymer       []base.Vector3D
 		PolymerNumber int64
 	}{
-		Field:         this.field,
+		Field:         polymer.field,
 		Polymer:       pol,
-		PolymerNumber: this.polymerNumber,
+		PolymerNumber: polymer.polymerNumber,
 	})
 }

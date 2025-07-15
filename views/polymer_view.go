@@ -26,20 +26,20 @@ func NewPolymerView(polymer *datatypes.Polymer) *PolymerView {
 	return newPolymerView
 }
 
-func (this *PolymerView) Name() string {
-	return this.name
+func (polymerView *PolymerView) Name() string {
+	return polymerView.name
 }
 
-func (this *PolymerView) Len() int {
-	return this.polymer.Len()
+func (polymerView *PolymerView) Len() int {
+	return polymerView.polymer.Len()
 }
 
-func (this *PolymerView) GetStartEndMonomers() (*datatypes.Monomer, *datatypes.Monomer) {
-	if this.polymer.Len() == 0 {
+func (polymerView *PolymerView) GetStartEndMonomers() (*datatypes.Monomer, *datatypes.Monomer) {
+	if polymerView.polymer.Len() == 0 {
 		panic("The PolymerView cannot contain an empty polymer")
 	}
 
-	return this.polymer.GetMonomerByIdx(0), this.polymer.GetMonomerByIdx(this.polymer.Len() - 1)
+	return polymerView.polymer.GetMonomerByIdx(0), polymerView.polymer.GetMonomerByIdx(polymerView.polymer.Len() - 1)
 }
 
 func ForEachMonomer(polymer *PolymerView, pred func(*datatypes.Monomer)) {
@@ -48,12 +48,23 @@ func ForEachMonomer(polymer *PolymerView, pred func(*datatypes.Monomer)) {
 	}
 }
 
-func (this *PolymerView) MarshalJSON() ([]byte, error) {
+func (polymerView *PolymerView) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name    string
 		Polymer *datatypes.Polymer
 	}{
-		Name:    this.name,
-		Polymer: this.polymer,
+		Name:    polymerView.name,
+		Polymer: polymerView.polymer,
 	})
+}
+
+func (polymerView *PolymerView) DeepCopy(field *datatypes.Field) *PolymerView {
+	newPolymerView := new(PolymerView)
+	newPolymerView.name = polymerView.name
+	newPolymerView.polymer = polymerView.polymer.DeepCopy(field)
+	return newPolymerView
+}
+
+func (polymerView *PolymerView) GetUnderlinedField() *datatypes.Field {
+	return polymerView.polymer.Field()
 }

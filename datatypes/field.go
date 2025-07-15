@@ -114,7 +114,7 @@ func (field *Field) GetAvailableCells(currPos base.Vector3D) []*Monomer {
 	return availableCells
 }
 
-func (this *Field) DefineStartMonomer() *Monomer {
+func (field *Field) DefineStartMonomer() *Monomer {
 	globalData := global_data.GetGlobalData()
 	startPosition := base.Vector3D{
 		X: globalData.SpaceDimention / 2,
@@ -122,8 +122,8 @@ func (this *Field) DefineStartMonomer() *Monomer {
 		Z: globalData.SpaceDimention / 2,
 	}
 
-	for !this.IsFree(startPosition) {
-		available_cells := this.GetAvailableCells(startPosition)
+	for !field.IsFree(startPosition) {
+		available_cells := field.GetAvailableCells(startPosition)
 		available_cells_cout := len(available_cells)
 		if available_cells_cout != 0 {
 			return available_cells[rand.Intn(available_cells_cout)]
@@ -135,24 +135,24 @@ func (this *Field) DefineStartMonomer() *Monomer {
 		if rint%2 != 0 {
 			randomDirection = DIRECTION_FORWARD
 		}
-		startMonomer, err := this.GetMonomerByCoords(startPosition).GetSibling(GetSide(randomAxis, randomDirection))
+		startMonomer, err := field.GetMonomerByCoords(startPosition).GetSibling(GetSide(randomAxis, randomDirection))
 		if err != nil {
 			continue
 		}
 		startPosition = startMonomer.Coords()
 	}
 
-	return this.GetMonomerByCoords(startPosition)
+	return field.GetMonomerByCoords(startPosition)
 }
 
-func (this *Field) MarshalJSON() ([]byte, error) {
-	field := make([][][]MonomerJSON, len(this.field))
-	for i, square := range this.field {
-		field[i] = make([][]MonomerJSON, len(this.field[i]))
+func (field *Field) MarshalJSON() ([]byte, error) {
+	newField := make([][][]MonomerJSON, len(field.field))
+	for i, square := range field.field {
+		newField[i] = make([][]MonomerJSON, len(field.field[i]))
 		for j, row := range square {
-			field[i][j] = make([]MonomerJSON, len(this.field[i][j]))
+			newField[i][j] = make([]MonomerJSON, len(field.field[i][j]))
 			for k, item := range row {
-				field[i][j][k] = item.ToJson()
+				newField[i][j][k] = item.ToJson()
 			}
 		}
 	}
@@ -160,7 +160,23 @@ func (this *Field) MarshalJSON() ([]byte, error) {
 		SphereRadius uint64
 		Field        [][][]MonomerJSON
 	}{
-		SphereRadius: this.sphereRadius,
-		Field:        field,
+		SphereRadius: field.sphereRadius,
+		Field:        newField,
 	})
+}
+
+func (field *Field) DeepCopy() *Field {
+	newField := new(Field)
+	newField.sphereRadius = field.sphereRadius
+	newField.field = make([][][]*Monomer, len(field.field))
+	for x, monX := range field.field {
+		newField.field[x] = make([][]*Monomer, len(field.field[x]))
+		for y, monY := range monX {
+			newField.field[x][y] = make([]*Monomer, len(field.field[x][y]))
+			for z := range monY {
+				newField.field[x][y][z] = field.field[x][y][z].DeepCopy(newField)
+			}
+		}
+	}
+	return newField
 }
