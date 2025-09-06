@@ -2,6 +2,7 @@ package command_interpreter
 
 import (
 	"errors"
+	"polymers/build_globula"
 	"strconv"
 	"unicode"
 )
@@ -16,8 +17,8 @@ const (
 	Command_build_str             = "build"
 	COMMAND_EXIT_STR              = "exit"
 	COMMAND_SHOW_STR              = "show"
-	COMMAND_SHOW_PARAMETERS_STR   = "params"
-	COMMAND_SHOW_GLOBULA_STR      = "globula"
+	COMMAND_PARAMETERS_STR        = "params"
+	COMMAND_GLOBULA_STR           = "globula"
 	COMMAND_SAVE_STR              = "save"
 	COMMAND_CLUSTERS_STR          = "clusters"
 	COMMAND_CLUSTERS_ALL_STR      = "all"
@@ -25,6 +26,7 @@ const (
 	COMMAND_RESET_STR             = "reset"
 	COMMAND_FULL_STR              = "full"
 	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
+	COMMAND_THREAD_STR            = "thread"
 )
 
 type Command = int
@@ -37,6 +39,7 @@ const (
 	COMMAND_SET_MAX_MONOMERS_COUNT
 	COMMAND_SET_SPHERE_RADIUS
 	COMMAND_BUILD_GLOBULA
+	COMMAND_BUILD_THREAD_GLOBULA
 	COMMAND_SHOW_PARAMETERS
 	COMMAND_SHOW_GLOBULAS_LIST
 	COMMAND_SHOW_GLOBULA
@@ -121,6 +124,10 @@ func getGlobulaName() (string, error) {
 	return "", errors.New("Globula name must be wrapped with \"\"")
 }
 
+func getUndefinedCommand(token string) (Command, string) {
+	return COMMAND_UNDEFINED, "Undefined parameter '" + token + "'"
+}
+
 func Interpret(program string) (Command, interface{}) {
 	reset()
 	currProgram = program
@@ -142,7 +149,7 @@ func s() (Command, interface{}) {
 	}
 
 	if token == Command_build_str {
-		return COMMAND_BUILD_GLOBULA, nil
+		return build()
 	}
 
 	if token == COMMAND_SHOW_STR {
@@ -243,17 +250,34 @@ func interpret_with_num(comm Command, usage string) (Command, interface{}) {
 	}
 }
 
+func build() (Command, interface{}) {
+	token, error := getNextToken()
+	if error != nil {
+		return COMMAND_UNDEFINED, error.Error()
+	}
+
+	if token == COMMAND_GLOBULA_STR {
+		return COMMAND_BUILD_GLOBULA, build_globula.GlobulaBuildAlg
+	}
+
+	if token == COMMAND_THREAD_STR {
+		return COMMAND_BUILD_THREAD_GLOBULA, build_globula.ThreadBuildAlg
+	}
+
+	return getUndefinedCommand(token)
+}
+
 func show() (Command, interface{}) {
 	token, error := getNextToken()
 	if error != nil {
 		return COMMAND_UNDEFINED, error.Error()
 	}
 
-	if token == COMMAND_SHOW_PARAMETERS_STR {
+	if token == COMMAND_PARAMETERS_STR {
 		return COMMAND_SHOW_PARAMETERS, nil
 	}
 
-	if token == COMMAND_SHOW_GLOBULA_STR {
+	if token == COMMAND_GLOBULA_STR {
 		return showGlobula()
 	}
 
