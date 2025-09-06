@@ -402,7 +402,7 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 	}
 }
 
-func (globula *GlobulaView) DeepCopy() *GlobulaView {
+func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
 	newPolymers := make([]*PolymerView, len(globula.polymers))
 	if len(globula.polymers) > 0 {
 		newPolymers[0] = globula.polymers[0].DeepCopy(nil)
@@ -417,4 +417,15 @@ func (globula *GlobulaView) DeepCopy() *GlobulaView {
 	newGlobula.commonClusterDone = false
 	newGlobula.polymers = newPolymers
 	return newGlobula
+}
+
+func (globula *GlobulaView) HighlightBorders() bool {
+	for _, polymerView := range globula.polymers {
+		go doDST(polymerView)
+	}
+	return true
+}
+
+func doDST(polymerView *PolymerView) {
+
 }

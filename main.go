@@ -137,7 +137,11 @@ func main() {
 			break
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
 			globulaName := data.(string)
-			var globula *views.GlobulaView = getGlobulaByName(globulaName)
+			var originalGlobula *views.GlobulaView = getGlobulaByName(globulaName)
+			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_all_clusters")
+			globula.Name()
+			globulas = append(globulas, globula)
+
 			fmt.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			xClusters.Colorize(false)
@@ -151,7 +155,9 @@ func main() {
 				break
 			}
 			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
+			originalGlobula := getGlobulaByName(globulaName)
+			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged")
+			globulas = append(globulas, globula)
 			globula.DoAging2(groupsCount)
 			break
 
@@ -167,6 +173,13 @@ func main() {
 			globulaName := data["globula"].(string)
 			globula := getGlobulaByName(globulaName)
 			globula.FullReset()
+
+		case interp.COMMAND_HIGHLIGHT_BORDERS:
+			data := data.(map[string]interface{})
+			globulaName := data["globula"].(string)
+			originGlobula := getGlobulaByName(globulaName)
+			globula := originGlobula.DeepCopy(globulaName + "highlighted_borders")
+			globula.HighlightBorders()
 
 		case interp.COMMAND_EXIT:
 			isWorking = false

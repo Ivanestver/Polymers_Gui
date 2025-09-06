@@ -7,23 +7,24 @@ import (
 )
 
 const (
-	Command_help_str            = "help"
-	Command_set_str             = "set"
-	Command_pols_count_str      = "pols_count"
-	Command_threshold_str       = "threshold"
-	Command_max_mon_count_str   = "max_mon_count"
-	Command_sphere_rad_str      = "sphere_rad"
-	Command_build_str           = "build"
-	COMMAND_EXIT_STR            = "exit"
-	COMMAND_SHOW_STR            = "show"
-	COMMAND_SHOW_PARAMETERS_STR = "params"
-	COMMAND_SHOW_GLOBULA_STR    = "globula"
-	COMMAND_SAVE_STR            = "save"
-	COMMAND_CLUSTERS_STR        = "clusters"
-	COMMAND_CLUSTERS_ALL_STR    = "all"
-	COMMAND_AGE_STR             = "age"
-	COMMAND_RESET_STR           = "reset"
-	COMMAND_FULL_STR            = "full"
+	Command_help_str              = "help"
+	Command_set_str               = "set"
+	Command_pols_count_str        = "pols_count"
+	Command_threshold_str         = "threshold"
+	Command_max_mon_count_str     = "max_mon_count"
+	Command_sphere_rad_str        = "sphere_rad"
+	Command_build_str             = "build"
+	COMMAND_EXIT_STR              = "exit"
+	COMMAND_SHOW_STR              = "show"
+	COMMAND_SHOW_PARAMETERS_STR   = "params"
+	COMMAND_SHOW_GLOBULA_STR      = "globula"
+	COMMAND_SAVE_STR              = "save"
+	COMMAND_CLUSTERS_STR          = "clusters"
+	COMMAND_CLUSTERS_ALL_STR      = "all"
+	COMMAND_AGE_STR               = "age"
+	COMMAND_RESET_STR             = "reset"
+	COMMAND_FULL_STR              = "full"
+	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
 )
 
 type Command = int
@@ -46,6 +47,7 @@ const (
 	COMMAND_RESET_FULL
 	COMMAND_EXIT
 	COMMAND_READ_DATA
+	COMMAND_HIGHLIGHT_BORDERS
 )
 
 var currProgram string
@@ -157,6 +159,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_AGE_STR {
 		return age()
+	}
+
+	if token == COMMAND_HIGHLIGHT_BORDERS_STR {
+		return borders()
 	}
 
 	if token == COMMAND_EXIT_STR {
@@ -379,6 +385,16 @@ func age() (Command, interface{}) {
 	m["globula"] = globulaName
 	m["count"] = groupCount
 	return COMMAND_AGE, m
+}
+
+func borders() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	m := make(map[string]interface{})
+	m["globula"] = globulaName
+	return COMMAND_HIGHLIGHT_BORDERS, m
 }
 
 func resetGlobula() (Command, interface{}) {
