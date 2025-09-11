@@ -49,7 +49,7 @@ func (mon *Monomer) GetSideOfSibling(otherMon *Monomer) Side {
 		}
 
 		sibling, _ := conn.GetOtherSide(mon)
-		if otherMon == sibling {
+		if MonomersAreEqual(otherMon, sibling) {
 			return side
 		}
 	}
@@ -97,6 +97,33 @@ func (monomer *Monomer) DeepCopy(field *Field) *Monomer {
 	newMon.Number = monomer.Number
 	newMon.sides = monomer.sides
 	return newMon
+}
+
+func (monomer *Monomer) DeepCopyFrom(other *Monomer, field *Field) {
+	if monomer.coords != other.coords {
+		return
+	}
+	if other.NextMonomer != nil {
+		monomer.NextMonomer = field.GetMonomerByCoords(other.NextMonomer.coords)
+	} else {
+		monomer.NextMonomer = nil
+	}
+
+	if other.PrevMonomer != nil {
+		monomer.PrevMonomer = field.GetMonomerByCoords(other.PrevMonomer.coords)
+	} else {
+		monomer.PrevMonomer = nil
+	}
+
+	monomer.Number = other.Number
+	for _, conn := range other.sides {
+		otherSideOfOther, err := conn.GetOtherSide(other)
+		if err != nil {
+			continue
+		}
+		MakeConnection(monomer, field.GetMonomerByCoords(otherSideOfOther.coords), conn.ConnType)
+	}
+	monomer.MonomerType = other.MonomerType
 }
 
 func MonomersAreEqual(left, right *Monomer) bool {

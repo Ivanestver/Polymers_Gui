@@ -40,7 +40,7 @@ func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 	} else {
 		_, err := conn.GetOtherSide(mon1)
 		if err != nil {
-			panic("Two monomers occupy the same location&")
+			panic("Two monomers occupy the same location")
 		}
 		conn.ConnType = connectionType
 	}

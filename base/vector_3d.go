@@ -29,3 +29,17 @@ func VectorsAreEqual(left, right *Vector3D) bool {
 		left.Y == right.Y &&
 		left.Z == right.Z
 }
+
+func (vector *Vector3D) Add(other *Vector3D) {
+	vector.X += other.X
+	vector.Y += other.Y
+	vector.Z += other.Z
+}
+
+func AddVec(left *Vector3D, right *Vector3D) *Vector3D {
+	return &Vector3D{
+		X: left.X + right.X,
+		Y: left.Y + right.Y,
+		Z: left.Z + right.Z,
+	}
+}

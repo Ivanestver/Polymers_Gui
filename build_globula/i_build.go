@@ -11,10 +11,23 @@ const (
 
 type ICalcAlg interface {
 	Calc() []*datatypes.Polymer
+	GetLiteralsTable() map[datatypes.MonomerType]string
 }
 
 type ICalcAlgInputData interface {
 	GetName() string
+}
+
+type IInputDataBuilder interface {
+	CreateInputData(algType AlgType) (ICalcAlgInputData, error)
+}
+
+func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {
+	if algType == GlobulaBuildAlg {
+		return &CalcAlgInputDataBuilder{}
+	} else {
+		return &BuildThreadAlgInputDataBuilder{}
+	}
 }
 
 func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {

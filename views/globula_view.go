@@ -16,6 +16,7 @@ type GlobulaView struct {
 	yClusters         *ClusterView
 	zClusters         *ClusterView
 	commonClusterDone bool
+	literalsTable     map[datatypes.MonomerType]string
 }
 
 func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
@@ -33,6 +34,7 @@ func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
 		})
 	}
 	newGlobulaView.commonClusterDone = false
+	newGlobulaView.literalsTable = make(map[dt.MonomerType]string)
 	return newGlobulaView
 }
 
@@ -48,6 +50,16 @@ func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *datatypes.Monomer) { mon.MonomerType = datatypes.MONOMER_TYPE_USUAL })
 	}
+}
+
+func (globula *GlobulaView) SetLiterals(literals map[datatypes.MonomerType]string) {
+	for monType, str := range literals {
+		globula.literalsTable[monType] = str
+	}
+}
+
+func (globula *GlobulaView) GetLiteral(monType datatypes.MonomerType) string {
+	return globula.literalsTable[monType]
 }
 
 /*
@@ -239,10 +251,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_NWISE)
+	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_O_CONTAINING)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_OWISE)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_VYNIL)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -255,10 +267,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 
 func (globula *GlobulaView) DoAging2(groupsCount int) {
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_OWISE)
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_VYNIL)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_NWISE)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_O_CONTAINING)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -287,17 +299,17 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		datatypes.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
-			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
-			if monomerTypeToGather == dt.MONOMER_TYPE_NWISE {
+			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_O_CONTAINING
+			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
+			if monomerTypeToGather == dt.MONOMER_TYPE_O_CONTAINING {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
-			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_NWISE
-			if monomerTypeToGather == dt.MONOMER_TYPE_OWISE {
+			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
+			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_O_CONTAINING
+			if monomerTypeToGather == dt.MONOMER_TYPE_VYNIL {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
@@ -334,7 +346,7 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_OWISE
+			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
 			i++
 		}
 	}
@@ -356,8 +368,8 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
-				chosenMonomer.MonomerType = dt.MONOMER_TYPE_NWISE
-				nextMonomer.MonomerType = dt.MONOMER_TYPE_NWISE
+				chosenMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
+				nextMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
@@ -389,8 +401,8 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
-				chosenMonomer.MonomerType = dt.MONOMER_TYPE_HWISE
-				nextMonomer.MonomerType = dt.MONOMER_TYPE_HWISE
+				chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+				nextMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
 				currentCount += 1
 				timesRepeated = 0
 				break
@@ -413,9 +425,11 @@ func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
 	}
 
 	newGlobula := new(GlobulaView)
-	newGlobula.name = globula.name
+	newGlobula.name = newName
 	newGlobula.commonClusterDone = false
 	newGlobula.polymers = newPolymers
+	newGlobula.literalsTable = make(map[dt.MonomerType]string)
+	newGlobula.SetLiterals(globula.literalsTable)
 	return newGlobula
 }
 

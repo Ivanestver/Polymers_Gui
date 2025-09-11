@@ -166,15 +166,11 @@ func (field *Field) MarshalJSON() ([]byte, error) {
 }
 
 func (field *Field) DeepCopy() *Field {
-	newField := new(Field)
-	newField.sphereRadius = field.sphereRadius
-	newField.field = make([][][]*Monomer, len(field.field))
+	newField := NewField(field.sphereRadius)
 	for x, monX := range field.field {
-		newField.field[x] = make([][]*Monomer, len(field.field[x]))
 		for y, monY := range monX {
-			newField.field[x][y] = make([]*Monomer, len(field.field[x][y]))
 			for z := range monY {
-				newField.field[x][y][z] = field.field[x][y][z].DeepCopy(newField)
+				newField.field[x][y][z].DeepCopyFrom(field.field[x][y][z], field)
 			}
 		}
 	}

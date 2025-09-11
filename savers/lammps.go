@@ -76,7 +76,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 		if monType == dt.MONOMER_TYPE_UNDEFINED {
 			continue
 		}
-		literal, _ := monType.ToLiteral()
+		literal := globula.GetLiteral(monType)
 		addString(&content, strconv.Itoa(number)+" 1 # "+literal)
 	}
 

@@ -52,13 +52,13 @@ const (
 )
 
 const (
-	MONOMER_TYPE_UNDEFINED MonomerType = -1
-	MONOMER_TYPE_USUAL     MonomerType = 0
-	MONOMER_TYPE_OWISE     MonomerType = 1
-	MONOMER_TYPE_NWISE     MonomerType = 2
-	MONOMER_TYPE_FWISE     MonomerType = 3
-	MONOMER_TYPE_CLWISE    MonomerType = 4
-	MONOMER_TYPE_HWISE     MonomerType = 5
+	MONOMER_TYPE_UNDEFINED    MonomerType = -1
+	MONOMER_TYPE_USUAL        MonomerType = 0
+	MONOMER_TYPE_VYNIL        MonomerType = 1
+	MONOMER_TYPE_O_CONTAINING MonomerType = 2
+	MONOMER_TYPE_FWISE        MonomerType = 3
+	MONOMER_TYPE_CLWISE       MonomerType = 4
+	MONOMER_TYPE_CROSSLINKED  MonomerType = 5
 )
 
 const (
@@ -153,8 +153,8 @@ func GetReversedSide(side Side) Side {
 
 func GetAxisColor(axis Axis) MonomerType {
 	return map[Axis]MonomerType{
-		X_AXIS: MONOMER_TYPE_OWISE,
-		Y_AXIS: MONOMER_TYPE_NWISE,
+		X_AXIS: MONOMER_TYPE_VYNIL,
+		Y_AXIS: MONOMER_TYPE_O_CONTAINING,
 		Z_AXIS: MONOMER_TYPE_FWISE,
 	}[axis]
 }
@@ -165,15 +165,15 @@ func (monType *MonomerType) ToLiteral() (string, error) {
 		return "", errors.New("There is no letter for Undefined monomer")
 	case MONOMER_TYPE_USUAL:
 		return "C", nil
-	case MONOMER_TYPE_OWISE:
+	case MONOMER_TYPE_VYNIL:
 		return "O", nil
-	case MONOMER_TYPE_NWISE:
+	case MONOMER_TYPE_O_CONTAINING:
 		return "N", nil
 	case MONOMER_TYPE_FWISE:
 		return "F", nil
 	case MONOMER_TYPE_CLWISE:
 		return "Cl", nil
-	case MONOMER_TYPE_HWISE:
+	case MONOMER_TYPE_CROSSLINKED:
 		return "H", nil
 	default:
 		return "", errors.New("There is no letter for this type")

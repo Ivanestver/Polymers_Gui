@@ -20,6 +20,29 @@ func (data CalcAlgInputData) GetName() string {
 	return "Globula"
 }
 
+type CalcAlgInputDataBuilder struct {
+}
+
+func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType) (ICalcAlgInputData, error) {
+	inputData := CalcAlgInputData{}
+
+	fmt.Print("Enter the globula count: ")
+	fmt.Scanln(&inputData.GlobulaCount)
+
+	fmt.Print("Enter the polymers count: ")
+	fmt.Scanln(&inputData.PolymersCount)
+
+	fmt.Print("Enter the accept threshold count: ")
+	fmt.Scanln(&inputData.AcceptThreshold)
+
+	fmt.Print("Enter the max monomers count: ")
+	fmt.Scanln(&inputData.MaxMonomersCount)
+
+	fmt.Print("Enter the sphere radius: ")
+	fmt.Scanln(&inputData.SphereRadius)
+	return inputData, nil
+}
+
 type CalcAlg struct {
 	inputData CalcAlgInputData
 }
@@ -139,4 +162,16 @@ func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer
 			}
 		}
 	}
+}
+
+func (alg *CalcAlg) GetLiteralsTable() map[datatypes.MonomerType]string {
+	m := make(map[datatypes.MonomerType]string)
+	m[datatypes.MONOMER_TYPE_UNDEFINED] = ""
+	m[datatypes.MONOMER_TYPE_USUAL] = "C"
+	m[datatypes.MONOMER_TYPE_VYNIL] = "O"
+	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
+	m[datatypes.MONOMER_TYPE_FWISE] = "F"
+	m[datatypes.MONOMER_TYPE_CLWISE] = "Cl"
+	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
+	return m
 }

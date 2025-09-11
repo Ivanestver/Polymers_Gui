@@ -1,2 +1,2 @@
-go build -x -o main.exe main.go print.go
+go build -x -o main.exe main.go
 main.exe
