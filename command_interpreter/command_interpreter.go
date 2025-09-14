@@ -27,6 +27,7 @@ const (
 	COMMAND_FULL_STR              = "full"
 	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
 	COMMAND_THREAD_STR            = "thread"
+	COMMAND_WATERIZE_STR          = "waterize"
 )
 
 type Command = int
@@ -51,6 +52,7 @@ const (
 	COMMAND_EXIT
 	COMMAND_READ_DATA
 	COMMAND_HIGHLIGHT_BORDERS
+	COMMAND_WATERIZE
 )
 
 var currProgram string
@@ -174,6 +176,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_EXIT_STR {
 		return COMMAND_EXIT, nil
+	}
+
+	if token == COMMAND_WATERIZE_STR {
+		return waterize()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined command: " + token
@@ -447,4 +453,14 @@ func resetGlobula() (Command, interface{}) {
 	}
 
 	return COMMAND_UNDEFINED, string("Usage: reset <globula_name> full")
+}
+
+func waterize() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	m := make(map[string]interface{})
+	m["globula"] = globulaName
+	return COMMAND_WATERIZE, m
 }

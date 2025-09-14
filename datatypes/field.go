@@ -176,3 +176,16 @@ func (field *Field) DeepCopy() *Field {
 	}
 	return newField
 }
+
+func (field *Field) Waterize() {
+	for x, monX := range field.field {
+		for y, monY := range monX {
+			for z := range monY {
+				mon := field.field[x][y][z]
+				if mon.MonomerType == MONOMER_TYPE_UNDEFINED {
+					mon.MonomerType = MONOMER_TYPE_WATER
+				}
+			}
+		}
+	}
+}

@@ -59,6 +59,7 @@ const (
 	MONOMER_TYPE_FWISE        MonomerType = 3
 	MONOMER_TYPE_CLWISE       MonomerType = 4
 	MONOMER_TYPE_CROSSLINKED  MonomerType = 5
+	MONOMER_TYPE_WATER        MonomerType = 6
 )
 
 const (

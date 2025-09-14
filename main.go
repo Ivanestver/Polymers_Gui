@@ -163,6 +163,13 @@ func main() {
 			globula := originGlobula.DeepCopy(globulaName + "highlighted_borders")
 			globula.HighlightBorders()
 
+		case interp.COMMAND_WATERIZE:
+			data := data.(map[string]interface{})
+			globulaName := data["globula"].(string)
+			originGlobula := getGlobulaByName(globulaName)
+			globula := originGlobula.DeepCopy(globulaName + "_waterized")
+			globulas = append(globulas, globula)
+
 		case interp.COMMAND_EXIT:
 			isWorking = false
 		default:

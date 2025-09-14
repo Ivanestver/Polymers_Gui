@@ -443,3 +443,7 @@ func (globula *GlobulaView) HighlightBorders() bool {
 func doDST(polymerView *PolymerView) {
 
 }
+
+func (globula *GlobulaView) Waterize() {
+
+}

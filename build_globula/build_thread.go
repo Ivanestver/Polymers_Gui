@@ -126,5 +126,6 @@ func (alg *BuildThreadAlg) GetLiteralsTable() map[datatypes.MonomerType]string {
 	m[datatypes.MONOMER_TYPE_FWISE] = "F"
 	m[datatypes.MONOMER_TYPE_CLWISE] = "Cl"
 	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
+	m[datatypes.MONOMER_TYPE_WATER] = "I"
 	return m
 }
