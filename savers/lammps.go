@@ -2,6 +2,7 @@ package savers
 
 import (
 	"math"
+	"polymers/base"
 	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/global_data"
@@ -93,12 +94,14 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, "Atoms # full")
 	addNewLine(&content)
 
+	maxNumber := -1
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
 		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
 			if mon.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
 				return
 			}
 			monCoords := mon.Coords()
+			maxNumber = *base.Max_int([]int{maxNumber, int(mon.Number)})
 			addString(&content, strconv.Itoa(int(mon.Number))+
 				" 1 "+
 				strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
@@ -109,6 +112,36 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 				"0 0 0")
 		})
 	})
+	if globula.Is(views.GLOBULA_WATERIZED) {
+		views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
+			field := pv.GetUnderlinedField()
+			var globalData *global_data.GlobalData = global_data.GetGlobalData()
+			shape := [...]int64{globalData.SpaceDimention, globalData.SpaceDimention, globalData.SpaceDimention}
+			var i int64
+			var j int64
+			var k int64
+			for i = 0; i < shape[0]; i++ {
+				for j = 0; j < shape[1]; j++ {
+					for k = 0; k < shape[2]; k++ {
+						mon := field.GetMonomerByCoords(base.Vector3D{X: i, Y: j, Z: k})
+						if mon == nil || mon.MonomerType != datatypes.MONOMER_TYPE_WATER {
+							continue
+						}
+						maxNumber++
+						addString(&content, strconv.Itoa(maxNumber)+
+							" 1 "+
+							strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
+							" 0.00000 "+
+							strconv.FormatInt(i, 10)+" "+
+							strconv.FormatInt(j, 10)+" "+
+							strconv.FormatInt(k, 10)+" "+
+							"0 0 0")
+					}
+				}
+			}
+			return false
+		})
+	}
 	addNewLine(&content)
 
 	addString(&content, "Bonds")
@@ -153,13 +186,18 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 
 func getAtomsCount(globula *views.GlobulaView) int {
 	atomsCount := 0
-	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
-			if mon.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
-				atomsCount++
-			}
+	if !globula.Is(views.GLOBULA_WATERIZED) {
+		views.ForEachPolymer(globula, func(pol *views.PolymerView) {
+			views.ForEachMonomer(pol, func(mon *dt.Monomer) {
+				if mon.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
+					atomsCount++
+				}
+			})
 		})
-	})
+	} else {
+		globalData := global_data.GetGlobalData()
+		atomsCount = int(globalData.SpaceDimention) * int(globalData.SpaceDimention) * int(globalData.SpaceDimention)
+	}
 	return atomsCount
 }
 
@@ -174,6 +212,9 @@ func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
 	monomersTypes := make([]dt.MonomerType, 0)
 	for key := range monomersTypes_map {
 		monomersTypes = append(monomersTypes, key)
+	}
+	if globula.Is(views.GLOBULA_WATERIZED) {
+		monomersTypes = append(monomersTypes, dt.MONOMER_TYPE_WATER)
 	}
 	slices.Sort(monomersTypes)
 	return monomersTypes
