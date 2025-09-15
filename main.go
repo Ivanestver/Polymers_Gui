@@ -103,6 +103,10 @@ func main() {
 		case interp.COMMAND_SAVE_GLOBULA:
 			globulaName := data.(string)
 			var globula *views.GlobulaView = getGlobulaByName(globulaName)
+			if globula == nil {
+				output_format.PrintlnError("There is no globula called \"" + globulaName + "\"")
+				break
+			}
 			content, _ := savers.SaveToLammps(globula)
 			f, err := os.Create(globulaName + strconv.Itoa(fileNumber) + ".data")
 			if err != nil {
@@ -168,6 +172,7 @@ func main() {
 			globulaName := data["globula"].(string)
 			originGlobula := getGlobulaByName(globulaName)
 			globula := originGlobula.DeepCopy(globulaName + "_waterized")
+			globula.Waterize()
 			globulas = append(globulas, globula)
 
 		case interp.COMMAND_EXIT:
