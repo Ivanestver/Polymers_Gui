@@ -9,6 +9,13 @@ import (
 	"strconv"
 )
 
+type GlobulaProperty int
+
+const (
+	GLOBULA_AGED GlobulaProperty = iota
+	GLOBULA_WATERIZED
+)
+
 type GlobulaView struct {
 	name              string
 	polymers          []*PolymerView
@@ -17,6 +24,7 @@ type GlobulaView struct {
 	zClusters         *ClusterView
 	commonClusterDone bool
 	literalsTable     map[datatypes.MonomerType]string
+	globulaProperties map[GlobulaProperty]bool
 }
 
 func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
@@ -35,6 +43,7 @@ func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
 	}
 	newGlobulaView.commonClusterDone = false
 	newGlobulaView.literalsTable = make(map[dt.MonomerType]string)
+	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
 	return newGlobulaView
 }
 
@@ -46,9 +55,16 @@ func (globula *GlobulaView) Len() int {
 	return len(globula.polymers)
 }
 
+func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
+	return globula.globulaProperties[prop]
+}
+
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *datatypes.Monomer) { mon.MonomerType = datatypes.MONOMER_TYPE_USUAL })
+	}
+	for gp := range globula.globulaProperties {
+		delete(globula.globulaProperties, gp)
 	}
 }
 
@@ -83,6 +99,9 @@ func (globula *GlobulaView) FullReset() {
 			dt.MakeConnection(mon, mon.NextMonomer, dt.CONNECTION_TYPE_ONE)
 		})
 	}
+	for gp := range globula.globulaProperties {
+		delete(globula.globulaProperties, gp)
+	}
 }
 
 // func (globula *GlobulaView) ToJson() ([]byte, error) {
@@ -104,13 +123,23 @@ func ForEachPolymer(globula *GlobulaView, pred func(*PolymerView)) {
 	}
 }
 
+func ForEachPolymer_If(globula *GlobulaView, pred func(*PolymerView) bool) {
+	for _, pol := range globula.polymers {
+		if !pred(pol) {
+			break
+		}
+	}
+}
+
 func (globula *GlobulaView) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Name     string
-		Polymers []*PolymerView
+		Name       string
+		Polymers   []*PolymerView
+		Properties map[GlobulaProperty]bool
 	}{
-		Name:     globula.name,
-		Polymers: globula.polymers,
+		Name:       globula.name,
+		Polymers:   globula.polymers,
+		Properties: globula.globulaProperties,
 	})
 }
 
@@ -263,6 +292,7 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 
 	// 4. Create connections
 	globula.createCrosslinks1(int(float64(groupsCount)*0.59), &Cs_)
+	globula.globulaProperties[GLOBULA_AGED] = true
 }
 
 func (globula *GlobulaView) DoAging2(groupsCount int) {
@@ -279,6 +309,7 @@ func (globula *GlobulaView) DoAging2(groupsCount int) {
 
 	// 4. Create connections
 	globula.createCrosslinks2(int(float64(groupsCount) * 0.50))
+	globula.globulaProperties[GLOBULA_AGED] = true
 }
 
 func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
@@ -430,6 +461,7 @@ func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
 	newGlobula.polymers = newPolymers
 	newGlobula.literalsTable = make(map[dt.MonomerType]string)
 	newGlobula.SetLiterals(globula.literalsTable)
+	newGlobula.globulaProperties = globula.globulaProperties
 	return newGlobula
 }
 
@@ -445,5 +477,6 @@ func doDST(polymerView *PolymerView) {
 }
 
 func (globula *GlobulaView) Waterize() {
-
+	globula.polymers[0].GetUnderlinedField().Waterize()
+	globula.globulaProperties[GLOBULA_WATERIZED] = true
 }
