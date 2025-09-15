@@ -30,7 +30,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	fileNumber := 1
 	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
-	var spaceDimention int64 = 100
+	var spaceDimention int64 = 25
 	//fmt.Scanln(&spaceDimention)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -55,6 +55,8 @@ func main() {
 	commands = append(commands, "save \"Thread 0\"  ")
 	commands = append(commands, "age \"Thread 0\" 80  ")
 	commands = append(commands, "save \"Thread 0_aged\"  ")
+	commands = append(commands, "waterize \"Thread 0_aged\"  ")
+	commands = append(commands, "save \"Thread 0_aged_waterized\"  ")
 	commands = append(commands, "exit  ")
 	isWorking := true
 	commandIdx := 0
