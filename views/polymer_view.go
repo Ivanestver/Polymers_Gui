@@ -68,3 +68,13 @@ func (polymerView *PolymerView) DeepCopy(field *datatypes.Field) *PolymerView {
 func (polymerView *PolymerView) GetUnderlinedField() *datatypes.Field {
 	return polymerView.polymer.Field()
 }
+
+func (polymerView *PolymerView) TrunkTo(newSize int) {
+	if newSize >= polymerView.Len() {
+		return
+	}
+
+	for polymerView.Len() > newSize {
+		polymerView.polymer.MakeStepBack()
+	}
+}
