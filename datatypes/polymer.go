@@ -120,6 +120,7 @@ func (polymer *Polymer) MakeStepBack() bool {
 		return false
 	}
 
+	polymer.field.MakeFree(polymer.polymer[polymer.Len()-1])
 	polymer.polymer = polymer.polymer[:polymer.Len()-1]
 	return true
 }
