@@ -51,12 +51,12 @@ func main() {
 	output_format.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	//cmdReader := bufio.NewReader(os.Stdin)
 	commands := make([]string, 0)
-	commands = append(commands, "build thread  ")
+	commands = append(commands, "build globula  ")
 	commands = append(commands, "save \"Thread 0\"  ")
-	commands = append(commands, "age \"Thread 0\" 80  ")
-	commands = append(commands, "save \"Thread 0_aged\"  ")
-	commands = append(commands, "waterize \"Thread 0_aged\"  ")
-	commands = append(commands, "save \"Thread 0_aged_waterized\"  ")
+	commands = append(commands, "trunk \"Thread 0\"  ")
+	commands = append(commands, "save \"Thread 0_trunk_shortest\"  ")
+	commands = append(commands, "trunk \"Thread 0\" 120  ")
+	commands = append(commands, "save \"Thread 0_trunk_custom\"  ")
 	commands = append(commands, "exit  ")
 	isWorking := true
 	commandIdx := 0
@@ -175,6 +175,21 @@ func main() {
 			originGlobula := getGlobulaByName(globulaName)
 			globula := originGlobula.DeepCopy(globulaName + "_waterized")
 			globula.Waterize()
+			globulas = append(globulas, globula)
+
+		case interp.COMMAND_TRUNK:
+			data := data.(map[string]interface{})
+			globulaName := data["globula"].(string)
+			originGlobula := getGlobulaByName(globulaName)
+			newSize, ok := data["new_size"]
+			var globula *views.GlobulaView
+			if ok {
+				globula = originGlobula.DeepCopy(globulaName + "_trunk_custom")
+				globula.MakeHomogenousAsCustom(newSize.(int))
+			} else {
+				globula = originGlobula.DeepCopy(globulaName + "_trunk_shortest")
+				globula.MakeHomogenousAsShortest()
+			}
 			globulas = append(globulas, globula)
 
 		case interp.COMMAND_EXIT:

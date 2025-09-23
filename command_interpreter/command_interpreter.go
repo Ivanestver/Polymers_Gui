@@ -28,6 +28,7 @@ const (
 	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
 	COMMAND_THREAD_STR            = "thread"
 	COMMAND_WATERIZE_STR          = "waterize"
+	COMMAND_TRUNK_STR             = "trunk"
 )
 
 type Command = int
@@ -53,6 +54,7 @@ const (
 	COMMAND_READ_DATA
 	COMMAND_HIGHLIGHT_BORDERS
 	COMMAND_WATERIZE
+	COMMAND_TRUNK
 )
 
 var currProgram string
@@ -120,6 +122,7 @@ func getGlobulaName() (string, error) {
 			globulaName += " " + token
 		}
 		if string(getCurrChar()) == "\"" {
+			moveForward()
 			return globulaName, nil
 		}
 	}
@@ -180,6 +183,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_WATERIZE_STR {
 		return waterize()
+	}
+
+	if token == COMMAND_TRUNK_STR {
+		return trunk()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined command: " + token
@@ -463,4 +470,30 @@ func waterize() (Command, interface{}) {
 	m := make(map[string]interface{})
 	m["globula"] = globulaName
 	return COMMAND_WATERIZE, m
+}
+
+func trunk() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	getNextToken()
+	m := make(map[string]interface{})
+	m["globula"] = globulaName
+	if finished() { // No size has been provided, therefore, use the shortest
+		return COMMAND_TRUNK, m
+	}
+
+	token, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	newSize, err := strconv.Atoi(token)
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	m["new_size"] = newSize
+	return COMMAND_TRUNK, m
 }

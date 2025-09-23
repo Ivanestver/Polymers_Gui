@@ -483,8 +483,11 @@ func (globula *GlobulaView) Waterize() {
 }
 
 func (globula *GlobulaView) MakeHomogenousAsShortest() error {
+	if globula.Len() == 0 {
+		return errors.New("The globula \"" + globula.name + "\"is empty")
+	}
 	// find the length of the shortest chain
-	shortestChainLength := 0
+	shortestChainLength := globula.polymers[0].Len()
 	for _, polymer := range globula.polymers {
 		if polymer.Len() < shortestChainLength {
 			shortestChainLength = polymer.Len()
