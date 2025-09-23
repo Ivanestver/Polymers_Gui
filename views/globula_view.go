@@ -2,6 +2,7 @@ package views
 
 import (
 	"encoding/json"
+	"errors"
 	"math/rand"
 	"polymers/datatypes"
 	dt "polymers/datatypes"
@@ -479,4 +480,29 @@ func doDST(polymerView *PolymerView) {
 func (globula *GlobulaView) Waterize() {
 	globula.polymers[0].GetUnderlinedField().Waterize()
 	globula.globulaProperties[GLOBULA_WATERIZED] = true
+}
+
+func (globula *GlobulaView) MakeHomogenousAsShortest() error {
+	// find the length of the shortest chain
+	shortestChainLength := 0
+	for _, polymer := range globula.polymers {
+		if polymer.Len() < shortestChainLength {
+			shortestChainLength = polymer.Len()
+		}
+	}
+
+	// Trunkate others to the minimum found
+	return globula.MakeHomogenousAsCustom(shortestChainLength)
+}
+
+func (globula *GlobulaView) MakeHomogenousAsCustom(newSize int) error {
+	if newSize > 128 {
+		return errors.New("New size must not be more than 128")
+	}
+
+	for _, polymer := range globula.polymers {
+		polymer.TrunkTo(newSize)
+	}
+
+	return nil
 }
