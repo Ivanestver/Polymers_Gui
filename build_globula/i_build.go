@@ -19,7 +19,7 @@ type ICalcAlgInputData interface {
 }
 
 type IInputDataBuilder interface {
-	CreateInputData(algType AlgType) (ICalcAlgInputData, error)
+	CreateInputData(algType AlgType, defaultParams []string) (ICalcAlgInputData, error)
 }
 
 func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {

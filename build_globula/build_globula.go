@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"polymers/base"
 	"polymers/datatypes"
+	"strconv"
 )
 
 type CalcAlgInputData struct {
@@ -23,23 +24,65 @@ func (data CalcAlgInputData) GetName() string {
 type CalcAlgInputDataBuilder struct {
 }
 
-func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType) (ICalcAlgInputData, error) {
+func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string) (ICalcAlgInputData, error) {
 	inputData := CalcAlgInputData{}
 
-	fmt.Print("Enter the globula count: ")
-	fmt.Scanln(&inputData.GlobulaCount)
+	predefinedParamsCount := len(predefinedParams)
+	if predefinedParamsCount < 1 {
+		fmt.Print("Enter the globula count: ")
+		fmt.Scanln(&inputData.GlobulaCount)
+	} else {
+		globulaCount, err := strconv.Atoi(predefinedParams[0])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.GlobulaCount = globulaCount
+	}
 
-	fmt.Print("Enter the polymers count: ")
-	fmt.Scanln(&inputData.PolymersCount)
+	if predefinedParamsCount < 2 {
+		fmt.Print("Enter the polymers count: ")
+		fmt.Scanln(&inputData.PolymersCount)
+	} else {
+		polymersCount, err := strconv.Atoi(predefinedParams[1])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.PolymersCount = polymersCount
+	}
 
-	fmt.Print("Enter the accept threshold count: ")
-	fmt.Scanln(&inputData.AcceptThreshold)
+	if predefinedParamsCount < 3 {
+		fmt.Print("Enter the accept threshold count: ")
+		fmt.Scanln(&inputData.AcceptThreshold)
+	} else {
+		threshold, err := strconv.ParseFloat(predefinedParams[2], 64)
+		if err != nil {
+			return inputData, err
+		}
+		inputData.AcceptThreshold = threshold
+	}
 
-	fmt.Print("Enter the max monomers count: ")
-	fmt.Scanln(&inputData.MaxMonomersCount)
+	if predefinedParamsCount < 4 {
+		fmt.Print("Enter the max monomers count: ")
+		fmt.Scanln(&inputData.MaxMonomersCount)
+	} else {
+		maxMonomersCount, err := strconv.Atoi(predefinedParams[3])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.MaxMonomersCount = maxMonomersCount
+	}
 
-	fmt.Print("Enter the sphere radius: ")
-	fmt.Scanln(&inputData.SphereRadius)
+	if predefinedParamsCount < 5 {
+		fmt.Print("Enter the sphere radius: ")
+		fmt.Scanln(&inputData.SphereRadius)
+	} else {
+		sphereRadius, err := strconv.Atoi(predefinedParams[4])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.SphereRadius = sphereRadius
+	}
+
 	return inputData, nil
 }
 

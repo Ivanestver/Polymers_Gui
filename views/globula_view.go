@@ -79,6 +79,15 @@ func (globula *GlobulaView) GetLiteral(monType datatypes.MonomerType) string {
 	return globula.literalsTable[monType]
 }
 
+func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) datatypes.MonomerType {
+	for monType, l := range globula.literalsTable {
+		if letter == l {
+			return monType
+		}
+	}
+	return datatypes.MONOMER_TYPE_UNDEFINED
+}
+
 /*
 The idea is to break all the connections and recover the original globula
 using the polumer's connections information
@@ -296,7 +305,7 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	globula.globulaProperties[GLOBULA_AGED] = true
 }
 
-func (globula *GlobulaView) DoAging2(groupsCount int) {
+func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	// 1. Break connections
 	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_VYNIL)
 
@@ -309,7 +318,9 @@ func (globula *GlobulaView) DoAging2(groupsCount int) {
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 
 	// 4. Create connections
-	globula.createCrosslinks2(int(float64(groupsCount) * 0.50))
+	if doCrosslinks {
+		globula.createCrosslinks2(int(float64(groupsCount) * 0.50))
+	}
 	globula.globulaProperties[GLOBULA_AGED] = true
 }
 
@@ -318,6 +329,9 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 	for len(Bs) != groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
+		if poly.Len() < 2 {
+			continue
+		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
@@ -375,6 +389,9 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 	for i < groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
+		if poly.Len() < 2 {
+			continue
+		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
@@ -416,6 +433,9 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 	for currentCount != crosslinksCount && timesRepeated != maxTimesRepeated {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
+		if poly.Len() < 2 {
+			continue
+		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
@@ -495,7 +515,7 @@ func (globula *GlobulaView) MakeHomogenousAsShortest() error {
 	}
 
 	// Trunkate others to the minimum found
-	return globula.MakeHomogenousAsCustom(shortestChainLength)
+	return globula.trunkAllPolymers(shortestChainLength)
 }
 
 func (globula *GlobulaView) MakeHomogenousAsCustom(newSize int) error {
@@ -503,8 +523,20 @@ func (globula *GlobulaView) MakeHomogenousAsCustom(newSize int) error {
 		return errors.New("New size must not be more than 128")
 	}
 
+	return globula.trunkAllPolymers(newSize)
+}
+
+func (globula *GlobulaView) trunkAllPolymers(newSize int) error {
 	for _, polymer := range globula.polymers {
 		polymer.TrunkTo(newSize)
+	}
+
+	var monomerNumber int64 = 1
+	for _, polymer := range globula.polymers {
+		ForEachMonomer(polymer, func(m *dt.Monomer) {
+			m.Number = int64(monomerNumber)
+			monomerNumber++
+		})
 	}
 
 	return nil

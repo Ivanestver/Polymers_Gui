@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"flag"
 	"fmt"
 	"math/rand"
 	"os"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
+	"polymers/datatypes"
 	"polymers/global_data"
 	"polymers/output_format"
 	"polymers/savers"
@@ -49,23 +52,24 @@ func main() {
 		inputData.SphereRadius = 20
 	*/
 	output_format.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
-	//cmdReader := bufio.NewReader(os.Stdin)
+	cmdReader := bufio.NewReader(os.Stdin)
 	commands := make([]string, 0)
-	commands = append(commands, "build globula  ")
-	commands = append(commands, "save \"Thread 0\"  ")
-	commands = append(commands, "trunk \"Thread 0\"  ")
-	commands = append(commands, "save \"Thread 0_trunk_shortest\"  ")
-	commands = append(commands, "trunk \"Thread 0\" 120  ")
-	commands = append(commands, "save \"Thread 0_trunk_custom\"  ")
-	commands = append(commands, "exit  ")
+	scriptPtr := flag.String("script", "", "define a script file")
+	flag.Parse()
+	if scriptPtr != nil {
+		commands = getCommandsFromScript(*scriptPtr)
+	}
 	isWorking := true
-	commandIdx := 0
 	for isWorking {
 		fmt.Print("> ")
-		//line, _ := cmdReader.ReadString('\n')
-		line := commands[commandIdx]
-		command, data := interp.Interpret(line[:len(line)-2])
-		commandIdx++
+		var line string
+		if len(commands) == 0 {
+			line, _ = cmdReader.ReadString('\n')
+		} else {
+			line = commands[0]
+			commands = commands[1:]
+		}
+		command, data := interp.Interpret(line)
 		switch command {
 		case interp.COMMAND_UNDEFINED:
 			output_format.PrintlnError(data.(string))
@@ -86,10 +90,9 @@ func main() {
 			}
 		case interp.COMMAND_SHOW_PARAMETERS:
 			PrintParams()
-		case interp.COMMAND_BUILD_GLOBULA:
-			buildGlobula(build_globula.GlobulaBuildAlg)
-		case interp.COMMAND_BUILD_THREAD_GLOBULA:
-			buildGlobula(build_globula.ThreadBuildAlg)
+		case interp.COMMAND_BUILD:
+			m := data.(map[string]interface{})
+			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string))
 		case interp.COMMAND_SHOW_GLOBULAS_LIST:
 			for _, globula := range globulas {
 				fmt.Println(globula.Name())
@@ -137,6 +140,7 @@ func main() {
 			xClusters.Colorize(false)
 			yClusters.Colorize(false)
 			zClusters.Colorize(false)
+
 		case interp.COMMAND_AGE:
 			data := data.(map[string]interface{})
 			groupsCount := data["count"].(int)
@@ -145,10 +149,11 @@ func main() {
 				break
 			}
 			globulaName := data["globula"].(string)
+			doCrosslinks := data["make_crosslinks"].(bool)
 			originalGlobula := getGlobulaByName(globulaName)
-			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged")
+			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged_" + strconv.Itoa(len(globulas)))
 			globulas = append(globulas, globula)
-			globula.DoAging2(groupsCount)
+			globula.DoAging2(groupsCount, doCrosslinks)
 
 		case interp.COMMAND_RESET:
 			data := data.(map[string]interface{})
@@ -192,8 +197,64 @@ func main() {
 			}
 			globulas = append(globulas, globula)
 
+		case interp.COMMAND_PATTERN:
+			data := data.(map[string]string)
+			globulaName := data["globulaName"]
+			originGlobula := getGlobulaByName(globulaName)
+			globula := originGlobula.DeepCopy(originGlobula.Name() + "_patterned")
+			fileName := data["fileName"]
+			file, err := os.Open(fileName)
+			if err != nil {
+				output_format.PrintlnError(err.Error())
+				break
+			}
+			defer func() {
+				if closeErr := file.Close(); closeErr != nil {
+					output_format.PrintlnError(closeErr.Error())
+				}
+			}()
+			scanner := bufio.NewScanner(file)
+			var pattern string
+			if scanner.Scan() {
+				pattern = scanner.Text()
+			} else {
+				output_format.PrintlnError("The given file does not contain a pattern")
+				break
+			}
+
+			var anyNotExist bool = false
+			for _, letter := range pattern {
+				l := string(letter)
+				if globula.GetMonomerTypeByLiteral(l) == datatypes.MONOMER_TYPE_UNDEFINED {
+					output_format.PrintlnError(l + " does not have its decryption")
+					anyNotExist = true
+				}
+			}
+			if anyNotExist {
+				output_format.PrintlnError("Please, define the missing decryptions to continue")
+				break
+			}
+
+			views.ForEachPolymer(globula, func(pv *views.PolymerView) {
+				currentLetterNumber := 0
+				views.ForEachMonomer(pv, func(m *datatypes.Monomer) {
+					m.MonomerType = globula.GetMonomerTypeByLiteral(string(pattern[currentLetterNumber]))
+					currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
+				})
+			})
+
+			globulas = append(globulas, globula)
+
 		case interp.COMMAND_EXIT:
 			isWorking = false
+
+		case interp.COMMAND_SCRIPT:
+			filename, err := data.(string)
+			if !err {
+				output_format.PrintlnError("Usage: script <filename>")
+			}
+			commands = getCommandsFromScript(filename)
+
 		default:
 			output_format.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
 		}
@@ -232,9 +293,9 @@ func PrintParams() {
 	fmt.Printf("\tSphere Radius: %d\n\n", inputData.SphereRadius)
 }
 
-func buildGlobula(algType build_globula.AlgType) {
+func buildGlobula(algType build_globula.AlgType, predefinedParams []string) {
 	inputDataBuilder := build_globula.CreateInputDataBuilder(algType)
-	inputData_, err := inputDataBuilder.CreateInputData(algType)
+	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams)
 	if err != nil {
 		fmt.Print(err.Error())
 		return
@@ -262,4 +323,22 @@ func PrintGlobulaInfo(globula *views.GlobulaView) {
 		output_format.PrintEmptyLine()
 	})
 	fmt.Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
+}
+
+func getCommandsFromScript(filename string) []string {
+	commands := make([]string, 0)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		output_format.PrintlnError(err.Error())
+		return commands
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		commands = append(commands, line)
+	}
+
+	return commands
 }

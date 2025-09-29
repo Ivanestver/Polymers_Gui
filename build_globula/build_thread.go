@@ -25,23 +25,54 @@ func (alg BuildThreadAlgInputData) GetName() string {
 type BuildThreadAlgInputDataBuilder struct {
 }
 
-func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType) (ICalcAlgInputData, error) {
+func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string) (ICalcAlgInputData, error) {
 	inputData := BuildThreadAlgInputData{}
 
-	fmt.Print("Input the cell's sizes: ")
-	//fmt.Scanln(&inputData.Cell.Lx, &inputData.Cell.Ly, &inputData.Cell.Lx)
-	inputData.Cell.Lx = 1
-	inputData.Cell.Ly = 1
-	inputData.Cell.Lz = 1
+	predefinedParamsCount := len(predefinedParams)
+	if predefinedParamsCount < 3 {
+		fmt.Print("Input the cell's sizes: ")
+		fmt.Scanln(&inputData.Cell.Lx, &inputData.Cell.Ly, &inputData.Cell.Lx)
+	} else {
+		x, err := strconv.Atoi(predefinedParams[0])
+		if err != nil {
+			return inputData, err
+		}
+		y, err := strconv.Atoi(predefinedParams[1])
+		if err != nil {
+			return inputData, err
+		}
+		z, err := strconv.Atoi(predefinedParams[2])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.Cell.Lx = x
+		inputData.Cell.Ly = y
+		inputData.Cell.Lz = z
+	}
 
-	fmt.Print("Input the thread diameter: ")
-	//fmt.Scanln(&inputData.ThreadRadius)
-	inputData.ThreadRadius = 4.0
-	inputData.ThreadRadius /= 2
+	if predefinedParamsCount < 4 {
+		fmt.Print("Input the thread diameter: ")
+		fmt.Scanln(&inputData.ThreadRadius)
+	} else {
+		radius, err := strconv.ParseFloat(predefinedParams[3], 64)
+		if err != nil {
+			return inputData, err
+		}
+		inputData.ThreadRadius = radius
+		inputData.ThreadRadius /= 2
+	}
 
-	fmt.Print("Input the thread length: ")
-	//fmt.Scanln(&inputData.ThreadLength)
-	inputData.ThreadLength = 12
+	if predefinedParamsCount < 5 {
+		fmt.Print("Input the thread length: ")
+		fmt.Scanln(&inputData.ThreadLength)
+	} else {
+		inputData.ThreadLength = 12
+		threadLength, err := strconv.Atoi(predefinedParams[3])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.ThreadLength = float64(threadLength)
+	}
 
 	return inputData, nil
 }

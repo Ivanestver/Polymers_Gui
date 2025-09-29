@@ -29,6 +29,8 @@ const (
 	COMMAND_THREAD_STR            = "thread"
 	COMMAND_WATERIZE_STR          = "waterize"
 	COMMAND_TRUNK_STR             = "trunk"
+	COMMAND_PATTERN_STR           = "pattern"
+	COMMAND_SCRIPT_STR            = "script"
 )
 
 type Command = int
@@ -40,8 +42,7 @@ const (
 	COMMAND_SET_ACCEPT_THRESHOLD
 	COMMAND_SET_MAX_MONOMERS_COUNT
 	COMMAND_SET_SPHERE_RADIUS
-	COMMAND_BUILD_GLOBULA
-	COMMAND_BUILD_THREAD_GLOBULA
+	COMMAND_BUILD
 	COMMAND_SHOW_PARAMETERS
 	COMMAND_SHOW_GLOBULAS_LIST
 	COMMAND_SHOW_GLOBULA
@@ -55,6 +56,8 @@ const (
 	COMMAND_HIGHLIGHT_BORDERS
 	COMMAND_WATERIZE
 	COMMAND_TRUNK
+	COMMAND_PATTERN
+	COMMAND_SCRIPT
 )
 
 var currProgram string
@@ -89,7 +92,7 @@ func getNextToken() (string, error) {
 		}
 		char = rune(getCurrChar())
 	}
-	for unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_' {
+	for unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_' || char == '.' {
 		token += string(getCurrChar())
 		moveForward()
 		if finished() {
@@ -189,6 +192,10 @@ func s() (Command, interface{}) {
 		return trunk()
 	}
 
+	if token == COMMAND_SCRIPT_STR {
+		return script()
+	}
+
 	return COMMAND_UNDEFINED, "Undefined command: " + token
 }
 
@@ -211,34 +218,11 @@ func set() (Command, interface{}) {
 	}
 
 	if token == Command_threshold_str {
-		token, error = getNextToken()
-		if error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		if _, error := strconv.Atoi(token); error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		dot := getCurrChar()
-		if dot != '.' {
-			return COMMAND_UNDEFINED, errors.New("Threshold must be float")
-		}
-		moveForward()
-		d_num_str := token + string(dot)
-		token, error = getNextToken()
-		if error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		if num, error := strconv.Atoi(token); error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		} else if num < 0 {
-			return COMMAND_UNDEFINED, Command_threshold_str + " expects a non-negative number"
-		}
-		d_num_str += token
-		if d_num, error := strconv.ParseFloat(d_num_str, 64); error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		} else {
-			return COMMAND_SET_ACCEPT_THRESHOLD, d_num
-		}
+		return threshold()
+	}
+
+	if token == COMMAND_PATTERN_STR {
+		return pattern()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined parameter: " + token
@@ -263,21 +247,83 @@ func interpret_with_num(comm Command, usage string) (Command, interface{}) {
 	}
 }
 
-func build() (Command, interface{}) {
+func threshold() (Command, interface{}) {
 	token, error := getNextToken()
 	if error != nil {
 		return COMMAND_UNDEFINED, error.Error()
 	}
+	if _, error := strconv.Atoi(token); error != nil {
+		return COMMAND_UNDEFINED, error.Error()
+	}
+	dot := getCurrChar()
+	if dot != '.' {
+		return COMMAND_UNDEFINED, errors.New("Threshold must be float")
+	}
+	moveForward()
+	d_num_str := token + string(dot)
+	token, error = getNextToken()
+	if error != nil {
+		return COMMAND_UNDEFINED, error.Error()
+	}
+	if num, error := strconv.Atoi(token); error != nil {
+		return COMMAND_UNDEFINED, error.Error()
+	} else if num < 0 {
+		return COMMAND_UNDEFINED, Command_threshold_str + " expects a non-negative number"
+	}
+	d_num_str += token
+	if d_num, error := strconv.ParseFloat(d_num_str, 64); error != nil {
+		return COMMAND_UNDEFINED, error.Error()
+	} else {
+		return COMMAND_SET_ACCEPT_THRESHOLD, d_num
+	}
+}
 
-	if token == COMMAND_GLOBULA_STR {
-		return COMMAND_BUILD_GLOBULA, build_globula.GlobulaBuildAlg
+func pattern() (Command, interface{}) {
+	globulaName, err := getGlobulaName()
+	if err != nil {
+		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <file_name>"
 	}
 
-	if token == COMMAND_THREAD_STR {
-		return COMMAND_BUILD_THREAD_GLOBULA, build_globula.ThreadBuildAlg
+	fileName, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <file_name>"
 	}
 
-	return getUndefinedCommand(token)
+	m := make(map[string]string)
+	m["globulaName"] = globulaName
+	m["fileName"] = fileName
+	return COMMAND_PATTERN, m
+}
+
+func build() (Command, interface{}) {
+	objective, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	predefinedParams := make([]string, 0)
+	for !finished() {
+		p, err := getNextToken()
+		if err != nil {
+			continue
+		}
+		predefinedParams = append(predefinedParams, p)
+	}
+
+	m := make(map[string]interface{})
+	m["params"] = predefinedParams
+
+	if objective == COMMAND_GLOBULA_STR {
+		m["alg"] = build_globula.GlobulaBuildAlg
+		return COMMAND_BUILD, m
+	}
+
+	if objective == COMMAND_THREAD_STR {
+		m["alg"] = build_globula.ThreadBuildAlg
+		return COMMAND_BUILD, m
+	}
+
+	return getUndefinedCommand(objective)
 }
 
 func show() (Command, interface{}) {
@@ -399,15 +445,7 @@ func age() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	if finished() {
-		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
-	}
-	getNextToken() // skip empty spaces
-	if finished() {
-		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
-	}
-	moveForward()
-	if finished() {
-		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count>")
+		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
 	}
 	token, err := getNextToken()
 	if err != nil {
@@ -418,9 +456,24 @@ func age() (Command, interface{}) {
 	if err != nil {
 		return COMMAND_UNDEFINED, err
 	}
+
+	moveForward()
+	if finished() {
+		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
+	}
+	token, err = getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err
+	}
+
+	if token != "true" && token != "false" {
+		return COMMAND_UNDEFINED, string("Error: make_crosslinks parameter must be either \"true\" or \"false\"")
+	}
+
 	m := make(map[string]interface{})
 	m["globula"] = globulaName
 	m["count"] = groupCount
+	m["make_crosslinks"] = (token == "true")
 	return COMMAND_AGE, m
 }
 
@@ -496,4 +549,12 @@ func trunk() (Command, interface{}) {
 
 	m["new_size"] = newSize
 	return COMMAND_TRUNK, m
+}
+
+func script() (Command, interface{}) {
+	filename, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	return COMMAND_SCRIPT, filename
 }

@@ -121,6 +121,18 @@ func (polymer *Polymer) MakeStepBack() bool {
 	}
 
 	polymer.field.MakeFree(polymer.polymer[polymer.Len()-1])
+	mon := polymer.polymer[polymer.Len()-1]
+	allSides := GetAllSides()
+	for _, side := range allSides {
+		other, _ := mon.GetSibling(side)
+		if other != nil {
+			BreakConnection(mon, other, side)
+		}
+	}
+	if mon.PrevMonomer != nil {
+		mon.PrevMonomer.NextMonomer = nil
+		mon.PrevMonomer = nil
+	}
 	polymer.polymer = polymer.polymer[:polymer.Len()-1]
 	return true
 }
