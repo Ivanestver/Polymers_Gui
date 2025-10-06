@@ -416,7 +416,7 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
 				chosenMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
 				nextMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
@@ -452,7 +452,7 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 				nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL &&
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
-				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_ONE)
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
 				chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
 				nextMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
 				currentCount += 1
