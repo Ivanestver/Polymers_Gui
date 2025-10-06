@@ -306,7 +306,7 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string) {
 		fmt.Printf("The result of building is nil")
 	} else {
 		globula := views.NewGlobulaView(inputData_.GetName()+" "+strconv.Itoa(len(globulas)), finishedPolymers)
-		globula.SetLiterals(calcAlg.GetLiteralsTable())
+		globula.SetLiterals(build_globula.GetLiteralsTable())
 		globulas = append(globulas, globula)
 	}
 }

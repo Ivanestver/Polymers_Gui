@@ -206,16 +206,3 @@ func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer
 		}
 	}
 }
-
-func (alg *CalcAlg) GetLiteralsTable() map[datatypes.MonomerType]string {
-	m := make(map[datatypes.MonomerType]string)
-	m[datatypes.MONOMER_TYPE_UNDEFINED] = ""
-	m[datatypes.MONOMER_TYPE_USUAL] = "C"
-	m[datatypes.MONOMER_TYPE_VYNIL] = "O"
-	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
-	m[datatypes.MONOMER_TYPE_FWISE] = "F"
-	m[datatypes.MONOMER_TYPE_CLWISE] = "Cl"
-	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
-	m[datatypes.MONOMER_TYPE_WATER] = "I"
-	return m
-}

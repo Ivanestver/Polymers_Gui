@@ -147,16 +147,3 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3D {
 	}
 	return startPositions
 }
-
-func (alg *BuildThreadAlg) GetLiteralsTable() map[datatypes.MonomerType]string {
-	m := make(map[datatypes.MonomerType]string)
-	m[datatypes.MONOMER_TYPE_UNDEFINED] = ""
-	m[datatypes.MONOMER_TYPE_USUAL] = "O"
-	m[datatypes.MONOMER_TYPE_VYNIL] = "C"
-	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
-	m[datatypes.MONOMER_TYPE_FWISE] = "F"
-	m[datatypes.MONOMER_TYPE_CLWISE] = "Cl"
-	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
-	m[datatypes.MONOMER_TYPE_WATER] = "I"
-	return m
-}
