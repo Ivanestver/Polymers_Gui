@@ -23,6 +23,8 @@ func bondTypeMass(connType dt.ConnectionType) float64 {
 	switch connType {
 	case dt.CONNECTION_TYPE_ONE:
 		return 1
+	case dt.CONNECTION_TYPE_CROSSLINKS:
+		return 1
 	case dt.CONNECTION_TYPE_TWO:
 		return math.Sqrt(2)
 	case dt.CONNECTION_TYPE_THREE:
@@ -66,19 +68,16 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, "0 "+spaceDim_Str+" zlo zhi")
 	addNewLine(&content)
 
-	mapMonomerTypeNumber := make(map[dt.MonomerType]int)
-	for i, monomerType := range monomerTypes {
-		mapMonomerTypeNumber[monomerType] = i + 1
-	}
 	addString(&content, "Masses")
 	addNewLine(&content)
-
-	for monType, number := range mapMonomerTypeNumber {
+	mapMonomerTypeNumber := make(map[dt.MonomerType]int)
+	for i, monType := range monomerTypes {
 		if monType == dt.MONOMER_TYPE_UNDEFINED {
 			continue
 		}
+		mapMonomerTypeNumber[monType] = i + 1
 		literal := globula.GetLiteral(monType)
-		addString(&content, strconv.Itoa(number)+" 1 # "+literal)
+		addString(&content, strconv.Itoa(i+1)+" 1 # "+literal)
 	}
 
 	addNewLine(&content)
@@ -95,21 +94,24 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addNewLine(&content)
 
 	maxNumber := -1
+	polymerNumber := 0
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
+		polymerNumber++
 		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
 			if mon.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
 				return
 			}
 			monCoords := mon.Coords()
 			maxNumber = *base.Max_int([]int{maxNumber, int(mon.Number)})
-			addString(&content, strconv.Itoa(int(mon.Number))+
-				" 1 "+
-				strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
-				" 0.00000 "+
-				strconv.FormatInt(monCoords.X, 10)+" "+
-				strconv.FormatInt(monCoords.Y, 10)+" "+
-				strconv.FormatInt(monCoords.Z, 10)+" "+
-				"0 0 0")
+			addString(&content,
+				strconv.Itoa(int(mon.Number))+
+					" "+strconv.Itoa(polymerNumber)+" "+
+					strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
+					" 0.00000 "+
+					strconv.FormatInt(monCoords.X, 10)+" "+
+					strconv.FormatInt(monCoords.Y, 10)+" "+
+					strconv.FormatInt(monCoords.Z, 10)+" "+
+					"0 0 0")
 		})
 	})
 	if globula.Is(views.GLOBULA_WATERIZED) {

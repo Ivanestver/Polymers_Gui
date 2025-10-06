@@ -54,8 +54,8 @@ const (
 const (
 	MONOMER_TYPE_UNDEFINED    MonomerType = -1
 	MONOMER_TYPE_USUAL        MonomerType = 0
-	MONOMER_TYPE_VYNIL        MonomerType = 1
-	MONOMER_TYPE_O_CONTAINING MonomerType = 2
+	MONOMER_TYPE_O_CONTAINING MonomerType = 1
+	MONOMER_TYPE_VYNIL        MonomerType = 2
 	MONOMER_TYPE_FWISE        MonomerType = 3
 	MONOMER_TYPE_CLWISE       MonomerType = 4
 	MONOMER_TYPE_CROSSLINKED  MonomerType = 5
@@ -63,10 +63,11 @@ const (
 )
 
 const (
-	CONNECTION_TYPE_UNDEFINED = 0
-	CONNECTION_TYPE_ONE       = 1
-	CONNECTION_TYPE_TWO       = 2
-	CONNECTION_TYPE_THREE     = 3
+	CONNECTION_TYPE_UNDEFINED ConnectionType = iota
+	CONNECTION_TYPE_CROSSLINKS
+	CONNECTION_TYPE_ONE
+	CONNECTION_TYPE_TWO
+	CONNECTION_TYPE_THREE
 )
 
 func GetMovementSides() []Side {
