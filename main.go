@@ -151,6 +151,10 @@ func main() {
 			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			originalGlobula := getGlobulaByName(globulaName)
+			if originalGlobula == nil {
+				output_format.PrintlnError("There is no globula named " + globulaName)
+				break
+			}
 			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged_" + strconv.Itoa(len(globulas)))
 			globulas = append(globulas, globula)
 			globula.DoAging2(groupsCount, doCrosslinks)
