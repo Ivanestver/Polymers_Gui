@@ -25,9 +25,9 @@ func bondTypeMass(connType dt.ConnectionType) float64 {
 		return 1
 	case dt.CONNECTION_TYPE_CROSSLINKS:
 		return 1
-	case dt.CONNECTION_TYPE_TWO:
+	case dt.CONNECTION_TYPE_CROSS_SURFACE:
 		return math.Sqrt(2)
-	case dt.CONNECTION_TYPE_THREE:
+	case dt.CONNECTION_TYPE_CROSS_SPACIAL:
 		return math.Sqrt(3)
 	default:
 		return -1

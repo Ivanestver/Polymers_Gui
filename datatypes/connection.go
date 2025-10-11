@@ -102,9 +102,9 @@ func GetConnectionType(sideOne, sideTwo *Monomer) ConnectionType {
 	if base.Contains[Side](GetMovementSides(), side) {
 		return CONNECTION_TYPE_ONE
 	} else if base.Contains[Side](GetSurfaceDiagonalSides(), side) {
-		return CONNECTION_TYPE_TWO
+		return CONNECTION_TYPE_CROSS_SURFACE
 	} else if base.Contains[Side](GetCubeDiagonalSides(), side) {
-		return CONNECTION_TYPE_THREE
+		return CONNECTION_TYPE_CROSS_SPACIAL
 	} else {
 		return CONNECTION_TYPE_UNDEFINED
 	}
