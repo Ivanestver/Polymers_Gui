@@ -38,7 +38,7 @@ func (mon *Monomer) GetSibling(side Side) (*Monomer, error) {
 	if conn != nil {
 		return conn.GetOtherSide(mon)
 	} else {
-		return nil, errors.New("No sibling")
+		return nil, errors.New("no sibling")
 	}
 }
 

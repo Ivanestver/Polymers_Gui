@@ -164,7 +164,7 @@ func GetAxisColor(axis Axis) MonomerType {
 func (monType *MonomerType) ToLiteral() (string, error) {
 	switch *monType {
 	case MONOMER_TYPE_UNDEFINED:
-		return "", errors.New("There is no letter for Undefined monomer")
+		return "", errors.New("there is no letter for Undefined monomer")
 	case MONOMER_TYPE_USUAL:
 		return "C", nil
 	case MONOMER_TYPE_VYNIL:
@@ -178,6 +178,6 @@ func (monType *MonomerType) ToLiteral() (string, error) {
 	case MONOMER_TYPE_CROSSLINKED:
 		return "H", nil
 	default:
-		return "", errors.New("There is no letter for this type")
+		return "", errors.New("there is no letter for this type")
 	}
 }
