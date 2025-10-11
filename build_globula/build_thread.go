@@ -67,7 +67,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		fmt.Scanln(&inputData.ThreadLength)
 	} else {
 		inputData.ThreadLength = 12
-		threadLength, err := strconv.Atoi(predefinedParams[3])
+		threadLength, err := strconv.Atoi(predefinedParams[4])
 		if err != nil {
 			return inputData, err
 		}
@@ -87,6 +87,9 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	field := datatypes.NewField(uint64(alg.inputData.ThreadRadius))
 	fmt.Println("[INFO] Define start monomers")
 	startPositions := alg.defineStartMonomers()
+	if startPositions == nil {
+		return nil
+	}
 	// create threads
 	var polymers []*datatypes.Polymer = make([]*datatypes.Polymer, len(startPositions))
 	// build the polymers
@@ -123,6 +126,9 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3D {
 		Z: globalData.SpaceDimention / 2,
 	}
 	center.Z = int64(float64(center.Z) - alg.inputData.ThreadLength)
+	if center.Z < 0 {
+		return nil
+	}
 	startPositions := make([]*base.Vector3D, 0)
 	toVisit := make([]*base.Vector3D, 0)
 	toVisit = append(toVisit, center)
