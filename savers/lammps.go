@@ -56,10 +56,13 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 
 	monomerTypes := getMonomerTypes(globula)
 	bondTypes, bondCount := getBondTypes(globula)
+	lowerestNumberBond := base.Min(bondTypes)
+	highestNumberBond := base.Max(bondTypes)
+
 	addString(&content, strconv.Itoa(getAtomsCount(globula))+" atoms")
 	addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
 	addString(&content, strconv.Itoa(bondCount)+" bonds")
-	addString(&content, strconv.Itoa(len(bondTypes))+" bond types")
+	addString(&content, strconv.Itoa(int(*highestNumberBond))+" bond types")
 	addNewLine(&content)
 
 	spaceDim_Str := strconv.Itoa(int(global_data.GetGlobalData().SpaceDimention))
@@ -85,8 +88,8 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, "Bond Coeffs # harmonic")
 	addNewLine(&content)
 
-	for i, bondType := range bondTypes {
-		addString(&content, strconv.Itoa(i+1)+" 100 "+strconv.FormatFloat(bondTypeMass(bondType), 'f', 3, 64))
+	for i := (int)(*lowerestNumberBond); i <= (int)(*highestNumberBond); i++ {
+		addString(&content, strconv.Itoa(i)+" 100 "+strconv.FormatFloat(bondTypeMass((dt.ConnectionType)(i)), 'f', 3, 64))
 	}
 	addNewLine(&content)
 
