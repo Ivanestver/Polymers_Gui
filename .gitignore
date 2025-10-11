@@ -11,3 +11,5 @@ slices/
 .vscode/
 *.data
 *.html
+*.txt
+*.spt
