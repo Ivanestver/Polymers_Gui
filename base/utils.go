@@ -1,6 +1,9 @@
 package base
 
-import "math"
+import (
+	"cmp"
+	"math"
+)
 
 func EcludianDistance(c1, c2 Vector3D) float64 {
 	return math.Sqrt(float64((c2.X-c1.X)*(c2.X-c1.X) + (c2.Y-c1.Y)*(c2.Y-c1.Y) + (c2.Z-c1.Z)*(c2.Z-c1.Z)))
@@ -73,6 +76,21 @@ func Min_float[T float64](container []T) *T {
 	return minValue
 }
 
+func Min[T cmp.Ordered](container []T) *T {
+	if len(container) == 0 {
+		return nil
+	}
+
+	var minValue *T = &container[0]
+	for i := 1; i < len(container); i++ {
+		m := min(*minValue, container[i])
+		if m != *minValue {
+			minValue = &container[i]
+		}
+	}
+	return minValue
+}
+
 func Max_int[T int](container []T) *T {
 	if len(container) == 0 {
 		return nil
@@ -96,6 +114,21 @@ func Max_float[T float64](container []T) T {
 	for i := 1; i < len(container); i++ {
 		if maxValue < container[i] {
 			maxValue = container[i]
+		}
+	}
+	return maxValue
+}
+
+func Max[T cmp.Ordered](container []T) *T {
+	if len(container) == 0 {
+		return nil
+	}
+
+	var maxValue *T = &container[0]
+	for i := 1; i < len(container); i++ {
+		m := max(*maxValue, container[i])
+		if m != *maxValue {
+			maxValue = &container[i]
 		}
 	}
 	return maxValue
