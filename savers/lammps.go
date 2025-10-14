@@ -65,10 +65,10 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, strconv.Itoa(int(*highestNumberBond))+" bond types")
 	addNewLine(&content)
 
-	spaceDim_Str := strconv.Itoa(int(global_data.GetGlobalData().SpaceDimention))
-	addString(&content, "0 "+spaceDim_Str+" xlo xhi")
-	addString(&content, "0 "+spaceDim_Str+" ylo yhi")
-	addString(&content, "0 "+spaceDim_Str+" zlo zhi")
+	spaceDim := global_data.GetGlobalData().SpaceDimention
+	addString(&content, "0 "+strconv.FormatInt(spaceDim.X, 10)+" xlo xhi")
+	addString(&content, "0 "+strconv.FormatInt(spaceDim.Y, 10)+" ylo yhi")
+	addString(&content, "0 "+strconv.FormatInt(spaceDim.Z, 10)+" zlo zhi")
 	addNewLine(&content)
 
 	addString(&content, "Masses")
@@ -121,7 +121,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 		views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
 			field := pv.GetUnderlinedField()
 			var globalData *global_data.GlobalData = global_data.GetGlobalData()
-			shape := [...]int64{globalData.SpaceDimention, globalData.SpaceDimention, globalData.SpaceDimention}
+			shape := [...]int64{globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z}
 			var i int64
 			var j int64
 			var k int64
@@ -201,7 +201,7 @@ func getAtomsCount(globula *views.GlobulaView) int {
 		})
 	} else {
 		globalData := global_data.GetGlobalData()
-		atomsCount = int(globalData.SpaceDimention) * int(globalData.SpaceDimention) * int(globalData.SpaceDimention)
+		atomsCount = int(globalData.SpaceDimention.X) * int(globalData.SpaceDimention.Y) * int(globalData.SpaceDimention.Z)
 	}
 	return atomsCount
 }

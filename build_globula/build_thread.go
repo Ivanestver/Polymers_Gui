@@ -120,14 +120,13 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 
 func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3D {
 	globalData := global_data.GetGlobalData()
-	center := &base.Vector3D{
-		X: globalData.SpaceDimention / 2,
-		Y: globalData.SpaceDimention / 2,
-		Z: globalData.SpaceDimention / 2,
-	}
-	center.Z = int64(float64(center.Z) - alg.inputData.ThreadLength)
-	if center.Z < 0 {
+	if globalData.SpaceDimention.Z < int64(alg.inputData.ThreadLength) {
 		return nil
+	}
+	center := &base.Vector3D{
+		X: globalData.SpaceDimention.X / 2,
+		Y: globalData.SpaceDimention.Y / 2,
+		Z: 0,
 	}
 	startPositions := make([]*base.Vector3D, 0)
 	toVisit := make([]*base.Vector3D, 0)

@@ -139,9 +139,9 @@ func (polymer *Polymer) MakeStepBack() bool {
 
 func (polymer *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float64) {
 	globalData := global_data.GetGlobalData()
-	minWidth := float64(globalData.SpaceDimention)
+	minWidth := float64(globalData.SpaceDimention.X)
 	maxWidth := 0.0
-	minHeight := float64(globalData.SpaceDimention)
+	minHeight := float64(globalData.SpaceDimention.X)
 	maxHeight := 0.0
 
 	for _, mon := range polymer.polymer {

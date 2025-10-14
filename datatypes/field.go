@@ -21,7 +21,7 @@ func makeConnection(mon1, mon2 *Monomer, canMake bool) {
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
-	shape := [...]int64{globalData.SpaceDimention, globalData.SpaceDimention, globalData.SpaceDimention}
+	shape := [...]int64{globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z}
 	var i int64
 	var j int64
 	var k int64
@@ -78,9 +78,9 @@ func (field *Field) IsFree(coords base.Vector3D) bool {
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
 	return base.Vector3D{
-		X: coords.X % globalData.SpaceDimention,
-		Y: coords.Y % globalData.SpaceDimention,
-		Z: coords.Z % globalData.SpaceDimention,
+		X: coords.X % globalData.SpaceDimention.X,
+		Y: coords.Y % globalData.SpaceDimention.Y,
+		Z: coords.Z % globalData.SpaceDimention.Z,
 	}
 }
 
@@ -117,9 +117,9 @@ func (field *Field) GetAvailableCells(currPos base.Vector3D) []*Monomer {
 func (field *Field) DefineStartMonomer() *Monomer {
 	globalData := global_data.GetGlobalData()
 	startPosition := base.Vector3D{
-		X: globalData.SpaceDimention / 2,
-		Y: globalData.SpaceDimention / 2,
-		Z: globalData.SpaceDimention / 2,
+		X: globalData.SpaceDimention.X / 2,
+		Y: globalData.SpaceDimention.Y / 2,
+		Z: globalData.SpaceDimention.Z / 2,
 	}
 
 	for !field.IsFree(startPosition) {

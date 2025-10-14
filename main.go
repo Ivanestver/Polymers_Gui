@@ -33,7 +33,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	fileNumber := 1
 	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
-	var spaceDimention int64 = 25
+	var spaceDimention global_data.SpaceDimention
+	spaceDimention.X = 10
+	spaceDimention.Y = 10
+	spaceDimention.Z = 4020
 	//fmt.Scanln(&spaceDimention)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -83,7 +86,7 @@ func main() {
 			inputData.MaxMonomersCount = data.(int)
 		case interp.COMMAND_SET_SPHERE_RADIUS:
 			rad := data.(int)
-			if rad > int(spaceDimention) {
+			if rad > int(spaceDimention.X) || rad > int(spaceDimention.Y) || rad > int(spaceDimention.Z) {
 				output_format.PrintflnError("Sphere radius must be less or equal space dimention %d", spaceDimention)
 			} else {
 				inputData.SphereRadius = rad
@@ -116,8 +119,9 @@ func main() {
 			f, err := os.Create(globulaName + strconv.Itoa(fileNumber) + ".data")
 			if err != nil {
 				output_format.PrintlnError(err.Error())
-				break
+				return
 			}
+			defer f.Close()
 			f.Write([]byte(content))
 			/*f, err = os.Create(globulaName + strconv.Itoa(fileNumber) + ".json")
 			if err != nil {
