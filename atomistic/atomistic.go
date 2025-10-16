@@ -200,6 +200,30 @@ func placeMolecules(polymer []*_Molecule) {
 		molecule.MoveTo(&(polymer)[i].Atoms[0].Coords)
 		(polymer)[i] = molecule
 	}
+
+	reNumberAtoms(polymer)
+}
+
+func reNumberAtoms(polymer []*_Molecule) {
+	atomNumber := 1
+	for _, molecule := range polymer {
+		replacementMap := make(map[_AtomNumber]_AtomNumber)
+		for i := 0; i < len(molecule.Atoms); i++ {
+			atom := &molecule.Atoms[i]
+			replacementMap[atom.Number] = atomNumber
+			atom.Number = atomNumber
+			atomNumber++
+		}
+
+		newBonds := make(map[_AtomNumber]map[_AtomNumber]_BondValence)
+		for startAtomNumber := range molecule.Bonds {
+			newBonds[replacementMap[startAtomNumber]] = make(map[_AtomNumber]_BondValence)
+			m := newBonds[replacementMap[startAtomNumber]]
+			for endAtomNumber, valence := range molecule.Bonds[startAtomNumber] {
+				m[replacementMap[endAtomNumber]] = valence
+			}
+		}
+	}
 }
 
 func savePolymer(polymer []*_Molecule) {
@@ -221,18 +245,20 @@ func makeFileContent(polymer []*_Molecule) string {
 
 	var builderBonds strings.Builder
 	builder.WriteString("@<TRIPOS>ATOM\n")
-	atomNumber := 1
 	bondNumber := 1
 	for _, molecule := range polymer {
-		replacementMap := make(map[int]int)
 		for _, atom := range molecule.Atoms {
-			replacementMap[atom.Number] = atomNumber
-			builder.WriteString(turnAtomToString(&atom, atomNumber))
-			atomNumber++
+			builder.WriteString(turnAtomToString(&atom))
 		}
 		for startMonomerNumber, m := range molecule.Bonds {
-			for endMonomerNumber := range m {
-				builderBonds.WriteString(fmt.Sprintf("%d %d %d %d\n", bondNumber, replacementMap[startMonomerNumber], replacementMap[endMonomerNumber], m[endMonomerNumber]))
+			for endMonomerNumber, valence := range m {
+				builderBonds.WriteString(
+					fmt.Sprintf(
+						"%d %d %d %d\n",
+						bondNumber,
+						startMonomerNumber,
+						endMonomerNumber,
+						valence))
 				bondNumber++
 			}
 		}
@@ -259,6 +285,6 @@ func getBondsCount(polymer []*_Molecule) int {
 	return bondsCount
 }
 
-func turnAtomToString(atom *_Atom, atomNumber int) string {
-	return fmt.Sprintf("%d %s %f %f %f %s 0 ***** 0\n", atomNumber, atom.Label, atom.Coords.X, atom.Coords.Y, atom.Coords.Z, atom.Label)
+func turnAtomToString(atom *_Atom) string {
+	return fmt.Sprintf("%d %s %f %f %f %s 0 ***** 0\n", atom.Number, atom.Label, atom.Coords.X, atom.Coords.Y, atom.Coords.Z, atom.Label)
 }
