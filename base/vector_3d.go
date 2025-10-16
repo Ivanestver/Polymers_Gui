@@ -113,3 +113,11 @@ func SubtractVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
 		Z: left.Z - right.Z,
 	}
 }
+
+func RevertVecF(vec *Vector3DF) *Vector3DF {
+	return &Vector3DF{
+		X: -1 * vec.X,
+		Y: -1 * vec.Y,
+		Z: -1 * vec.Z,
+	}
+}
