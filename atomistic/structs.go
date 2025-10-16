@@ -77,3 +77,19 @@ func (molecule *_Monomer) Copy() *_Monomer {
 
 	return newMolecule
 }
+
+func (monomer *_Monomer) GetConnectionAtoms() (prev, next *_Atom) {
+	for _, atom := range monomer.Atoms {
+		if prev != nil && next != nil {
+			break
+		}
+		if atom.Label == "C" && len(monomer.Bonds[atom.Number]) < 4 {
+			if prev == nil {
+				prev = &atom
+			} else {
+				next = &atom
+			}
+		}
+	}
+	return
+}
