@@ -18,17 +18,17 @@ var printer output_format.IPrint
 
 func MakeAtomistic(globula *views.GlobulaView) {
 	polymer := getPolymer(globula)
-	resizePolymerByScale(&polymer, 2.9)
+	resizePolymerByScale(polymer, 2.9)
 	placeMolecules(polymer)
 	savePolymer(polymer)
 }
 
-func getPolymer(globula *views.GlobulaView) []*_Molecule {
-	pattern := make([]*_Molecule, 0)
+func getPolymer(globula *views.GlobulaView) *_Polymer {
+	pattern := NewPolymer()
 	views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
 		views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
 			coords := m.Coords()
-			pattern = append(pattern, &_Molecule{
+			pattern.Monomers = append(pattern.Monomers, &_Monomer{
 				Atoms: []_Atom{
 					{
 						Label:  globula.GetLiteral(m.MonomerType),
@@ -43,16 +43,17 @@ func getPolymer(globula *views.GlobulaView) []*_Molecule {
 	return pattern
 }
 
-func resizePolymerByScale(pattern *[]*_Molecule, scale float64) {
-	pivot := &(*pattern)[0].Atoms[0].Coords
-	for i := 1; i < len(*pattern); i++ {
-		direction := base.SubtractVecF(&(*pattern)[i].Atoms[0].Coords, pivot)
+func resizePolymerByScale(pattern *_Polymer, scale float64) {
+	pivot := &pattern.Monomers[0].Atoms[0].Coords
+	for i := 1; i < len(pattern.Monomers); i++ {
+		firstAtom := &pattern.Monomers[i].Atoms[0]
+		direction := base.SubtractVecF(&firstAtom.Coords, pivot)
 		direction.MultiplyByConstantF(scale)
-		(*pattern)[i].Atoms[0].Coords = *base.AddVecF(pivot, direction)
+		firstAtom.Coords = *base.AddVecF(pivot, direction)
 	}
 }
 
-func getMoleculeFromFile(filePath string) *_Molecule {
+func getMoleculeFromFile(filePath string) *_Monomer {
 	file, err := os.Open(filePath)
 	printer = output_format.GetPrint()
 	if err != nil {
@@ -70,7 +71,7 @@ func getMoleculeFromFile(filePath string) *_Molecule {
 		return nil
 	}
 
-	molecule := &_Molecule{}
+	molecule := &_Monomer{}
 	// 1. Fill Molecule info
 	bondsCount, err := fillMoleculeData(molecule, scanner)
 	if err != nil {
@@ -98,7 +99,7 @@ func getMoleculeFromFile(filePath string) *_Molecule {
 	return molecule
 }
 
-func fillMoleculeData(molecule *_Molecule, scanner *bufio.Scanner) (int, error) {
+func fillMoleculeData(molecule *_Monomer, scanner *bufio.Scanner) (int, error) {
 	// Save the molecule name
 	molecule.Name = scanner.Text()
 
@@ -121,7 +122,7 @@ func fillMoleculeData(molecule *_Molecule, scanner *bufio.Scanner) (int, error) 
 	return int(bondsCount), nil
 }
 
-func fillAtomsInfo(molecule *_Molecule, scanner *bufio.Scanner) error {
+func fillAtomsInfo(molecule *_Monomer, scanner *bufio.Scanner) error {
 	// Assume we're at the first line of ATOMS section
 	for i := 0; i < len(molecule.Atoms) && scanner.Scan(); i++ {
 		fields := strings.Fields(scanner.Text())
@@ -158,7 +159,7 @@ func getCoords(fields []string) base.Vector3DF {
 	}
 }
 
-func fillBondsInfo(molecule *_Molecule, scanner *bufio.Scanner, bondsCount int) error {
+func fillBondsInfo(molecule *_Monomer, scanner *bufio.Scanner, bondsCount int) error {
 	// Assume we're at the first line of BONDS section
 	for i := 0; i < bondsCount && scanner.Scan(); i++ {
 		fields := strings.Fields(scanner.Text())
@@ -189,51 +190,51 @@ func fillBondsInfo(molecule *_Molecule, scanner *bufio.Scanner, bondsCount int) 
 	return nil
 }
 
-func placeMolecules(polymer []*_Molecule) {
-	labelToPrototypeMap := make(map[string]*_Molecule)
+func placeMolecules(polymer *_Polymer) {
+	labelToPrototypeMap := make(map[string]*_Monomer)
 	labelToPrototypeMap["O"] = getMoleculeFromFile("C2ch.mol2")
 	labelToPrototypeMap["N"] = getMoleculeFromFile("C2Och.mol2")
 	labelToPrototypeMap["C"] = getMoleculeFromFile("C2Ach.mol2")
-	for i := 0; i < len(polymer); i++ {
-		prototype := labelToPrototypeMap[(polymer)[i].Atoms[0].Label]
+	for i := 0; i < len(polymer.Monomers); i++ {
+		prototype := labelToPrototypeMap[polymer.Monomers[i].Atoms[0].Label]
 		molecule := prototype.Copy()
-		molecule.MoveTo(&(polymer)[i].Atoms[0].Coords)
-		(polymer)[i] = molecule
+		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
+		polymer.Monomers[i] = molecule
 	}
 
 	reNumberAtoms(polymer)
 }
 
-func reNumberAtoms(polymer []*_Molecule) {
+func reNumberAtoms(polymer *_Polymer) {
 	atomNumber := 1
-	for _, molecule := range polymer {
+	for _, monomer := range polymer.Monomers {
 		replacementMap := make(map[_AtomNumber]_AtomNumber)
-		for i := 0; i < len(molecule.Atoms); i++ {
-			atom := &molecule.Atoms[i]
+		for i := 0; i < len(monomer.Atoms); i++ {
+			atom := &monomer.Atoms[i]
 			replacementMap[atom.Number] = atomNumber
 			atom.Number = atomNumber
 			atomNumber++
 		}
 
 		newBonds := make(map[_AtomNumber]map[_AtomNumber]_BondValence)
-		for startAtomNumber := range molecule.Bonds {
+		for startAtomNumber := range monomer.Bonds {
 			newBonds[replacementMap[startAtomNumber]] = make(map[_AtomNumber]_BondValence)
 			m := newBonds[replacementMap[startAtomNumber]]
-			for endAtomNumber, valence := range molecule.Bonds[startAtomNumber] {
+			for endAtomNumber, valence := range monomer.Bonds[startAtomNumber] {
 				m[replacementMap[endAtomNumber]] = valence
 			}
 		}
 	}
 }
 
-func savePolymer(polymer []*_Molecule) {
+func savePolymer(polymer *_Polymer) {
 	bytesData := []byte(makeFileContent(polymer))
 	if err := os.WriteFile("output_data.mol2", bytesData, 0644); err != nil {
 		printer.PrintlnError(err.Error())
 	}
 }
 
-func makeFileContent(polymer []*_Molecule) string {
+func makeFileContent(polymer *_Polymer) string {
 	var builder strings.Builder
 	builder.WriteString("@<TRIPOS>MOLECULE\n")
 	builder.WriteString("Test\n")
@@ -246,11 +247,11 @@ func makeFileContent(polymer []*_Molecule) string {
 	var builderBonds strings.Builder
 	builder.WriteString("@<TRIPOS>ATOM\n")
 	bondNumber := 1
-	for _, molecule := range polymer {
-		for _, atom := range molecule.Atoms {
+	for _, monomer := range polymer.Monomers {
+		for _, atom := range monomer.Atoms {
 			builder.WriteString(turnAtomToString(&atom))
 		}
-		for startMonomerNumber, m := range molecule.Bonds {
+		for startMonomerNumber, m := range monomer.Bonds {
 			for endMonomerNumber, valence := range m {
 				builderBonds.WriteString(
 					fmt.Sprintf(
@@ -269,18 +270,18 @@ func makeFileContent(polymer []*_Molecule) string {
 	return builder.String()
 }
 
-func getAtomsCount(polymer []*_Molecule) int {
+func getAtomsCount(polymer *_Polymer) int {
 	atomsCount := 0
-	for _, molecule := range polymer {
+	for _, molecule := range polymer.Monomers {
 		atomsCount += len(molecule.Atoms)
 	}
 	return atomsCount
 }
 
-func getBondsCount(polymer []*_Molecule) int {
+func getBondsCount(polymer *_Polymer) int {
 	bondsCount := 0
-	for _, molecule := range polymer {
-		bondsCount += molecule.GetBondsCount()
+	for _, monomer := range polymer.Monomers {
+		bondsCount += monomer.GetBondsCount()
 	}
 	return bondsCount
 }

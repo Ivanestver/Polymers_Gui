@@ -14,14 +14,26 @@ type _Atom struct {
 type _AtomNumber = int
 type _BondValence = int
 
-type _Molecule struct {
+type _Monomer struct {
 	Name  string
 	Atoms []_Atom
 	Bonds map[_AtomNumber]map[_AtomNumber]_BondValence
 	Mass  int
 }
 
-func (molecule *_Molecule) GetMassCenter() base.Vector3DF {
+type _Polymer struct {
+	Monomers []*_Monomer
+	Bonds    map[_AtomNumber]map[_AtomNumber]_BondValence
+}
+
+func NewPolymer() *_Polymer {
+	return &_Polymer{
+		Monomers: make([]*_Monomer, 0),
+		Bonds:    make(map[_AtomNumber]map[_AtomNumber]_BondValence),
+	}
+}
+
+func (molecule *_Monomer) GetMassCenter() base.Vector3DF {
 	res := molecule.Atoms[0].Coords
 	for i := 0; i < len(molecule.Atoms); i++ {
 		res.AddF(&molecule.Atoms[i].Coords)
@@ -30,7 +42,7 @@ func (molecule *_Molecule) GetMassCenter() base.Vector3DF {
 	return res
 }
 
-func (molecule *_Molecule) MoveTo(point *base.Vector3DF) {
+func (molecule *_Monomer) MoveTo(point *base.Vector3DF) {
 	massCenter := molecule.GetMassCenter()
 	direction := base.SubtractVecF(point, &massCenter)
 	for i := 0; i < len(molecule.Atoms); i++ {
@@ -39,7 +51,7 @@ func (molecule *_Molecule) MoveTo(point *base.Vector3DF) {
 	}
 }
 
-func (molecule *_Molecule) GetBondsCount() int {
+func (molecule *_Monomer) GetBondsCount() int {
 	count := 0
 	for _, m := range molecule.Bonds {
 		count += len(m)
@@ -47,8 +59,8 @@ func (molecule *_Molecule) GetBondsCount() int {
 	return count
 }
 
-func (molecule *_Molecule) Copy() *_Molecule {
-	newMolecule := &_Molecule{
+func (molecule *_Monomer) Copy() *_Monomer {
+	newMolecule := &_Monomer{
 		Name:  molecule.Name,
 		Atoms: make([]_Atom, len(molecule.Atoms)),
 		Bonds: make(map[_AtomNumber]map[_AtomNumber]_BondValence, len(molecule.Bonds)),
