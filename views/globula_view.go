@@ -326,7 +326,8 @@ func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 
 func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
 	Bs := make([]*dt.Monomer, 0)
-	for len(Bs) != groupsCount {
+	triesNumber := 0
+	for len(Bs) != groupsCount && triesNumber < groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
 		if poly.Len() < 2 {
@@ -336,12 +337,15 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			triesNumber++
 			continue
 		}
 		nextMonomer := poly.polymer.GetMonomerByIdx(nextMonomerNumber)
 		if nextMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			triesNumber++
 			continue
 		}
+		triesNumber = 0
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		datatypes.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
@@ -368,8 +372,10 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 
 func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn datatypes.MonomerType) {
 	mapUsedBs := make(map[int]bool)
-	for len(mapUsedBs) != groupsCount {
+	triesCount := 0
+	for len(mapUsedBs) != groupsCount && triesCount < 3*groupsCount {
 		mapUsedBs[rand.Intn(len(*Bs))] = true
+		triesCount++
 	}
 
 	arr := make([]int, 0)
@@ -386,10 +392,12 @@ func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn 
 
 func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 	i := 0
-	for i < groupsCount {
+	triesNumber := 0
+	for i < groupsCount && triesNumber < groupsCount {
 		chosenPoly := rand.Intn(globula.Len()) // Take a random poly
 		poly := globula.polymers[chosenPoly]
 		if poly.Len() < 2 {
+			triesNumber++
 			continue
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
@@ -397,6 +405,9 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
 			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
 			i++
+			triesNumber = 0
+		} else {
+			triesNumber++
 		}
 	}
 }
