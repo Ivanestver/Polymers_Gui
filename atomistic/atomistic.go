@@ -17,9 +17,17 @@ import (
 var printer output_format.IPrint
 
 func MakeAtomistic(globula *views.GlobulaView) {
+	// Retrieve the polymer from globula
 	polymer := getPolymer(globula)
+	// Resize it to an apropriate size
 	resizePolymerByScale(polymer, 2.9)
+	// Place molecules into their places
 	placeMolecules(polymer)
+	// Make connections between molecules
+	connectMonomers(polymer)
+	// Fill ends of the polymer
+	fillEnds(polymer)
+	// Save it into the file
 	savePolymer(polymer)
 }
 
@@ -206,7 +214,7 @@ func placeMolecules(polymer *_Polymer) {
 }
 
 func reNumberAtoms(polymer *_Polymer) {
-	atomNumber := 1
+	atomNumber := 2
 	for _, monomer := range polymer.Monomers {
 		replacementMap := make(map[_AtomNumber]_AtomNumber)
 		for i := 0; i < len(monomer.Atoms); i++ {
@@ -288,4 +296,80 @@ func getBondsCount(polymer *_Polymer) int {
 
 func turnAtomToString(atom *_Atom) string {
 	return fmt.Sprintf("%d %s %f %f %f %s 0 ***** 0\n", atom.Number, atom.Label, atom.Coords.X, atom.Coords.Y, atom.Coords.Z, atom.Label)
+}
+
+func connectMonomers(polymer *_Polymer) {
+	if len(polymer.Monomers) < 2 {
+		return
+	}
+
+	for i := 0; i < len(polymer.Monomers)-1; i++ {
+		left := polymer.Monomers[i]
+		right := polymer.Monomers[i+1]
+
+		_, nextLeft := left.GetConnectionAtoms()
+		prevRight, _ := right.GetConnectionAtoms()
+		polymer.Bonds[nextLeft.Number][prevRight.Number] = 1
+	}
+}
+
+func fillEnds(polymer *_Polymer) {
+	polymer.Monomers = append([]*_Monomer{
+		{
+			Name: "Starting",
+			Atoms: []_Atom{
+				{
+					Number:  1,
+					Label:   "H",
+					Mass:    1,
+					Charge:  0,
+					Valence: 1,
+					Coords:  getStartingMonomerCoords(polymer),
+				},
+			},
+		},
+	}, polymer.Monomers...)
+
+	prev, _ := polymer.Monomers[1].GetConnectionAtoms()
+	polymer.Bonds[1][prev.Number] = 1
+
+	polymer.Monomers = append(polymer.Monomers,
+		&_Monomer{
+			Name: "Terminating",
+			Atoms: []_Atom{
+				{
+					Number:  getAtomsCount(polymer),
+					Label:   "H",
+					Mass:    1,
+					Charge:  0,
+					Valence: 1,
+					Coords:  getTerminatingMonomerCoords(polymer),
+				},
+			},
+		},
+	)
+
+	_, next := polymer.Monomers[1].GetConnectionAtoms()
+	polymer.Bonds[next.Number][polymer.Monomers[len(polymer.Monomers)-1].Atoms[0].Number] = 1
+}
+
+func getStartingMonomerCoords(polymer *_Polymer) base.Vector3DF {
+	firstMonomerMassCenter := polymer.Monomers[0].GetMassCenter()
+	secondMonomerMassCenter := polymer.Monomers[1].GetMassCenter()
+
+	direction := base.SubtractVecF(&firstMonomerMassCenter, &secondMonomerMassCenter)
+
+	firstMonomerMassCenter.AddF(direction)
+	return firstMonomerMassCenter
+}
+
+func getTerminatingMonomerCoords(polymer *_Polymer) base.Vector3DF {
+	monomersCount := len(polymer.Monomers)
+	prelastMonomerMassCenter := polymer.Monomers[monomersCount-2].GetMassCenter()
+	lastMonomerMassCenter := polymer.Monomers[monomersCount-1].GetMassCenter()
+
+	direction := base.SubtractVecF(&lastMonomerMassCenter, &prelastMonomerMassCenter)
+
+	lastMonomerMassCenter.AddF(direction)
+	return lastMonomerMassCenter
 }
