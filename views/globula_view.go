@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
-	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"sort"
 	"strconv"
@@ -15,6 +14,8 @@ type GlobulaProperty int
 const (
 	GLOBULA_AGED GlobulaProperty = iota
 	GLOBULA_WATERIZED
+	GLOBULA_GLOBULA_TYPE
+	GLOBULA_THREAD_TYPE
 )
 
 type GlobulaView struct {
@@ -24,11 +25,11 @@ type GlobulaView struct {
 	yClusters         *ClusterView
 	zClusters         *ClusterView
 	commonClusterDone bool
-	literalsTable     map[datatypes.MonomerType]string
+	literalsTable     map[dt.MonomerType]string
 	globulaProperties map[GlobulaProperty]bool
 }
 
-func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
+func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProperty) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
 	newGlobulaView.name = name
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
@@ -45,6 +46,7 @@ func NewGlobulaView(name string, polymers []*datatypes.Polymer) *GlobulaView {
 	newGlobulaView.commonClusterDone = false
 	newGlobulaView.literalsTable = make(map[dt.MonomerType]string)
 	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
+	newGlobulaView.globulaProperties[globulaType] = true
 	return newGlobulaView
 }
 
@@ -62,30 +64,30 @@ func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *datatypes.Monomer) { mon.MonomerType = datatypes.MONOMER_TYPE_USUAL })
+		ForEachMonomer(pol, func(mon *dt.Monomer) { mon.MonomerType = dt.MONOMER_TYPE_USUAL })
 	}
 	for gp := range globula.globulaProperties {
 		delete(globula.globulaProperties, gp)
 	}
 }
 
-func (globula *GlobulaView) SetLiterals(literals map[datatypes.MonomerType]string) {
+func (globula *GlobulaView) SetLiterals(literals map[dt.MonomerType]string) {
 	for monType, str := range literals {
 		globula.literalsTable[monType] = str
 	}
 }
 
-func (globula *GlobulaView) GetLiteral(monType datatypes.MonomerType) string {
+func (globula *GlobulaView) GetLiteral(monType dt.MonomerType) string {
 	return globula.literalsTable[monType]
 }
 
-func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) datatypes.MonomerType {
+func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) dt.MonomerType {
 	for monType, l := range globula.literalsTable {
 		if letter == l {
 			return monType
 		}
 	}
-	return datatypes.MONOMER_TYPE_UNDEFINED
+	return dt.MONOMER_TYPE_UNDEFINED
 }
 
 /*
@@ -347,18 +349,18 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		}
 		triesNumber = 0
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
-		datatypes.TierConnection(chosenMonomer, nextMonomer, side)
+		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_O_CONTAINING
-			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
+			chosenMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
+			nextMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
 			if monomerTypeToGather == dt.MONOMER_TYPE_O_CONTAINING {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
-			nextMonomer.MonomerType = datatypes.MONOMER_TYPE_O_CONTAINING
+			chosenMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
+			nextMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
 			if monomerTypeToGather == dt.MONOMER_TYPE_VYNIL {
 				Bs = append(Bs, chosenMonomer)
 			} else {
@@ -370,7 +372,7 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 	return Bs
 }
 
-func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn datatypes.MonomerType) {
+func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn dt.MonomerType) {
 	mapUsedBs := make(map[int]bool)
 	triesCount := 0
 	for len(mapUsedBs) != groupsCount && triesCount < 3*groupsCount {
@@ -403,7 +405,7 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-			chosenMonomer.MonomerType = datatypes.MONOMER_TYPE_VYNIL
+			chosenMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
 			i++
 			triesNumber = 0
 		} else {

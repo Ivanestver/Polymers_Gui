@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/views"
 	"strconv"
 )
 
@@ -19,6 +20,10 @@ type CalcAlgInputData struct {
 
 func (data CalcAlgInputData) GetName() string {
 	return "Globula"
+}
+
+func (data CalcAlgInputData) GetGlobulaType() views.GlobulaProperty {
+	return views.GLOBULA_GLOBULA_TYPE
 }
 
 type CalcAlgInputDataBuilder struct {

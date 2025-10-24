@@ -7,6 +7,7 @@ type MoveDirection = int8
 type Side int16
 type MonomerType int8
 type ConnectionType int8
+type GlobulaViewType int
 
 const (
 	X_AXIS     Axis = 0
@@ -68,6 +69,11 @@ const (
 	CONNECTION_TYPE_CROSSLINKS
 	CONNECTION_TYPE_CROSS_SURFACE
 	CONNECTION_TYPE_CROSS_SPACIAL
+)
+
+const (
+	GLOBULA_VIEW_TYPE_GLOBULA GlobulaViewType = iota
+	GLOBULA_VIEW_TYPE_THREAD
 )
 
 func GetMovementSides() []Side {

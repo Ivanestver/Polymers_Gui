@@ -1,6 +1,9 @@
 package build_globula
 
-import "polymers/datatypes"
+import (
+	"polymers/datatypes"
+	"polymers/views"
+)
 
 type AlgType int
 
@@ -15,6 +18,7 @@ type ICalcAlg interface {
 
 type ICalcAlgInputData interface {
 	GetName() string
+	GetGlobulaType() views.GlobulaProperty
 }
 
 type IInputDataBuilder interface {

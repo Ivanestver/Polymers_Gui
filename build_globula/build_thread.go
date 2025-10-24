@@ -5,6 +5,7 @@ import (
 	"polymers/base"
 	"polymers/datatypes"
 	"polymers/global_data"
+	"polymers/views"
 	"strconv"
 )
 
@@ -20,6 +21,10 @@ type BuildThreadAlgInputData struct {
 
 func (alg BuildThreadAlgInputData) GetName() string {
 	return "Thread"
+}
+
+func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
+	return views.GLOBULA_THREAD_TYPE
 }
 
 type BuildThreadAlgInputDataBuilder struct {
