@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"polymers/base"
 	dt "polymers/datatypes"
 	"sort"
 	"strconv"
@@ -177,6 +178,14 @@ func (globula *GlobulaView) ZClusters(avg float64) *ClusterView {
 }
 
 func (globula *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterView) {
+	if globula.Is(GLOBULA_GLOBULA_TYPE) {
+		return globula.commonClustersGlobula()
+	} else {
+		return globula.commonClustersThread()
+	}
+}
+
+func (globula *GlobulaView) commonClustersGlobula() (*ClusterView, *ClusterView, *ClusterView) {
 	if !globula.commonClusterDone {
 		clusters_X := globula.XClusters(0.0)
 		clusters_Y := globula.YClusters(0.0)
@@ -242,6 +251,83 @@ func (globula *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *Clust
 		globula.commonClusterDone = true
 	}
 	return globula.xClusters, globula.yClusters, globula.zClusters
+}
+
+func (globula *GlobulaView) commonClustersThread() (*ClusterView, *ClusterView, *ClusterView) {
+	if !globula.commonClusterDone {
+		size := globula.polymers[0].Len()
+		clusterLength := int(float64(size) * 0.2)
+		firstMonomer := globula.getFirstMonomer()
+		globula.zClusters = globula.getClustersInThread(firstMonomer, clusterLength)
+	}
+	return globula.xClusters, globula.yClusters, globula.zClusters
+}
+
+func (globula *GlobulaView) getFirstMonomer() *dt.Monomer {
+	polymer := globula.polymers[0]
+	current := polymer.polymer.GetMonomerByIdx(polymer.polymer.Len() / 2)
+	return getBorderMonomer(current, dt.SIDE_Forward)
+}
+
+func getBorderMonomer(startingMonomer *dt.Monomer, side dt.Side) *dt.Monomer {
+	current := startingMonomer
+	sibling, err := current.GetSibling(side)
+	for err == nil && sibling.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
+		current = sibling
+		sibling, err = current.GetSibling(side)
+	}
+	return current
+}
+
+func (globula *GlobulaView) getClustersInThread(firstMonomer *dt.Monomer, clusterLength int) *ClusterView {
+	clusters := make([]*Cluster, 0)
+	startingMonomers := make([]*dt.Monomer, 0)
+	for i := 0; i < clusterLength; i++ {
+		if i != 0 {
+			firstMonomer, _ = firstMonomer.GetSibling(dt.SIDE_Up)
+			if firstMonomer == nil || firstMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				break
+			}
+		}
+		var startingMonomer *dt.Monomer = getBorderMonomer(firstMonomer, dt.SIDE_Left)
+		for {
+			cluster := new(Cluster)
+			if base.Contains(startingMonomers, startingMonomer) {
+				startingMonomer, _ = startingMonomer.GetSibling(dt.SIDE_Right)
+				if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+					startingMonomer, _ = getBorderMonomer(startingMonomer, dt.SIDE_Left).GetSibling(dt.SIDE_Backward)
+					if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+						break
+					}
+				}
+			}
+			startingMonomers = append(startingMonomers, startingMonomer)
+			mon2, _ := startingMonomer.GetSibling(dt.SIDE_Right)
+			if mon2.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				continue
+			}
+			mon3, _ := mon2.GetSibling(dt.SIDE_Backward)
+			if mon3.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				continue
+			}
+			mon4, _ := mon3.GetSibling(dt.SIDE_Left)
+			if mon4.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				continue
+			}
+			mon11, _ := startingMonomer.GetSibling(dt.SIDE_Up)
+			mon21, _ := mon2.GetSibling(dt.SIDE_Up)
+			mon31, _ := mon3.GetSibling(dt.SIDE_Up)
+			mon41, _ := mon4.GetSibling(dt.SIDE_Up)
+			clusterUnit := NewClusterUnit([]*dt.Monomer{
+				startingMonomer, mon2, mon3, mon4,
+				mon11, mon21, mon31, mon41,
+			}, dt.SIDE_Up, dt.Z_AXIS)
+			clusterUnit.MakeFullyConnected()
+			cluster.units = append(cluster.units, clusterUnit)
+			clusters = append(clusters, cluster)
+		}
+	}
+	return NewClusterViewRaw(clusters, dt.Z_AXIS)
 }
 
 // var turn int = 0

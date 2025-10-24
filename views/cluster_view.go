@@ -31,9 +31,12 @@ func (this *ClusterUnit) Size() int {
 }
 
 func (this *ClusterUnit) MakeFullyConnected() {
-	for i := 0; i < this.Size()-1; i++ {
+	for i := 0; i < this.Size(); i++ {
 		currMon := this.monomers[i]
-		for j := i + 1; j < this.Size(); j++ {
+		for j := 0; j < this.Size(); j++ {
+			if i == j {
+				continue
+			}
 			sideMon := this.monomers[j]
 			side := dt.GetSideByMonomers(currMon, sideMon)
 			if side != dt.SIDE_Undefined {
@@ -272,6 +275,14 @@ func NewClusterView(globula *GlobulaView, avg float64, axis dt.Axis) *ClusterVie
 	newClusterView.avg = avg
 	newClusterView.axis = axis
 	newClusterView.clusters = findClusters(globula, axis, avg)
+	return newClusterView
+}
+
+func NewClusterViewRaw(clusters []*Cluster, axis dt.Axis) *ClusterView {
+	newClusterView := new(ClusterView)
+	newClusterView.avg = 0.0
+	newClusterView.axis = axis
+	newClusterView.clusters = clusters
 	return newClusterView
 }
 

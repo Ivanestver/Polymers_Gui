@@ -36,7 +36,7 @@ func main() {
 	var spaceDimention global_data.SpaceDimention
 	spaceDimention.X = 10
 	spaceDimention.Y = 10
-	spaceDimention.Z = 4020
+	spaceDimention.Z = 100
 	//fmt.Scanln(&spaceDimention)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -141,9 +141,15 @@ func main() {
 
 			fmt.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
-			xClusters.Colorize(false)
-			yClusters.Colorize(false)
-			zClusters.Colorize(false)
+			if xClusters != nil {
+				xClusters.Colorize(false)
+			}
+			if yClusters != nil {
+				yClusters.Colorize(false)
+			}
+			if zClusters != nil {
+				zClusters.Colorize(false)
+			}
 
 		case interp.COMMAND_AGE:
 			data := data.(map[string]interface{})
