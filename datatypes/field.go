@@ -12,12 +12,6 @@ type Field struct {
 	field        [][][]*Monomer
 }
 
-func makeConnection(mon1, mon2 *Monomer, canMake bool) {
-	if canMake {
-		MakeConnection(mon1, mon2, CONNECTION_TYPE_UNDEFINED)
-	}
-}
-
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
@@ -170,7 +164,7 @@ func (field *Field) DeepCopy() *Field {
 	for x, monX := range field.field {
 		for y, monY := range monX {
 			for z := range monY {
-				newField.field[x][y][z].DeepCopyFrom(field.field[x][y][z], field)
+				newField.field[x][y][z].DeepCopyFrom(field.field[x][y][z], newField)
 			}
 		}
 	}
