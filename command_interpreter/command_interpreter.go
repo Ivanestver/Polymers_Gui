@@ -10,14 +10,9 @@ import (
 const (
 	Command_help_str              = "help"
 	Command_set_str               = "set"
-	Command_pols_count_str        = "pols_count"
-	Command_threshold_str         = "threshold"
-	Command_max_mon_count_str     = "max_mon_count"
-	Command_sphere_rad_str        = "sphere_rad"
 	Command_build_str             = "build"
 	COMMAND_EXIT_STR              = "exit"
 	COMMAND_SHOW_STR              = "show"
-	COMMAND_PARAMETERS_STR        = "params"
 	COMMAND_GLOBULA_STR           = "globula"
 	COMMAND_SAVE_STR              = "save"
 	COMMAND_CLUSTERS_STR          = "clusters"
@@ -39,12 +34,7 @@ type Command = int
 const (
 	COMMAND_UNDEFINED = -1
 	COMMAND_HELP      = iota
-	COMMAND_SET_POLYMERS_COUNT
-	COMMAND_SET_ACCEPT_THRESHOLD
-	COMMAND_SET_MAX_MONOMERS_COUNT
-	COMMAND_SET_SPHERE_RADIUS
 	COMMAND_BUILD
-	COMMAND_SHOW_PARAMETERS
 	COMMAND_SHOW_GLOBULAS_LIST
 	COMMAND_SHOW_GLOBULA
 	COMMAND_SAVE_GLOBULA
@@ -211,77 +201,11 @@ func set() (Command, interface{}) {
 		return COMMAND_UNDEFINED, error.Error()
 	}
 
-	if token == Command_pols_count_str {
-		return interpret_with_num(COMMAND_SET_POLYMERS_COUNT, token)
-	}
-
-	if token == Command_max_mon_count_str {
-		return interpret_with_num(COMMAND_SET_MAX_MONOMERS_COUNT, token)
-	}
-
-	if token == Command_sphere_rad_str {
-		return interpret_with_num(COMMAND_SET_SPHERE_RADIUS, token)
-	}
-
-	if token == Command_threshold_str {
-		return threshold()
-	}
-
 	if token == COMMAND_PATTERN_STR {
 		return pattern()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined parameter: " + token
-}
-
-func interpret_with_num(comm Command, usage string) (Command, interface{}) {
-	token, error := getNextToken()
-	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	}
-	if !finished() {
-		return COMMAND_UNDEFINED, "Usage: set " + usage + " <integer>"
-	}
-	if num, error := strconv.Atoi(token); error == nil {
-		if num < 0 {
-			return COMMAND_UNDEFINED, usage + " expects a non-negative number"
-		} else {
-			return comm, num
-		}
-	} else {
-		return COMMAND_UNDEFINED, "Couldn't parse as int: " + token
-	}
-}
-
-func threshold() (Command, interface{}) {
-	token, error := getNextToken()
-	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	}
-	if _, error := strconv.Atoi(token); error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	}
-	dot := getCurrChar()
-	if dot != '.' {
-		return COMMAND_UNDEFINED, errors.New("Threshold must be float")
-	}
-	moveForward()
-	d_num_str := token + string(dot)
-	token, error = getNextToken()
-	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	}
-	if num, error := strconv.Atoi(token); error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	} else if num < 0 {
-		return COMMAND_UNDEFINED, Command_threshold_str + " expects a non-negative number"
-	}
-	d_num_str += token
-	if d_num, error := strconv.ParseFloat(d_num_str, 64); error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	} else {
-		return COMMAND_SET_ACCEPT_THRESHOLD, d_num
-	}
 }
 
 func pattern() (Command, interface{}) {
@@ -336,10 +260,6 @@ func show() (Command, interface{}) {
 	token, error := getNextToken()
 	if error != nil {
 		return COMMAND_UNDEFINED, error.Error()
-	}
-
-	if token == COMMAND_PARAMETERS_STR {
-		return COMMAND_SHOW_PARAMETERS, nil
 	}
 
 	if token == COMMAND_GLOBULA_STR {

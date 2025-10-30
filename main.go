@@ -17,7 +17,6 @@ import (
 	"time"
 )
 
-var inputData build_globula.CalcAlgInputData
 var globulas []*views.GlobulaView
 
 func getGlobulaByName(name string) *views.GlobulaView {
@@ -43,17 +42,6 @@ func main() {
 	output_format.PrintlnInfo("Configuring the global data")
 	global_data.ConfigureGlobalData(spaceDimention)
 	output_format.PrintlnInfo("Configuring the global data finished")
-	inputData.PolymersCount = 5
-	inputData.AcceptThreshold = 0.1
-	inputData.MaxMonomersCount = 2000
-	inputData.SphereRadius = 10
-	//inputData.SphereRadius = 100
-	/*
-		inputData.PolymersCount = 5
-		inputData.AcceptThreshold = 0.1
-		inputData.MaxMonomersCount = 40
-		inputData.SphereRadius = 20
-	*/
 	output_format.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	cmdReader := bufio.NewReader(os.Stdin)
 	commands := make([]string, 0)
@@ -78,21 +66,6 @@ func main() {
 			output_format.PrintlnError(data.(string))
 		case interp.COMMAND_HELP:
 			PrintHelp()
-		case interp.COMMAND_SET_POLYMERS_COUNT:
-			inputData.PolymersCount = data.(int)
-		case interp.COMMAND_SET_ACCEPT_THRESHOLD:
-			inputData.AcceptThreshold = data.(float64)
-		case interp.COMMAND_SET_MAX_MONOMERS_COUNT:
-			inputData.MaxMonomersCount = data.(int)
-		case interp.COMMAND_SET_SPHERE_RADIUS:
-			rad := data.(int)
-			if rad > int(spaceDimention.X) || rad > int(spaceDimention.Y) || rad > int(spaceDimention.Z) {
-				output_format.PrintflnError("Sphere radius must be less or equal space dimention %d", spaceDimention)
-			} else {
-				inputData.SphereRadius = rad
-			}
-		case interp.COMMAND_SHOW_PARAMETERS:
-			PrintParams()
 		case interp.COMMAND_BUILD:
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string))
@@ -296,31 +269,9 @@ func PrintHelp() {
 	fmt.Println("help - output_format.Print this article")
 
 	output_format.PrintEmptyLine()
-	fmt.Println("set <parameter> <args> - set specific args to a parameter, where <parameter>:")
-	fmt.Printf("\t%s <integer> - set polymers count\n", interp.Command_pols_count_str)
-	fmt.Printf("\t%s <float> - set threshold\n", interp.Command_threshold_str)
-	fmt.Printf("\t%s <integer> - set max monomers count\n", interp.Command_max_mon_count_str)
-	fmt.Printf("\t%s <integer> - set sphere radius\n", interp.Command_sphere_rad_str)
-	fmt.Println("\twhere")
-	fmt.Println("\t\t<integer> - any non-negative integer")
-	fmt.Println("\t\t<float> - any non-negatve float-point number")
-
-	output_format.PrintEmptyLine()
 	fmt.Println("build - create globula")
 
 	output_format.PrintEmptyLine()
-	fmt.Println("show <options> - show different information, where <options>:")
-	fmt.Printf("\t%s - show parameters of building\n", interp.COMMAND_PARAMETERS_STR)
-
-	output_format.PrintEmptyLine()
-}
-
-func PrintParams() {
-	fmt.Printf("\n\tSpace dimention: %d\n", global_data.GetGlobalData().SpaceDimention)
-	fmt.Printf("\tPolymers count: %d\n", inputData.PolymersCount)
-	fmt.Printf("\tThreshold: %f\n", inputData.AcceptThreshold)
-	fmt.Printf("\tMaximum Monomers Count: %d\n", inputData.MaxMonomersCount)
-	fmt.Printf("\tSphere Radius: %d\n\n", inputData.SphereRadius)
 }
 
 func buildGlobula(algType build_globula.AlgType, predefinedParams []string) {
