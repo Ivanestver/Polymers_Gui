@@ -153,11 +153,7 @@ func main() {
 
 		case interp.COMMAND_AGE:
 			data := data.(map[string]interface{})
-			groupsCount := data["count"].(int)
-			if groupsCount < 10 {
-				fmt.Println("GroupsCount must be positive and not less than 10")
-				break
-			}
+			groupsCountStr := data["count"].(string)
 			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			originalGlobula := getGlobulaByName(globulaName)
@@ -167,6 +163,13 @@ func main() {
 			}
 			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged_" + strconv.Itoa(len(globulas)))
 			globulas = append(globulas, globula)
+			groupsCount := 0
+			if groupsCountStr[len(groupsCountStr)-1] == '%' {
+				percent, _ := strconv.ParseFloat(groupsCountStr[:len(groupsCountStr)-1], 64)
+				groupsCount = int(float64(globula.GetAtomsCount()) * float64(percent) / 100)
+			} else {
+				groupsCount, _ = strconv.Atoi(groupsCountStr)
+			}
 			globula.DoAging2(groupsCount, doCrosslinks)
 
 		case interp.COMMAND_RESET:
