@@ -402,7 +402,7 @@ func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_VYNIL)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_O_CONTAINING)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_VYNIL)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
