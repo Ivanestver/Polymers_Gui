@@ -31,6 +31,7 @@ const (
 	COMMAND_TRUNK_STR             = "trunk"
 	COMMAND_PATTERN_STR           = "pattern"
 	COMMAND_SCRIPT_STR            = "script"
+	COMMAND_COMMON_STATS_STR      = "common_stats"
 )
 
 type Command = int
@@ -58,6 +59,7 @@ const (
 	COMMAND_TRUNK
 	COMMAND_PATTERN
 	COMMAND_SCRIPT
+	COMMAND_COMMON_STATS
 )
 
 var currProgram string
@@ -92,7 +94,7 @@ func getNextToken() (string, error) {
 		}
 		char = rune(getCurrChar())
 	}
-	for unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_' || char == '.' {
+	for unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_' || char == '.' || char == '%' {
 		token += string(getCurrChar())
 		moveForward()
 		if finished() {
@@ -103,7 +105,7 @@ func getNextToken() (string, error) {
 	return token, nil
 }
 
-func getGlobulaName() (string, error) {
+func getParameterAsString() (string, error) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
 		return "", nil
@@ -196,6 +198,10 @@ func s() (Command, interface{}) {
 		return script()
 	}
 
+	if token == COMMAND_COMMON_STATS_STR {
+		return commonStats()
+	}
+
 	return COMMAND_UNDEFINED, "Undefined command: " + token
 }
 
@@ -279,7 +285,7 @@ func threshold() (Command, interface{}) {
 }
 
 func pattern() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <file_name>"
 	}
@@ -440,19 +446,14 @@ func clusters() (Command, interface{}) {
 }
 
 func age() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	if finished() {
 		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
 	}
-	token, err := getNextToken()
-	if err != nil {
-		return COMMAND_UNDEFINED, err
-	}
-
-	groupCount, err := strconv.Atoi(token)
+	groupCount, err := getNextToken()
 	if err != nil {
 		return COMMAND_UNDEFINED, err
 	}
@@ -461,7 +462,7 @@ func age() (Command, interface{}) {
 	if finished() {
 		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
 	}
-	token, err = getNextToken()
+	token, err := getNextToken()
 	if err != nil {
 		return COMMAND_UNDEFINED, err
 	}
@@ -478,7 +479,7 @@ func age() (Command, interface{}) {
 }
 
 func borders() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
@@ -488,7 +489,7 @@ func borders() (Command, interface{}) {
 }
 
 func resetGlobula() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
@@ -516,7 +517,7 @@ func resetGlobula() (Command, interface{}) {
 }
 
 func waterize() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
@@ -526,7 +527,7 @@ func waterize() (Command, interface{}) {
 }
 
 func trunk() (Command, interface{}) {
-	globulaName, err := getGlobulaName()
+	globulaName, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
@@ -557,4 +558,22 @@ func script() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	return COMMAND_SCRIPT, filename
+}
+
+func commonStats() (Command, interface{}) {
+	globulaName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	getNextToken()
+	m := make(map[string]string)
+	m["globula"] = globulaName
+
+	filename, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, string("Usage: command_stats <Globula Name> <Output File Name>")
+	}
+
+	m["filename"] = filename
+	return COMMAND_COMMON_STATS, m
 }
