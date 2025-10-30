@@ -172,6 +172,10 @@ func s() (Command, interface{}) {
 		return borders()
 	}
 
+	if token == COMMAND_RESET_STR {
+		return resetGlobula()
+	}
+
 	if token == COMMAND_EXIT_STR {
 		return COMMAND_EXIT, nil
 	}
