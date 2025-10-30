@@ -34,8 +34,8 @@ func main() {
 	fileNumber := 1
 	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention global_data.SpaceDimention
-	spaceDimention.X = 10
-	spaceDimention.Y = 10
+	spaceDimention.X = 100
+	spaceDimention.Y = 100
 	spaceDimention.Z = 100
 	//fmt.Scanln(&spaceDimention)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
@@ -271,6 +271,19 @@ func main() {
 				output_format.PrintlnError("Usage: script <filename>")
 			}
 			commands = getCommandsFromScript(filename)
+
+		case interp.COMMAND_COMMON_STATS:
+			data := data.(map[string]string)
+			globulaName := data["globula"]
+			globula := getGlobulaByName(globulaName)
+			text := globula.GetStatistics()
+			f, err := os.Create(data["filename"])
+			if err != nil {
+				output_format.PrintlnError(err.Error())
+				return
+			}
+			defer f.Close()
+			f.Write([]byte(text))
 
 		default:
 			output_format.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
