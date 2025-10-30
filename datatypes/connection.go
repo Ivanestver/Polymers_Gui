@@ -100,7 +100,12 @@ func TierConnection(mon1, mon2 *Monomer, side Side) error {
 func GetConnectionType(sideOne, sideTwo *Monomer) ConnectionType {
 	side := GetSideByMonomers(sideOne, sideTwo)
 	if base.Contains(GetMovementSides(), side) {
-		return CONNECTION_TYPE_ONE
+		if (sideOne.NextMonomer != nil && sideOne.NextMonomer == sideTwo) ||
+			(sideOne.PrevMonomer != nil && sideOne.PrevMonomer == sideTwo) {
+			return CONNECTION_TYPE_ONE
+		} else {
+			return CONNECTION_TYPE_CROSS_LINEAR
+		}
 	} else if base.Contains(GetSurfaceDiagonalSides(), side) {
 		return CONNECTION_TYPE_CROSS_SURFACE
 	} else if base.Contains(GetCubeDiagonalSides(), side) {
