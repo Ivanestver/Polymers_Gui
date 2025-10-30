@@ -3,11 +3,14 @@ package views
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math"
 	"math/rand"
 	"polymers/base"
 	dt "polymers/datatypes"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type GlobulaProperty int
@@ -18,6 +21,7 @@ const (
 	GLOBULA_GLOBULA_TYPE
 	GLOBULA_THREAD_TYPE
 )
+const crosslinksCount = 0.5
 
 type GlobulaView struct {
 	name              string
@@ -407,7 +411,7 @@ func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 
 	// 4. Create connections
 	if doCrosslinks {
-		globula.createCrosslinks2(int(float64(groupsCount) * 0.50))
+		globula.createCrosslinks2(int(float64(groupsCount) * crosslinksCount))
 	}
 	globula.globulaProperties[GLOBULA_AGED] = true
 }
@@ -639,4 +643,145 @@ func (globula *GlobulaView) trunkAllPolymers(newSize int) error {
 	}
 
 	return nil
+}
+
+func (globula *GlobulaView) GetStatistics() string {
+	builder := strings.Builder{}
+	builder.WriteString(globula.showNumberOfParticles())
+	builder.WriteString(globula.showNumberOfChains())
+	builder.WriteString(globula.showTheoreticalAgeStatistics())
+	builder.WriteString(globula.showActualAgeStatistics())
+	builder.WriteString(globula.showMeanLengthOfChains())
+	return builder.String()
+}
+
+func (visualizer *GlobulaView) showNumberOfParticles() string {
+	builder := strings.Builder{}
+	builder.WriteString("1. Число частиц: ")
+	builder.WriteString(strconv.Itoa(visualizer.GetAtomsCount()))
+	builder.WriteString("\n")
+	return builder.String()
+}
+
+func (visualizer *GlobulaView) GetAtomsCount() int {
+	atomsCount := 0
+	for _, pol := range visualizer.polymers {
+		atomsCount += pol.Len()
+	}
+	return atomsCount
+}
+
+func (visualizer *GlobulaView) showNumberOfChains() string {
+	builder := strings.Builder{}
+	builder.WriteString("2. Исходное число цепей ")
+	builder.WriteString(strconv.Itoa(visualizer.Len()))
+	builder.WriteString("\n")
+	return builder.String()
+}
+
+func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
+	fmt.Println("Please, specify the theoretical age ratio in percents")
+	ageRatioPercent := 25
+	var ageRatio float64 = float64(ageRatioPercent) * 0.01
+	atomsCount := visualizer.GetAtomsCount()
+	fmt.Scanln(&ageRatioPercent)
+	builder := strings.Builder{}
+
+	builder.WriteString("3. Ожидаемая степень старения: ")
+	builder.WriteString(strconv.Itoa(int(float64(atomsCount) * ageRatio)))
+	builder.WriteString(" (")
+	builder.WriteString(strconv.Itoa(ageRatioPercent))
+	builder.WriteString(")")
+	builder.WriteString("%\n")
+
+	agedParticlesCount := math.Ceil(float64(atomsCount) * ageRatio)
+	cutsCount := int(math.Ceil(agedParticlesCount * 0.44))
+	crossCount := int(agedParticlesCount * crosslinksCount)
+
+	builder.WriteString("4. Ожидаемое количество разрывов: ")
+	builder.WriteString(strconv.Itoa(cutsCount))
+	builder.WriteString("\n")
+
+	builder.WriteString("   Ожидаемое количество сшивок: ")
+	builder.WriteString(strconv.Itoa(crossCount))
+	builder.WriteString("\n")
+
+	CCount := int(agedParticlesCount * 0.59)
+	NCount := int(agedParticlesCount) - CCount
+	HCount := crossCount * 2
+
+	builder.WriteString("5. Ожидаемое распределение по состаренным группам:\n")
+	builder.WriteString("   C: ")
+	builder.WriteString(strconv.Itoa(CCount))
+	builder.WriteString("\n")
+	builder.WriteString("   N: ")
+	builder.WriteString(strconv.Itoa(NCount))
+	builder.WriteString("\n")
+	builder.WriteString("   H: ")
+	builder.WriteString(strconv.Itoa(HCount))
+	builder.WriteString("\n")
+	return builder.String()
+}
+
+func (visualizer *GlobulaView) showActualAgeStatistics() string {
+	NCount := 0
+	CCount := 0
+	cutsCount := 0
+	crossCount := make(map[int64]int)
+	for _, pol := range visualizer.polymers {
+		ForEachMonomer(pol, func(mon *dt.Monomer) {
+			if mon.NextMonomer != nil &&
+				((mon.MonomerType == dt.MONOMER_TYPE_VYNIL || mon.MonomerType == dt.MONOMER_TYPE_O_CONTAINING) &&
+					(mon.NextMonomer.MonomerType == dt.MONOMER_TYPE_VYNIL ||
+						mon.NextMonomer.MonomerType == dt.MONOMER_TYPE_O_CONTAINING)) {
+				cutsCount++
+			}
+			if mon.MonomerType == dt.MONOMER_TYPE_VYNIL {
+				CCount++
+			} else if mon.MonomerType == dt.MONOMER_TYPE_O_CONTAINING {
+				NCount++
+			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == dt.MONOMER_TYPE_CROSSLINKED {
+				crossCount[mon.Number] = 1
+				for _, side := range dt.GetMovementSides() {
+					connectionType := mon.GetTypeOfConnectionWithSide(side)
+					if connectionType == dt.CONNECTION_TYPE_CROSSLINKS {
+						crossMon, _ := mon.GetSibling(side)
+						crossCount[crossMon.Number] = 1
+					}
+				}
+			} else {
+				return
+			}
+		})
+	}
+
+	builder := strings.Builder{}
+	builder.WriteString("6. Фактическое количество разрывов: ")
+	builder.WriteString(strconv.Itoa(cutsCount))
+	builder.WriteString("\n")
+	builder.WriteString("   Фактическое количество сшивок: ")
+	builder.WriteString(strconv.Itoa(len(crossCount) / 2))
+	builder.WriteString("\n")
+	builder.WriteString("7. Фактическое распределение по состаренным группам:\n")
+	builder.WriteString("   C: ")
+	builder.WriteString(strconv.Itoa(CCount))
+	builder.WriteString("\n")
+	builder.WriteString("   N: ")
+	builder.WriteString(strconv.Itoa(NCount))
+	builder.WriteString("\n")
+	builder.WriteString("   H: ")
+	builder.WriteString(strconv.Itoa(len(crossCount)))
+	builder.WriteString("\n")
+	builder.WriteString("   Фактическая степень старения: ")
+	builder.WriteString(strconv.FormatFloat(float64(NCount+CCount)/float64(visualizer.GetAtomsCount())*100.0, 'f', 2, 64))
+	builder.WriteString("%\n")
+	return builder.String()
+}
+
+func (visualizer *GlobulaView) showMeanLengthOfChains() string {
+	builder := strings.Builder{}
+	builder.WriteString("8. Средняя длина цепи: ")
+	atomsCount := visualizer.GetAtomsCount()
+	builder.WriteString(strconv.FormatFloat(float64(atomsCount)/float64(visualizer.Len()), 'f', 2, 64))
+	return builder.String()
 }
