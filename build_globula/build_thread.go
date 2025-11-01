@@ -17,7 +17,7 @@ type BuildThreadAlgInputData struct {
 	}
 	ThreadRadius     float64
 	ThreadLength     float64
-	MaxMonomersCount int
+	MaxPolymersCount int
 	particleName     string
 }
 
@@ -82,15 +82,15 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	}
 
 	if predefinedParamsCount < 7 {
-		fmt.Print("Input the max monomers count: ")
-		fmt.Scanln(&inputData.MaxMonomersCount)
+		fmt.Print("Input the max polymers count: ")
+		fmt.Scanln(&inputData.MaxPolymersCount)
 	} else {
-		inputData.MaxMonomersCount = -1
-		maxMonomersCount, err := strconv.Atoi(predefinedParams[5])
+		inputData.MaxPolymersCount = -1
+		maxPolymersCount, err := strconv.Atoi(predefinedParams[5])
 		if err != nil {
 			return inputData, err
 		}
-		inputData.MaxMonomersCount = maxMonomersCount
+		inputData.MaxPolymersCount = maxPolymersCount
 	}
 
 	inputData.particleName = particleName
@@ -152,7 +152,7 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3D {
 	startPositions := make([]*base.Vector3D, 0)
 	toVisit := make([]*base.Vector3D, 0)
 	toVisit = append(toVisit, center)
-	for len(toVisit) != 0 && (alg.inputData.MaxMonomersCount <= 0 || len(startPositions) < alg.inputData.MaxMonomersCount) {
+	for len(toVisit) != 0 && (alg.inputData.MaxPolymersCount <= 0 || len(startPositions) < alg.inputData.MaxPolymersCount) {
 		currPoint := toVisit[0]
 		toVisit = toVisit[1:]
 		if base.Contains_if(startPositions, currPoint, func(it *base.Vector3D, value *base.Vector3D) bool { return base.VectorsAreEqual(it, value) }) || base.EcludianDistance(*center, *currPoint) > alg.inputData.ThreadRadius {
