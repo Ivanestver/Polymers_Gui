@@ -22,7 +22,7 @@ type ICalcAlgInputData interface {
 }
 
 type IInputDataBuilder interface {
-	CreateInputData(algType AlgType, defaultParams []string) (ICalcAlgInputData, error)
+	CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error)
 }
 
 func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {

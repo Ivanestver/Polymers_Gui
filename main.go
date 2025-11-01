@@ -33,9 +33,9 @@ func main() {
 	fileNumber := 1
 	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention global_data.SpaceDimention
-	spaceDimention.X = 100
-	spaceDimention.Y = 100
-	spaceDimention.Z = 100
+	spaceDimention.X = 16
+	spaceDimention.Y = 16
+	spaceDimention.Z = 16
 	//fmt.Scanln(&spaceDimention)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -68,7 +68,7 @@ func main() {
 			PrintHelp()
 		case interp.COMMAND_BUILD:
 			m := data.(map[string]interface{})
-			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string))
+			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.COMMAND_SHOW_GLOBULAS_LIST:
 			for _, globula := range globulas {
 				fmt.Println(globula.Name())
@@ -191,24 +191,32 @@ func main() {
 			data := data.(map[string]string)
 			globulaName := data["globulaName"]
 			originGlobula := getGlobulaByName(globulaName)
-			globula := originGlobula.DeepCopy(originGlobula.Name() + "_patterned")
-			fileName := data["fileName"]
-			file, err := os.Open(fileName)
-			if err != nil {
-				output_format.PrintlnError(err.Error())
-				break
-			}
-			defer func() {
-				if closeErr := file.Close(); closeErr != nil {
-					output_format.PrintlnError(closeErr.Error())
-				}
-			}()
-			scanner := bufio.NewScanner(file)
+			outputName := data["outputName"]
+			globula := originGlobula.DeepCopy(outputName)
 			var pattern string
-			if scanner.Scan() {
-				pattern = scanner.Text()
+			fileName, ok := data["fileName"]
+			if ok {
+				file, err := os.Open(fileName)
+				if err != nil {
+					output_format.PrintlnError(err.Error())
+					break
+				}
+				defer func() {
+					if closeErr := file.Close(); closeErr != nil {
+						output_format.PrintlnError(closeErr.Error())
+					}
+				}()
+				scanner := bufio.NewScanner(file)
+				if scanner.Scan() {
+					pattern = scanner.Text()
+				} else {
+					output_format.PrintlnError("The given file does not contain a pattern")
+					break
+				}
+			} else if p, ok := data["pattern"]; ok {
+				pattern = p
 			} else {
-				output_format.PrintlnError("The given file does not contain a pattern")
+				output_format.PrintflnError("See usage of this command")
 				break
 			}
 
@@ -274,9 +282,9 @@ func PrintHelp() {
 	output_format.PrintEmptyLine()
 }
 
-func buildGlobula(algType build_globula.AlgType, predefinedParams []string) {
+func buildGlobula(algType build_globula.AlgType, predefinedParams []string, particleName string) {
 	inputDataBuilder := build_globula.CreateInputDataBuilder(algType)
-	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams)
+	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams, particleName)
 	if err != nil {
 		fmt.Print(err.Error())
 		return
@@ -286,7 +294,7 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string) {
 	if finishedPolymers == nil {
 		fmt.Printf("The result of building is nil")
 	} else {
-		globula := views.NewGlobulaView(inputData_.GetName()+" "+strconv.Itoa(len(globulas)), finishedPolymers, inputData_.GetGlobulaType())
+		globula := views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType())
 		globula.SetLiterals(build_globula.GetLiteralsTable())
 		globulas = append(globulas, globula)
 	}
@@ -318,6 +326,9 @@ func getCommandsFromScript(filename string) []string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if len(line) == 0 || line[0] == '#' {
+			continue
+		}
 		commands = append(commands, line)
 	}
 

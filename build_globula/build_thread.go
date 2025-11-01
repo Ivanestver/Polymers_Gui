@@ -17,10 +17,11 @@ type BuildThreadAlgInputData struct {
 	}
 	ThreadRadius float64
 	ThreadLength float64
+	particleName string
 }
 
 func (alg BuildThreadAlgInputData) GetName() string {
-	return "Thread"
+	return alg.particleName
 }
 
 func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
@@ -30,7 +31,7 @@ func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
 type BuildThreadAlgInputDataBuilder struct {
 }
 
-func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string) (ICalcAlgInputData, error) {
+func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
 	inputData := BuildThreadAlgInputData{}
 
 	predefinedParamsCount := len(predefinedParams)
@@ -79,6 +80,8 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.ThreadLength = float64(threadLength)
 	}
 
+	inputData.particleName = particleName
+
 	return inputData, nil
 }
 
@@ -111,7 +114,7 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 		currPosition := &base.Vector3D{X: startPosition.X, Y: startPosition.Y, Z: startPosition.Z}
 		for {
 			nextPosition := base.AddVec(currPosition, &forwardVector)
-			if base.EcludianDistance(*startPosition, *nextPosition) > alg.inputData.ThreadLength {
+			if base.EcludianDistance(*startPosition, *nextPosition) >= alg.inputData.ThreadLength {
 				break
 			}
 			mon = field.GetMonomerByCoords(*nextPosition)

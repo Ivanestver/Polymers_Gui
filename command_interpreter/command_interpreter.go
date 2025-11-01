@@ -215,17 +215,38 @@ func set() (Command, interface{}) {
 func pattern() (Command, interface{}) {
 	globulaName, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <file_name>"
+		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <type> <file_name> <output_name>"
 	}
-
-	fileName, err := getNextToken()
-	if err != nil {
-		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <file_name>"
-	}
-
 	m := make(map[string]string)
 	m["globulaName"] = globulaName
-	m["fileName"] = fileName
+
+	t, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, "Globula name must be followed by type of input data (file, pattern)"
+	}
+	if t == "file" {
+		fileName, err := getParameterAsString()
+		if err != nil {
+			return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> file <file_name> <output_name>"
+		}
+		m["fileName"] = fileName
+	} else if t == "pattern" {
+		patt, err := getParameterAsString()
+		if err != nil {
+			return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> pattern <pattern> <output_name>"
+		}
+		m["pattern"] = patt
+	} else {
+		return COMMAND_UNDEFINED, "Input data must be one of the following types: file, pattern"
+	}
+
+	outputName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	m["outputName"] = outputName
+
 	return COMMAND_PATTERN, m
 }
 
@@ -236,7 +257,7 @@ func build() (Command, interface{}) {
 	}
 
 	predefinedParams := make([]string, 0)
-	for !finished() {
+	for getCurrChar() != '"' {
 		p, err := getNextToken()
 		if err != nil {
 			continue
@@ -246,6 +267,12 @@ func build() (Command, interface{}) {
 
 	m := make(map[string]interface{})
 	m["params"] = predefinedParams
+
+	name, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, "Specify the name of a particle"
+	}
+	m["name"] = name
 
 	if objective == COMMAND_GLOBULA_STR {
 		m["alg"] = build_globula.GlobulaBuildAlg
