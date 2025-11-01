@@ -15,9 +15,10 @@ type BuildThreadAlgInputData struct {
 		Ly int
 		Lz int
 	}
-	ThreadRadius float64
-	ThreadLength float64
-	particleName string
+	ThreadRadius     float64
+	ThreadLength     float64
+	MaxMonomersCount int
+	particleName     string
 }
 
 func (alg BuildThreadAlgInputData) GetName() string {
@@ -56,7 +57,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.Cell.Lz = z
 	}
 
-	if predefinedParamsCount < 4 {
+	if predefinedParamsCount < 5 {
 		fmt.Print("Input the thread diameter: ")
 		fmt.Scanln(&inputData.ThreadRadius)
 	} else {
@@ -68,7 +69,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.ThreadRadius /= 2
 	}
 
-	if predefinedParamsCount < 5 {
+	if predefinedParamsCount < 6 {
 		fmt.Print("Input the thread length: ")
 		fmt.Scanln(&inputData.ThreadLength)
 	} else {
@@ -78,6 +79,18 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 			return inputData, err
 		}
 		inputData.ThreadLength = float64(threadLength)
+	}
+
+	if predefinedParamsCount < 7 {
+		fmt.Print("Input the max monomers count: ")
+		fmt.Scanln(&inputData.MaxMonomersCount)
+	} else {
+		inputData.MaxMonomersCount = -1
+		maxMonomersCount, err := strconv.Atoi(predefinedParams[5])
+		if err != nil {
+			return inputData, err
+		}
+		inputData.MaxMonomersCount = maxMonomersCount
 	}
 
 	inputData.particleName = particleName
@@ -139,7 +152,7 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3D {
 	startPositions := make([]*base.Vector3D, 0)
 	toVisit := make([]*base.Vector3D, 0)
 	toVisit = append(toVisit, center)
-	for len(toVisit) != 0 {
+	for len(toVisit) != 0 && (alg.inputData.MaxMonomersCount <= 0 || len(startPositions) < alg.inputData.MaxMonomersCount) {
 		currPoint := toVisit[0]
 		toVisit = toVisit[1:]
 		if base.Contains_if(startPositions, currPoint, func(it *base.Vector3D, value *base.Vector3D) bool { return base.VectorsAreEqual(it, value) }) || base.EcludianDistance(*center, *currPoint) > alg.inputData.ThreadRadius {
