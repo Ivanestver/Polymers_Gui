@@ -9,7 +9,6 @@ import (
 
 const (
 	COMMAND_HELP_STR              = "help"
-	COMMAND_SET_STR               = "set"
 	COMMAND_BUILD_STR             = "build"
 	COMMAND_EXIT_STR              = "exit"
 	COMMAND_SHOW_STR              = "show"
@@ -27,6 +26,7 @@ const (
 	COMMAND_PATTERN_STR           = "pattern"
 	COMMAND_SCRIPT_STR            = "script"
 	COMMAND_COMMON_STATS_STR      = "common_stats"
+	COMMAND_FILE_STR              = "file"
 )
 
 type Command = int
@@ -102,7 +102,7 @@ func getParameterAsString() (string, error) {
 	}
 
 	if string(getCurrChar()) != "\"" {
-		return "", errors.New("Usage: show globula \"<globula name>\"")
+		return "", errors.New("Wrong parameter")
 	}
 	moveForward()
 	var globulaName string
@@ -144,8 +144,8 @@ func s() (Command, interface{}) {
 		return COMMAND_HELP, nil
 	}
 
-	if token == COMMAND_SET_STR {
-		return set()
+	if token == COMMAND_PATTERN_STR {
+		return pattern()
 	}
 
 	if token == COMMAND_BUILD_STR {
@@ -199,45 +199,32 @@ func s() (Command, interface{}) {
 	return COMMAND_UNDEFINED, "Undefined command: " + token
 }
 
-func set() (Command, interface{}) {
-	token, error := getNextToken()
-	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
-	}
-
-	if token == COMMAND_PATTERN_STR {
-		return pattern()
-	}
-
-	return COMMAND_UNDEFINED, "Undefined parameter: " + token
-}
-
 func pattern() (Command, interface{}) {
 	globulaName, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> <type> <file_name> <output_name>"
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 	m := make(map[string]string)
 	m["globulaName"] = globulaName
 
 	t, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, "Globula name must be followed by type of input data (file, pattern)"
+		return COMMAND_UNDEFINED, "Wrong source type"
 	}
-	if t == "file" {
+	if t == COMMAND_FILE_STR {
 		fileName, err := getParameterAsString()
 		if err != nil {
-			return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> file <file_name> <output_name>"
+			return COMMAND_UNDEFINED, "Wrong usage"
 		}
 		m["fileName"] = fileName
-	} else if t == "pattern" {
+	} else if t == COMMAND_PATTERN_STR {
 		patt, err := getParameterAsString()
 		if err != nil {
-			return COMMAND_UNDEFINED, "Usage: set pattern <globula_name> pattern <pattern> <output_name>"
+			return COMMAND_UNDEFINED, "Wrong usage"
 		}
 		m["pattern"] = patt
 	} else {
-		return COMMAND_UNDEFINED, "Input data must be one of the following types: file, pattern"
+		return COMMAND_UNDEFINED, "Wrong source type"
 	}
 
 	outputName, err := getParameterAsString()
@@ -307,7 +294,7 @@ func showGlobula() (Command, interface{}) {
 	}
 
 	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Usage: show globula \"<globula name>\""
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 	moveForward()
 	var globulaName string
@@ -331,11 +318,11 @@ func showGlobula() (Command, interface{}) {
 func save() (Command, interface{}) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
-		return COMMAND_UNDEFINED, "Usage: show globula \"<globula name>\""
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 
 	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Usage: show globula \"<globula name>\""
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 	moveForward()
 	var globulaName string
@@ -359,11 +346,11 @@ func save() (Command, interface{}) {
 func clusters() (Command, interface{}) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
-		return COMMAND_UNDEFINED, "Usage: clusters \"<globula name>\" <param>"
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 
 	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Usage: clusters \"<globula name>\" <param>"
+		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 	moveForward()
 	var globulaName string
@@ -393,7 +380,7 @@ func clusters() (Command, interface{}) {
 		return COMMAND_HIGHLIGHT_CLUSTERS_ALL, globulaName
 	}
 
-	return COMMAND_UNDEFINED, "Usage: clusters \"<globula name>\" <param>"
+	return COMMAND_UNDEFINED, "Wrong usage"
 }
 
 func age() (Command, interface{}) {
@@ -402,7 +389,7 @@ func age() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	if finished() {
-		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
+		return COMMAND_UNDEFINED, string("Wrong usage")
 	}
 	groupCount, err := getNextToken()
 	if err != nil {
@@ -411,7 +398,7 @@ func age() (Command, interface{}) {
 
 	moveForward()
 	if finished() {
-		return COMMAND_UNDEFINED, string("Usage: age <globula_name> <groups_count> <make_crosslinks>")
+		return COMMAND_UNDEFINED, string("Wrong usage")
 	}
 	token, err := getNextToken()
 	if err != nil {
@@ -460,11 +447,11 @@ func resetGlobula() (Command, interface{}) {
 	if token == COMMAND_FULL_STR {
 		m := make(map[string]interface{})
 		m["globula"] = globulaName
-		m["full"] = false
+		m["full"] = true
 		return COMMAND_RESET_FULL, m
 	}
 
-	return COMMAND_UNDEFINED, string("Usage: reset <globula_name> full")
+	return COMMAND_UNDEFINED, string("Wrong usage")
 }
 
 func waterize() (Command, interface{}) {
@@ -522,7 +509,7 @@ func commonStats() (Command, interface{}) {
 
 	filename, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, string("Usage: command_stats <Globula Name> <Output File Name>")
+		return COMMAND_UNDEFINED, string("Wrong usage")
 	}
 
 	m["filename"] = filename

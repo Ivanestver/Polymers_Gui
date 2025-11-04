@@ -64,7 +64,7 @@ func main() {
 		case interp.COMMAND_UNDEFINED:
 			output_format.PrintlnError(data.(string))
 		case interp.COMMAND_HELP:
-			PrintHelp()
+			interp.PrintHelp()
 		case interp.COMMAND_BUILD:
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
@@ -269,9 +269,6 @@ func main() {
 			output_format.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
 		}
 	}
-}
-
-func PrintHelp() {
 }
 
 func buildGlobula(algType build_globula.AlgType, predefinedParams []string, particleName string) {
