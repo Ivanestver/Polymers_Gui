@@ -14,8 +14,8 @@ func InvalidVector() Vector3D {
 	}
 }
 
-func (this *Vector3D) IsInvalid() bool {
-	return this.X == -1 && this.Y == -1 && this.Z == -1
+func (vector *Vector3D) IsInvalid() bool {
+	return vector.X == -1 && vector.Y == -1 && vector.Z == -1
 }
 
 func VectorsAreEqual(left, right *Vector3D) bool {
