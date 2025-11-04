@@ -37,8 +37,8 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 
 	predefinedParamsCount := len(predefinedParams)
 	if predefinedParamsCount < 3 {
-		output_format.Print("Input the cell's sizes: ")
-		output_format.Readln(&inputData.Cell.Lx, &inputData.Cell.Ly, &inputData.Cell.Lx)
+		output_format.GetPrint().Print("Input the cell's sizes: ")
+		output_format.GetPrint().Readln(&inputData.Cell.Lx, &inputData.Cell.Ly, &inputData.Cell.Lx)
 	} else {
 		x, err := strconv.Atoi(predefinedParams[0])
 		if err != nil {
@@ -58,8 +58,8 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	}
 
 	if predefinedParamsCount < 4 {
-		output_format.Print("Input the thread diameter: ")
-		output_format.Readln(&inputData.ThreadRadius)
+		output_format.GetPrint().Print("Input the thread diameter: ")
+		output_format.GetPrint().Readln(&inputData.ThreadRadius)
 	} else {
 		radius, err := strconv.ParseFloat(predefinedParams[3], 64)
 		if err != nil {
@@ -70,8 +70,8 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	}
 
 	if predefinedParamsCount < 5 {
-		output_format.Print("Input the thread length: ")
-		output_format.Readln(&inputData.ThreadLength)
+		output_format.GetPrint().Print("Input the thread length: ")
+		output_format.GetPrint().Readln(&inputData.ThreadLength)
 	} else {
 		inputData.ThreadLength = 12
 		threadLength, err := strconv.Atoi(predefinedParams[4])
@@ -82,8 +82,8 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	}
 
 	if predefinedParamsCount < 6 {
-		output_format.Print("Input the max polymers count: ")
-		output_format.Readln(&inputData.MaxPolymersCount)
+		output_format.GetPrint().Print("Input the max polymers count: ")
+		output_format.GetPrint().Readln(&inputData.MaxPolymersCount)
 	} else {
 		inputData.MaxPolymersCount = -1
 		maxPolymersCount, err := strconv.Atoi(predefinedParams[5])
@@ -104,9 +104,9 @@ type BuildThreadAlg struct {
 
 func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	// define start monomers
-	output_format.Println("[INFO] Define new field")
+	output_format.GetPrint().PrintlnInfo("Define new field")
 	field := datatypes.NewField(uint64(alg.inputData.ThreadRadius))
-	output_format.Println("[INFO] Define start monomers")
+	output_format.GetPrint().PrintlnInfo("Define start monomers")
 	startPositions := alg.defineStartMonomers()
 	if startPositions == nil {
 		return nil
@@ -115,7 +115,7 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	var polymers []*datatypes.Polymer = make([]*datatypes.Polymer, len(startPositions))
 	// build the polymers
 	for i, startPosition := range startPositions {
-		output_format.Println("[INFO] The start position is (" + strconv.FormatInt(startPosition.X, 10) + ", " + strconv.FormatInt(startPosition.Y, 10) + ", " + strconv.FormatInt(startPosition.Z, 10) + ")")
+		output_format.GetPrint().PrintlnInfo("The start position is (" + strconv.FormatInt(startPosition.X, 10) + ", " + strconv.FormatInt(startPosition.Y, 10) + ", " + strconv.FormatInt(startPosition.Z, 10) + ")")
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 		polymer := polymers[i]
 		// add a start monomer

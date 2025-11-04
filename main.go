@@ -31,18 +31,18 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	output_format.SetPrint(&output_format.ColoredConsolePrint{})
 	fileNumber := 1
-	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
+	output_format.GetPrint().PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention global_data.SpaceDimention
 	spaceDimention.X = 16
 	spaceDimention.Y = 16
 	spaceDimention.Z = 16
-	output_format.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
-	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
+	output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+	output_format.GetPrint().PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
-	output_format.PrintlnInfo("Configuring the global data")
+	output_format.GetPrint().PrintlnInfo("Configuring the global data")
 	global_data.ConfigureGlobalData(spaceDimention)
-	output_format.PrintlnInfo("Configuring the global data finished")
-	output_format.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
+	output_format.GetPrint().PrintlnInfo("Configuring the global data finished")
+	output_format.GetPrint().PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	cmdReader := bufio.NewReader(os.Stdin)
 	commands := make([]string, 0)
 	scriptPtr := flag.String("script", "", "define a script file")
@@ -52,7 +52,7 @@ func main() {
 	}
 	isWorking := true
 	for isWorking {
-		output_format.Print("> ")
+		output_format.GetPrint().Print("> ")
 		var line string
 		if len(commands) == 0 {
 			line, _ = cmdReader.ReadString('\n')
@@ -63,7 +63,7 @@ func main() {
 		command, data := interp.Interpret(line)
 		switch command {
 		case interp.COMMAND_UNDEFINED:
-			output_format.PrintlnError(data.(string))
+			output_format.GetPrint().PrintlnError(data.(string))
 		case interp.COMMAND_HELP:
 			interp.PrintHelp()
 		case interp.COMMAND_BUILD:
@@ -71,7 +71,7 @@ func main() {
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.COMMAND_SHOW_GLOBULAS_LIST:
 			for _, globula := range globulas {
-				output_format.PrintlnInfo(globula.Name())
+				output_format.GetPrint().PrintlnInfo(globula.Name())
 			}
 		case interp.COMMAND_SHOW_GLOBULA:
 			globulaName := data.(string)
@@ -79,30 +79,30 @@ func main() {
 			if globula != nil {
 				PrintGlobulaInfo(globula)
 			} else {
-				output_format.PrintlnError("There is no globula called \"" + globulaName + "\"")
+				output_format.GetPrint().PrintlnError("There is no globula called \"" + globulaName + "\"")
 			}
 		case interp.COMMAND_SAVE_GLOBULA:
 			globulaName := data.(string)
 			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			if globula == nil {
-				output_format.PrintlnError("There is no globula called \"" + globulaName + "\"")
+				output_format.GetPrint().PrintlnError("There is no globula called \"" + globulaName + "\"")
 				break
 			}
 			content, _ := savers.SaveToLammps(globula)
 			f, err := os.Create(globulaName + strconv.Itoa(fileNumber) + ".data")
 			if err != nil {
-				output_format.PrintlnError(err.Error())
+				output_format.GetPrint().PrintlnError(err.Error())
 				return
 			}
 			defer f.Close()
 			f.Write([]byte(content))
 			/*f, err = os.Create(globulaName + strconv.Itoa(fileNumber) + ".json")
 			if err != nil {
-				output_format.PrintlnError(err.Error())
+				output_format.GetPrint().PrintlnError(err.Error())
 				break
 			}
 			if err := json.NewEncoder(f).Encode(globula); err != nil {
-				output_format.PrintlnError(err.Error())
+				output_format.GetPrint().PrintlnError(err.Error())
 			}*/
 			fileNumber++
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
@@ -112,7 +112,7 @@ func main() {
 			globula.Name()
 			globulas = append(globulas, globula)
 
-			output_format.Println("Start highlighting clusters")
+			output_format.GetPrint().Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			if xClusters != nil {
 				xClusters.Colorize(false)
@@ -131,7 +131,7 @@ func main() {
 			doCrosslinks := data["make_crosslinks"].(bool)
 			originalGlobula := getGlobulaByName(globulaName)
 			if originalGlobula == nil {
-				output_format.PrintlnError("There is no globula named " + globulaName)
+				output_format.GetPrint().PrintlnError("There is no globula named " + globulaName)
 				break
 			}
 			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged_" + strconv.Itoa(len(globulas)))
@@ -198,25 +198,25 @@ func main() {
 			if ok {
 				file, err := os.Open(fileName)
 				if err != nil {
-					output_format.PrintlnError(err.Error())
+					output_format.GetPrint().PrintlnError(err.Error())
 					break
 				}
 				defer func() {
 					if closeErr := file.Close(); closeErr != nil {
-						output_format.PrintlnError(closeErr.Error())
+						output_format.GetPrint().PrintlnError(closeErr.Error())
 					}
 				}()
 				scanner := bufio.NewScanner(file)
 				if scanner.Scan() {
 					pattern = scanner.Text()
 				} else {
-					output_format.PrintlnError("The given file does not contain a pattern")
+					output_format.GetPrint().PrintlnError("The given file does not contain a pattern")
 					break
 				}
 			} else if p, ok := data["pattern"]; ok {
 				pattern = p
 			} else {
-				output_format.PrintflnError("See usage of this command")
+				output_format.GetPrint().PrintflnError("See usage of this command")
 				break
 			}
 
@@ -224,12 +224,12 @@ func main() {
 			for _, letter := range pattern {
 				l := string(letter)
 				if globula.GetMonomerTypeByLiteral(l) == datatypes.MONOMER_TYPE_UNDEFINED {
-					output_format.PrintlnError(l + " does not have its decryption")
+					output_format.GetPrint().PrintlnError(l + " does not have its decryption")
 					anyNotExist = true
 				}
 			}
 			if anyNotExist {
-				output_format.PrintlnError("Please, define the missing decryptions to continue")
+				output_format.GetPrint().PrintlnError("Please, define the missing decryptions to continue")
 				break
 			}
 
@@ -249,7 +249,7 @@ func main() {
 		case interp.COMMAND_SCRIPT:
 			filename, err := data.(string)
 			if !err {
-				output_format.PrintlnError("Usage: script <filename>")
+				output_format.GetPrint().PrintlnError("Usage: script <filename>")
 			}
 			commands = getCommandsFromScript(filename)
 
@@ -260,14 +260,14 @@ func main() {
 			text := globula.GetStatistics()
 			f, err := os.Create(data["filename"])
 			if err != nil {
-				output_format.PrintlnError(err.Error())
+				output_format.GetPrint().PrintlnError(err.Error())
 				return
 			}
 			defer f.Close()
 			f.Write([]byte(text))
 
 		default:
-			output_format.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
+			output_format.GetPrint().PrintlnError("'" + line[:len(line)-1] + "' is not supported")
 		}
 	}
 }
@@ -276,13 +276,13 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 	inputDataBuilder := build_globula.CreateInputDataBuilder(algType)
 	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams, particleName)
 	if err != nil {
-		output_format.PrintlnError(err.Error())
+		output_format.GetPrint().PrintlnError(err.Error())
 		return
 	}
 	calcAlg := build_globula.CreateCalcAlg(inputData_, algType)
 	finishedPolymers := calcAlg.Calc()
 	if finishedPolymers == nil {
-		output_format.PrintlnError("The result of building is nil")
+		output_format.GetPrint().PrintlnError("The result of building is nil")
 	} else {
 		globula := views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType())
 		globula.SetLiterals(build_globula.GetLiteralsTable())
@@ -291,17 +291,17 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 }
 
 func PrintGlobulaInfo(globula *views.GlobulaView) {
-	output_format.Println("\n\tGlobula Name: " + globula.Name())
-	output_format.Println("\tPolymers Count: " + strconv.Itoa(globula.Len()))
-	output_format.Println("\tPolymers:")
+	output_format.GetPrint().Println("\n\tGlobula Name: " + globula.Name())
+	output_format.GetPrint().Println("\tPolymers Count: " + strconv.Itoa(globula.Len()))
+	output_format.GetPrint().Println("\tPolymers:")
 	var monomersCount int
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
 		monomersCount += pol.Len()
-		output_format.Println("\t\tPolymer Name: " + pol.Name())
-		output_format.Println("\t\tMonomers Count: " + strconv.Itoa(pol.Len()))
-		output_format.PrintEmptyLine()
+		output_format.GetPrint().Println("\t\tPolymer Name: " + pol.Name())
+		output_format.GetPrint().Println("\t\tMonomers Count: " + strconv.Itoa(pol.Len()))
+		output_format.GetPrint().PrintEmptyLine()
 	})
-	output_format.Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
+	output_format.GetPrint().Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
 }
 
 func getCommandsFromScript(filename string) []string {
@@ -309,7 +309,7 @@ func getCommandsFromScript(filename string) []string {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		output_format.PrintlnError(err.Error())
+		output_format.GetPrint().PrintlnError(err.Error())
 		return commands
 	}
 	defer file.Close()

@@ -680,11 +680,11 @@ func (visualizer *GlobulaView) showNumberOfChains() string {
 }
 
 func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
-	output_format.Println("Please, specify the theoretical age ratio in percents")
+	output_format.GetPrint().Println("Please, specify the theoretical age ratio in percents")
 	ageRatioPercent := 25
 	var ageRatio float64 = float64(ageRatioPercent) * 0.01
 	atomsCount := visualizer.GetAtomsCount()
-	output_format.Readln(&ageRatioPercent)
+	output_format.GetPrint().Readln(&ageRatioPercent)
 	builder := strings.Builder{}
 
 	builder.WriteString("3. Ожидаемая степень старения: ")
