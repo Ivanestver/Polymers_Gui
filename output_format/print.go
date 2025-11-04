@@ -1,51 +1,55 @@
 package output_format
 
-import "fmt"
+var iprint IPrint
+
+func SetPrint(p IPrint) {
+	iprint = p
+}
 
 func Print(str string) {
-	fmt.Print(str)
+	iprint.Print(str)
 }
 
 func Println(str string) {
-	fmt.Println(str)
+	iprint.Println(str)
 }
 
 func Printf(format string, args ...any) {
-	fmt.Printf(format, args...)
+	iprint.Printf(format, args...)
 }
 
 func Printfln(format string, args ...any) {
-	fmt.Printf(format+"\n", args...)
+	iprint.Printfln(format, args...)
 }
 
 func PrintEmptyLine() {
-	Println("")
+	iprint.PrintEmptyLine()
 }
 
 func PrintlnInfo(msg string) {
-	Println(MakeYellow("[INFO] ") + msg)
+	iprint.PrintlnInfo(msg)
 }
 
 func PrintInfo(msg string) {
-	Print(MakeYellow("[INFO] ") + msg)
+	iprint.PrintInfo(msg)
 }
 
 func PrintfInfo(msg string, args ...any) {
-	Printf(MakeYellow("[INFO] ")+msg, args)
+	iprint.PrintfInfo(msg, args)
 }
 
 func PrintlnError(msg string) {
-	Println(MakeRed("[ERROR] " + msg))
+	iprint.PrintlnError(msg)
 }
 
 func PrintflnError(msg string, args ...any) {
-	Printfln(MakeRed("[ERROR] "+msg), args)
+	iprint.PrintflnError(msg, args)
 }
 
 func Read(args ...any) {
-	fmt.Scan(args...)
+	iprint.Read(args...)
 }
 
 func Readln(args ...any) {
-	fmt.Scanln(args...)
+	iprint.Readln(args...)
 }

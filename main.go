@@ -29,6 +29,7 @@ func getGlobulaByName(name string) *views.GlobulaView {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	output_format.SetPrint(&output_format.ColoredConsolePrint{})
 	fileNumber := 1
 	output_format.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention global_data.SpaceDimention
