@@ -57,7 +57,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.Cell.Lz = z
 	}
 
-	if predefinedParamsCount < 5 {
+	if predefinedParamsCount < 4 {
 		output_format.Print("Input the thread diameter: ")
 		output_format.Readln(&inputData.ThreadRadius)
 	} else {
@@ -69,7 +69,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.ThreadRadius /= 2
 	}
 
-	if predefinedParamsCount < 6 {
+	if predefinedParamsCount < 5 {
 		output_format.Print("Input the thread length: ")
 		output_format.Readln(&inputData.ThreadLength)
 	} else {
@@ -81,7 +81,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		inputData.ThreadLength = float64(threadLength)
 	}
 
-	if predefinedParamsCount < 7 {
+	if predefinedParamsCount < 6 {
 		output_format.Print("Input the max polymers count: ")
 		output_format.Readln(&inputData.MaxPolymersCount)
 	} else {
