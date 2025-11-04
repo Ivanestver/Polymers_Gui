@@ -23,23 +23,23 @@ func PrintEmptyLine() {
 }
 
 func PrintlnInfo(msg string) {
-	Println("[INFO] " + msg)
+	Println(MakeYellow("[INFO] ") + msg)
 }
 
 func PrintInfo(msg string) {
-	Print("[INFO] " + msg)
+	Print(MakeYellow("[INFO] ") + msg)
 }
 
 func PrintfInfo(msg string, args ...any) {
-	Printf("[INFO] "+msg, args)
+	Printf(MakeYellow("[INFO] ")+msg, args)
 }
 
 func PrintlnError(msg string) {
-	Println("[ERROR] " + msg)
+	Println(MakeRed("[ERROR] " + msg))
 }
 
 func PrintflnError(msg string, args ...any) {
-	Printfln("[ERROR] "+msg, args)
+	Printfln(MakeRed("[ERROR] "+msg), args)
 }
 
 func Read(args ...any) {
