@@ -1,11 +1,11 @@
 package build_globula
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/output_format"
 	"polymers/views"
 	"strconv"
 )
@@ -35,8 +35,8 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 
 	predefinedParamsCount := len(predefinedParams)
 	if predefinedParamsCount < 1 {
-		fmt.Print("Enter the globula count: ")
-		fmt.Scanln(&inputData.GlobulaCount)
+		output_format.Print("Enter the globula count: ")
+		output_format.Readln(&inputData.GlobulaCount)
 	} else {
 		globulaCount, err := strconv.Atoi(predefinedParams[0])
 		if err != nil {
@@ -46,8 +46,8 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	}
 
 	if predefinedParamsCount < 2 {
-		fmt.Print("Enter the polymers count: ")
-		fmt.Scanln(&inputData.PolymersCount)
+		output_format.Print("Enter the polymers count: ")
+		output_format.Readln(&inputData.PolymersCount)
 	} else {
 		polymersCount, err := strconv.Atoi(predefinedParams[1])
 		if err != nil {
@@ -57,8 +57,8 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	}
 
 	if predefinedParamsCount < 3 {
-		fmt.Print("Enter the accept threshold count: ")
-		fmt.Scanln(&inputData.AcceptThreshold)
+		output_format.Print("Enter the accept threshold count: ")
+		output_format.Readln(&inputData.AcceptThreshold)
 	} else {
 		threshold, err := strconv.ParseFloat(predefinedParams[2], 64)
 		if err != nil {
@@ -68,8 +68,8 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	}
 
 	if predefinedParamsCount < 4 {
-		fmt.Print("Enter the max monomers count: ")
-		fmt.Scanln(&inputData.MaxMonomersCount)
+		output_format.Print("Enter the max monomers count: ")
+		output_format.Readln(&inputData.MaxMonomersCount)
 	} else {
 		maxMonomersCount, err := strconv.Atoi(predefinedParams[3])
 		if err != nil {
@@ -79,8 +79,8 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	}
 
 	if predefinedParamsCount < 5 {
-		fmt.Print("Enter the sphere radius: ")
-		fmt.Scanln(&inputData.SphereRadius)
+		output_format.Print("Enter the sphere radius: ")
+		output_format.Readln(&inputData.SphereRadius)
 	} else {
 		sphereRadius, err := strconv.Atoi(predefinedParams[4])
 		if err != nil {
@@ -152,10 +152,10 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 			persentage := float64(polymer.Len()) / float64(alg.inputData.MaxMonomersCount) * 100
 			intPersentage := int(persentage)
 			if persentage-float64(intPersentage) < 0.1 {
-				fmt.Printf("\t\t%s. Done: %d percent out of 100.\n", polymer.Name(), intPersentage)
+				output_format.Printf("\t\t%s. Done: %d percent out of 100.\n", polymer.Name(), intPersentage)
 			}
 
-			//fmt.Printf("%s's monomersc count: %d\n", polymer.Name(), polymer.Len())
+			//output_format.Printf("%s's monomersc count: %d\n", polymer.Name(), polymer.Len())
 			if polymer.Len() == alg.inputData.MaxMonomersCount {
 				finishedPolymers = append(finishedPolymers, polymer)
 				blacklist = append(blacklist, i)

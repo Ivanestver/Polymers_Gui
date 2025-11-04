@@ -2,26 +2,50 @@ package output_format
 
 import "fmt"
 
-func PrintlnInfo(msg string) {
-	fmt.Println("[INFO] " + msg)
+func Print(str string) {
+	fmt.Print(str)
 }
 
-func PrintInfo(msg string) {
-	fmt.Print("[INFO] " + msg)
+func Println(str string) {
+	fmt.Println(str)
 }
 
-func PrintfInfo(msg string, args ...any) {
-	fmt.Printf("[INFO] "+msg, args)
+func Printf(format string, args ...any) {
+	fmt.Printf(format, args...)
 }
 
-func PrintlnError(msg string) {
-	fmt.Println("[ERROR] " + msg)
-}
-
-func PrintflnError(msg string, args ...any) {
-	fmt.Printf("[ERROR] "+msg+"\n", args)
+func Printfln(format string, args ...any) {
+	fmt.Printf(format+"\n", args...)
 }
 
 func PrintEmptyLine() {
-	fmt.Println("")
+	Println("")
+}
+
+func PrintlnInfo(msg string) {
+	Println("[INFO] " + msg)
+}
+
+func PrintInfo(msg string) {
+	Print("[INFO] " + msg)
+}
+
+func PrintfInfo(msg string, args ...any) {
+	Printf("[INFO] "+msg, args)
+}
+
+func PrintlnError(msg string) {
+	Println("[ERROR] " + msg)
+}
+
+func PrintflnError(msg string, args ...any) {
+	Printfln("[ERROR] "+msg, args)
+}
+
+func Read(args ...any) {
+	fmt.Scan(args...)
+}
+
+func Readln(args ...any) {
+	fmt.Scanln(args...)
 }

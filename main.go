@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"math/rand"
 	"os"
 	"polymers/build_globula"
@@ -36,7 +35,7 @@ func main() {
 	spaceDimention.X = 16
 	spaceDimention.Y = 16
 	spaceDimention.Z = 16
-	//fmt.Scanln(&spaceDimention)
+	output_format.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	output_format.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
 	output_format.PrintlnInfo("Configuring the global data")
@@ -52,7 +51,7 @@ func main() {
 	}
 	isWorking := true
 	for isWorking {
-		fmt.Print("> ")
+		output_format.Print("> ")
 		var line string
 		if len(commands) == 0 {
 			line, _ = cmdReader.ReadString('\n')
@@ -71,7 +70,7 @@ func main() {
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.COMMAND_SHOW_GLOBULAS_LIST:
 			for _, globula := range globulas {
-				fmt.Println(globula.Name())
+				output_format.PrintlnInfo(globula.Name())
 			}
 		case interp.COMMAND_SHOW_GLOBULA:
 			globulaName := data.(string)
@@ -112,7 +111,7 @@ func main() {
 			globula.Name()
 			globulas = append(globulas, globula)
 
-			fmt.Println("Start highlighting clusters")
+			output_format.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			if xClusters != nil {
 				xClusters.Colorize(false)
@@ -273,26 +272,19 @@ func main() {
 }
 
 func PrintHelp() {
-	output_format.PrintEmptyLine()
-	fmt.Println("help - output_format.Print this article")
-
-	output_format.PrintEmptyLine()
-	fmt.Println("build - create globula")
-
-	output_format.PrintEmptyLine()
 }
 
 func buildGlobula(algType build_globula.AlgType, predefinedParams []string, particleName string) {
 	inputDataBuilder := build_globula.CreateInputDataBuilder(algType)
 	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams, particleName)
 	if err != nil {
-		fmt.Print(err.Error())
+		output_format.PrintlnError(err.Error())
 		return
 	}
 	calcAlg := build_globula.CreateCalcAlg(inputData_, algType)
 	finishedPolymers := calcAlg.Calc()
 	if finishedPolymers == nil {
-		fmt.Printf("The result of building is nil")
+		output_format.PrintlnError("The result of building is nil")
 	} else {
 		globula := views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType())
 		globula.SetLiterals(build_globula.GetLiteralsTable())
@@ -301,17 +293,17 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 }
 
 func PrintGlobulaInfo(globula *views.GlobulaView) {
-	fmt.Println("\n\tGlobula Name: " + globula.Name())
-	fmt.Println("\tPolymers Count: " + strconv.Itoa(globula.Len()))
-	fmt.Println("\tPolymers:")
+	output_format.Println("\n\tGlobula Name: " + globula.Name())
+	output_format.Println("\tPolymers Count: " + strconv.Itoa(globula.Len()))
+	output_format.Println("\tPolymers:")
 	var monomersCount int
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
 		monomersCount += pol.Len()
-		fmt.Println("\t\tPolymer Name: " + pol.Name())
-		fmt.Println("\t\tMonomers Count: " + strconv.Itoa(pol.Len()))
+		output_format.Println("\t\tPolymer Name: " + pol.Name())
+		output_format.Println("\t\tMonomers Count: " + strconv.Itoa(pol.Len()))
 		output_format.PrintEmptyLine()
 	})
-	fmt.Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
+	output_format.Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
 }
 
 func getCommandsFromScript(filename string) []string {

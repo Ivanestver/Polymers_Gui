@@ -3,11 +3,11 @@ package views
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/rand"
 	"polymers/base"
 	dt "polymers/datatypes"
+	"polymers/output_format"
 	"sort"
 	"strconv"
 	"strings"
@@ -680,11 +680,11 @@ func (visualizer *GlobulaView) showNumberOfChains() string {
 }
 
 func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
-	fmt.Println("Please, specify the theoretical age ratio in percents")
+	output_format.Println("Please, specify the theoretical age ratio in percents")
 	ageRatioPercent := 25
 	var ageRatio float64 = float64(ageRatioPercent) * 0.01
 	atomsCount := visualizer.GetAtomsCount()
-	fmt.Scanln(&ageRatioPercent)
+	output_format.Readln(&ageRatioPercent)
 	builder := strings.Builder{}
 
 	builder.WriteString("3. Ожидаемая степень старения: ")
