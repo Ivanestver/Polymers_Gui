@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	Command_help_str              = "help"
-	Command_set_str               = "set"
-	Command_build_str             = "build"
+	COMMAND_HELP_STR              = "help"
+	COMMAND_SET_STR               = "set"
+	COMMAND_BUILD_STR             = "build"
 	COMMAND_EXIT_STR              = "exit"
 	COMMAND_SHOW_STR              = "show"
 	COMMAND_GLOBULA_STR           = "globula"
@@ -140,15 +140,15 @@ func s() (Command, interface{}) {
 		return COMMAND_UNDEFINED, error.Error()
 	}
 
-	if token == Command_help_str {
+	if token == COMMAND_HELP_STR {
 		return COMMAND_HELP, nil
 	}
 
-	if token == Command_set_str {
+	if token == COMMAND_SET_STR {
 		return set()
 	}
 
-	if token == Command_build_str {
+	if token == COMMAND_BUILD_STR {
 		return build()
 	}
 
