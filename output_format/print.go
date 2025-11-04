@@ -7,5 +7,8 @@ func SetPrint(p IPrint) {
 }
 
 func GetPrint() IPrint {
+	if iprint == nil {
+		panic("iprint is nil")
+	}
 	return iprint
 }
