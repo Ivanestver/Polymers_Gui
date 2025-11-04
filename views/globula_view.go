@@ -691,8 +691,7 @@ func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
 	builder.WriteString(strconv.Itoa(int(float64(atomsCount) * ageRatio)))
 	builder.WriteString(" (")
 	builder.WriteString(strconv.Itoa(ageRatioPercent))
-	builder.WriteString(")")
-	builder.WriteString("%\n")
+	builder.WriteString("%)\n")
 
 	agedParticlesCount := math.Ceil(float64(atomsCount) * ageRatio)
 	cutsCount := int(math.Ceil(agedParticlesCount * 0.44))
@@ -756,6 +755,7 @@ func (visualizer *GlobulaView) showActualAgeStatistics() string {
 	}
 
 	builder := strings.Builder{}
+	ageGroupsCount := float64(NCount + CCount)
 	builder.WriteString("6. Фактическое количество разрывов: ")
 	builder.WriteString(strconv.Itoa(cutsCount))
 	builder.WriteString("\n")
@@ -764,16 +764,16 @@ func (visualizer *GlobulaView) showActualAgeStatistics() string {
 	builder.WriteString("\n")
 	builder.WriteString("7. Фактическое распределение по состаренным группам:\n")
 	builder.WriteString("   C: ")
-	builder.WriteString(strconv.Itoa(CCount))
+	builder.WriteString(strconv.Itoa(CCount) + " (" + strconv.FormatFloat(float64(CCount)/ageGroupsCount, 'f', 2, 64) + "%)")
 	builder.WriteString("\n")
 	builder.WriteString("   N: ")
-	builder.WriteString(strconv.Itoa(NCount))
+	builder.WriteString(strconv.Itoa(NCount) + " (" + strconv.FormatFloat(float64(NCount)/ageGroupsCount, 'f', 2, 64) + "%)")
 	builder.WriteString("\n")
 	builder.WriteString("   H: ")
 	builder.WriteString(strconv.Itoa(len(crossCount)))
 	builder.WriteString("\n")
 	builder.WriteString("   Фактическая степень старения: ")
-	builder.WriteString(strconv.FormatFloat(float64(NCount+CCount)/float64(visualizer.GetAtomsCount())*100.0, 'f', 2, 64))
+	builder.WriteString(strconv.FormatFloat(ageGroupsCount/float64(visualizer.GetAtomsCount())*100.0, 'f', 2, 64))
 	builder.WriteString("%\n")
 	return builder.String()
 }
