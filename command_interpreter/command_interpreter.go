@@ -73,14 +73,14 @@ func reset() {
 
 func getNextToken() (string, error) {
 	if finished() {
-		return "", errors.New("Uncompleted command")
+		return "", errors.New("incompleted command")
 	}
 	var token string
 	var char rune = rune(getCurrChar())
 	for char == ' ' {
 		moveForward()
 		if finished() {
-			return "", errors.New("No command was found")
+			return "", errors.New("no command was found")
 		}
 		char = rune(getCurrChar())
 	}
@@ -102,7 +102,7 @@ func getParameterAsString() (string, error) {
 	}
 
 	if string(getCurrChar()) != "\"" {
-		return "", errors.New("Wrong parameter")
+		return "", errors.New("wrong parameter")
 	}
 	moveForward()
 	var globulaName string
@@ -121,7 +121,7 @@ func getParameterAsString() (string, error) {
 			return globulaName, nil
 		}
 	}
-	return "", errors.New("Globula name must be wrapped with \"\"")
+	return "", errors.New("globula name must be wrapped with \"\"")
 }
 
 func getUndefinedCommand(token string) (Command, string) {

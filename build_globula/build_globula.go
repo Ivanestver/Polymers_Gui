@@ -119,7 +119,7 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 	blacklist := make([]int, 0)
 	for len(finishedPolymers) != len(polymers) {
 		for i, polymer := range polymers {
-			if base.Contains[int](blacklist, i) {
+			if base.Contains(blacklist, i) {
 				continue
 			}
 

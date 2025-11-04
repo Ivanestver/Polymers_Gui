@@ -623,7 +623,7 @@ func (globula *GlobulaView) MakeHomogenousAsShortest() error {
 
 func (globula *GlobulaView) MakeHomogenousAsCustom(newSize int) error {
 	if newSize > 128 {
-		return errors.New("New size must not be more than 128")
+		return errors.New("new size must not be more than 128")
 	}
 
 	return globula.trunkAllPolymers(newSize)
