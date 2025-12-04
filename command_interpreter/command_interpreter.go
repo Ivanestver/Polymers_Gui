@@ -84,7 +84,12 @@ func getNextToken() (string, error) {
 		}
 		char = rune(getCurrChar())
 	}
-	for unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_' || char == '.' || char == '%' {
+	for unicode.IsLetter(char) || unicode.IsNumber(char) ||
+		char == '_' ||
+		char == '.' ||
+		char == '%' ||
+		char == '(' || char == ')' ||
+		char == '*' {
 		token += string(getCurrChar())
 		moveForward()
 		if finished() {
@@ -222,7 +227,11 @@ func pattern() (Command, interface{}) {
 		if err != nil {
 			return COMMAND_UNDEFINED, "Wrong usage"
 		}
-		m["pattern"] = patt
+		if patt, err = getPattern(patt); err == nil {
+			m["pattern"] = patt
+		} else {
+			return COMMAND_UNDEFINED, err.Error()
+		}
 	} else {
 		return COMMAND_UNDEFINED, "Wrong source type"
 	}
@@ -514,4 +523,83 @@ func commonStats() (Command, interface{}) {
 
 	m["filename"] = filename
 	return COMMAND_COMMON_STATS, m
+}
+
+func getPattern(raw string) (string, error) {
+	dst := ""
+	curr := 0
+	for curr < len(raw) {
+		c := raw[curr]
+		if 'A' <= c && c <= 'Z' {
+			dst += string(c)
+			curr++
+		} else if c == '(' {
+			curr++
+			if err := getPattern_S2(raw, &curr, &dst); err != nil {
+				return "", nil
+			}
+		} else {
+			return "", errors.New("The pattern doesn't follow the rules: " + raw)
+		}
+	}
+	return dst, nil
+}
+
+func getPattern_S2(raw string, curr *int, dst *string) error {
+	if *curr >= len(raw) {
+		return errors.New("The pattern doesn't follow the rules: " + raw)
+	}
+	start := *curr
+	for {
+		c := raw[*curr]
+		if 'A' <= c && c <= 'Z' {
+			*curr++
+		} else if c == ')' && start < *curr {
+			*curr++
+			return getPattern_S3(raw, curr, start, dst)
+		} else {
+			return errors.New("The pattern doesn't follow the rules: " + raw)
+		}
+	}
+}
+
+func getPattern_S3(raw string, curr *int, start int, dst *string) error {
+	if *curr >= len(raw) {
+		return errors.New("The pattern doesn't follow the rules: " + raw)
+	}
+	c := raw[*curr]
+	if 'A' <= c && c <= 'Z' {
+		*dst += string(c)
+		*curr++
+		return nil
+	} else if c == '*' {
+		*curr++
+		return getPattern_S4(raw, curr, start, dst)
+	} else {
+		return errors.New("The pattern doesn't follow the rules: " + raw)
+	}
+}
+
+func getPattern_S4(raw string, curr *int, start int, dst *string) error {
+	startNum := *curr
+	for *curr < len(raw) {
+		c := raw[*curr]
+		if '0' <= c && c <= '9' {
+			*curr++
+		} else {
+			break
+		}
+	}
+	if startNum == *curr {
+		return errors.New("The pattern doesn't follow the rules: " + raw)
+	} else {
+		if itersCount, err := strconv.Atoi(raw[startNum:*curr]); err == nil {
+			for i := 0; i < itersCount; i++ {
+				*dst += raw[start : startNum-2]
+			}
+			return nil
+		} else {
+			return err
+		}
+	}
 }

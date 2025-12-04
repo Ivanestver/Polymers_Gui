@@ -42,9 +42,11 @@ func (polymerView *PolymerView) GetStartEndMonomers() (*datatypes.Monomer, *data
 	return polymerView.polymer.GetMonomerByIdx(0), polymerView.polymer.GetMonomerByIdx(polymerView.polymer.Len() - 1)
 }
 
-func ForEachMonomer(polymer *PolymerView, pred func(*datatypes.Monomer)) {
+func ForEachMonomer(polymer *PolymerView, pred func(*datatypes.Monomer) bool) {
 	for i := 0; i < polymer.Len(); i++ {
-		pred(polymer.polymer.GetMonomerByIdx(i))
+		if !pred(polymer.polymer.GetMonomerByIdx(i)) {
+			return
+		}
 	}
 }
 

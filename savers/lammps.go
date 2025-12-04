@@ -62,6 +62,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	highestNumberBond := base.Max(bondTypes)
 
 	addString(&content, strconv.Itoa(getAtomsCount(globula))+" atoms")
+	//addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
 	addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
 	addString(&content, strconv.Itoa(bondCount)+" bonds")
 	addString(&content, strconv.Itoa(int(*highestNumberBond))+" bond types")
@@ -76,13 +77,12 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, "Masses")
 	addNewLine(&content)
 	mapMonomerTypeNumber := make(map[dt.MonomerType]int)
-	for i, monType := range monomerTypes {
-		if monType == dt.MONOMER_TYPE_UNDEFINED {
+	for _, t := range monomerTypes {
+		if t == dt.MONOMER_TYPE_UNDEFINED {
 			continue
 		}
-		mapMonomerTypeNumber[monType] = i + 1
-		literal := globula.GetLiteral(monType)
-		addString(&content, strconv.Itoa(i+1)+" 1 # "+literal)
+		mapMonomerTypeNumber[t] = int(t) + 1
+		addString(&content, strconv.Itoa(mapMonomerTypeNumber[t])+" 1 # "+globula.GetLiteral(t))
 	}
 
 	addNewLine(&content)
@@ -102,9 +102,9 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	polymerNumber := 0
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
 		polymerNumber++
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
+		views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			if mon.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
-				return
+				return true
 			}
 			monCoords := mon.Coords()
 			maxNumber = *base.Max_int([]int{maxNumber, int(mon.Number)})
@@ -117,6 +117,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 					strconv.FormatInt(monCoords.Y, 10)+" "+
 					strconv.FormatInt(monCoords.Z, 10)+" "+
 					"0 0 0")
+			return true
 		})
 	})
 	if globula.Is(views.GLOBULA_WATERIZED) {
@@ -158,7 +159,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	used_pairs := make(map[intPair]bool)
 	allSides := dt.GetAllSides()
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
+		views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			for _, side := range allSides {
 				otherMon, err := mon.GetSibling(side)
 				connType := mon.GetTypeOfConnectionWithSide(side)
@@ -171,6 +172,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 					}
 				}
 			}
+			return true
 		})
 	})
 
@@ -195,10 +197,11 @@ func getAtomsCount(globula *views.GlobulaView) int {
 	atomsCount := 0
 	if !globula.Is(views.GLOBULA_WATERIZED) {
 		views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-			views.ForEachMonomer(pol, func(mon *dt.Monomer) {
+			views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 				if mon.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
 					atomsCount++
 				}
+				return true
 			})
 		})
 	} else {
@@ -209,7 +212,7 @@ func getAtomsCount(globula *views.GlobulaView) int {
 }
 
 func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
-	monomersTypes_map := make(map[dt.MonomerType]bool)
+	/*monomersTypes_map := make(map[dt.MonomerType]bool)
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
 		views.ForEachMonomer(pol, func(mon *datatypes.Monomer) {
 			monomersTypes_map[mon.MonomerType] = true
@@ -223,8 +226,32 @@ func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
 	if globula.Is(views.GLOBULA_WATERIZED) {
 		monomersTypes = append(monomersTypes, dt.MONOMER_TYPE_WATER)
 	}
-	slices.Sort(monomersTypes)
-	return monomersTypes
+	slices.SortFunc(monomersTypes, func(a, b dt.MonomerType) int {
+		if int(a) < int(b) {
+			return -1
+		} else if int(a) == int(b) {
+			return 0
+		} else {
+			return 1
+		}
+	})
+	return monomersTypes*/
+
+	monomerTypes := make([]dt.MonomerType, 0)
+	mTypes := globula.GetLiterals()
+	for k, _ := range *mTypes {
+		monomerTypes = append(monomerTypes, k)
+	}
+	slices.SortFunc(monomerTypes, func(a, b dt.MonomerType) int {
+		if int(a) < int(b) {
+			return -1
+		} else if int(a) == int(b) {
+			return 0
+		} else {
+			return 1
+		}
+	})
+	return monomerTypes
 }
 
 func getBondTypes(globula *views.GlobulaView) ([]dt.ConnectionType, int) {
@@ -232,7 +259,7 @@ func getBondTypes(globula *views.GlobulaView) ([]dt.ConnectionType, int) {
 	allSides := dt.GetAllSides()
 	bondsCount := 0
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) {
+		views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			for _, side := range allSides {
 				connType := mon.GetTypeOfConnectionWithSide(side)
 				sibling, err := mon.GetSibling(side)
@@ -241,6 +268,7 @@ func getBondTypes(globula *views.GlobulaView) ([]dt.ConnectionType, int) {
 					bondsCount += 1
 				}
 			}
+			return true
 		})
 	})
 	types := make([]dt.ConnectionType, 0)

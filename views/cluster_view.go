@@ -370,7 +370,7 @@ func fillClusters(directions []dt.Side, mainDirection dt.Side, axis dt.Axis, mon
 func findClusters(currentGlobula *GlobulaView, axis dt.Axis, avg float64) []*Cluster {
 	clusters := make([]*Cluster, 0)
 	for _, pol := range currentGlobula.polymers {
-		ForEachMonomer(pol, func(monomer *dt.Monomer) {
+		ForEachMonomer(pol, func(monomer *dt.Monomer) bool {
 			for i := 0; i < pol.Len(); i++ {
 				monomer := pol.polymer.GetMonomerByIdx(i)
 				mainDirection := get_direction(monomer)
@@ -402,6 +402,7 @@ func findClusters(currentGlobula *GlobulaView, axis dt.Axis, avg float64) []*Clu
 					clusters = gather_clusters(clusters, avg, axis, -1)
 				}
 			}
+			return true
 		})
 	}
 	// Although we seem to have all the clusters already joined

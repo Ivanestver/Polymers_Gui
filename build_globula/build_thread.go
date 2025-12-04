@@ -29,6 +29,21 @@ func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GLOBULA_THREAD_TYPE
 }
 
+func (alg BuildThreadAlgInputData) GetLiterals() map[datatypes.MonomerType]string {
+	m := make(map[datatypes.MonomerType]string)
+	m1 := make(map[datatypes.MonomerType]string)
+	m[datatypes.MONOMER_TYPE_USUAL] = "O"
+	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
+	m[datatypes.MONOMER_TYPE_VYNIL] = "C"
+	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
+	n := len(m)
+	for k, v := range m {
+		m1[k] = v
+		m1[datatypes.MonomerType(int(k)+n)] = v
+	}
+	return m1
+}
+
 type BuildThreadAlgInputDataBuilder struct {
 }
 

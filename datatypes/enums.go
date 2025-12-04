@@ -57,9 +57,9 @@ const (
 	MONOMER_TYPE_USUAL        MonomerType = 0
 	MONOMER_TYPE_O_CONTAINING MonomerType = 1
 	MONOMER_TYPE_VYNIL        MonomerType = 2
-	MONOMER_TYPE_FWISE        MonomerType = 3
-	MONOMER_TYPE_CLWISE       MonomerType = 4
-	MONOMER_TYPE_CROSSLINKED  MonomerType = 5
+	MONOMER_TYPE_CROSSLINKED  MonomerType = 3
+	MONOMER_TYPE_FWISE        MonomerType = 4
+	MONOMER_TYPE_CLWISE       MonomerType = 5
 	MONOMER_TYPE_WATER        MonomerType = 6
 )
 

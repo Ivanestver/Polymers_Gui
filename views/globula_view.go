@@ -43,9 +43,10 @@ func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProp
 	}
 	monomerNumber := int64(1)
 	for _, polymer := range newGlobulaView.polymers {
-		ForEachMonomer(polymer, func(mon *dt.Monomer) {
+		ForEachMonomer(polymer, func(mon *dt.Monomer) bool {
 			mon.Number = monomerNumber
 			monomerNumber++
+			return true
 		})
 	}
 	newGlobulaView.commonClusterDone = false
@@ -69,7 +70,7 @@ func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) { mon.MonomerType = dt.MONOMER_TYPE_USUAL })
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = dt.MONOMER_TYPE_USUAL; return true })
 	}
 	for gp := range globula.globulaProperties {
 		delete(globula.globulaProperties, gp)
@@ -84,6 +85,10 @@ func (globula *GlobulaView) SetLiterals(literals map[dt.MonomerType]string) {
 
 func (globula *GlobulaView) GetLiteral(monType dt.MonomerType) string {
 	return globula.literalsTable[monType]
+}
+
+func (globula *GlobulaView) GetLiterals() *map[dt.MonomerType]string {
+	return &globula.literalsTable
 }
 
 func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) dt.MonomerType {
@@ -101,7 +106,7 @@ using the polumer's connections information
 */
 func (globula *GlobulaView) FullReset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) {
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			// Make monomer as usual
 			mon.MonomerType = dt.MONOMER_TYPE_USUAL
 			// Break all the connections
@@ -114,6 +119,7 @@ func (globula *GlobulaView) FullReset() {
 			}
 			// Connection with the next monomer in the chain
 			dt.MakeConnection(mon, mon.NextMonomer, dt.CONNECTION_TYPE_ONE)
+			return true
 		})
 	}
 	for gp := range globula.globulaProperties {
@@ -636,9 +642,10 @@ func (globula *GlobulaView) trunkAllPolymers(newSize int) error {
 
 	var monomerNumber int64 = 1
 	for _, polymer := range globula.polymers {
-		ForEachMonomer(polymer, func(m *dt.Monomer) {
+		ForEachMonomer(polymer, func(m *dt.Monomer) bool {
 			m.Number = int64(monomerNumber)
 			monomerNumber++
+			return true
 		})
 	}
 
@@ -728,7 +735,7 @@ func (visualizer *GlobulaView) showActualAgeStatistics() string {
 	cutsCount := 0
 	crossCount := make(map[int64]int)
 	for _, pol := range visualizer.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) {
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			if mon.NextMonomer != nil &&
 				((mon.MonomerType == dt.MONOMER_TYPE_VYNIL || mon.MonomerType == dt.MONOMER_TYPE_O_CONTAINING) &&
 					(mon.NextMonomer.MonomerType == dt.MONOMER_TYPE_VYNIL ||
@@ -749,8 +756,9 @@ func (visualizer *GlobulaView) showActualAgeStatistics() string {
 					}
 				}
 			} else {
-				return
+				return true
 			}
+			return true
 		})
 	}
 

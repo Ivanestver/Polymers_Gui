@@ -19,6 +19,7 @@ type ICalcAlg interface {
 type ICalcAlgInputData interface {
 	GetName() string
 	GetGlobulaType() views.GlobulaProperty
+	GetLiterals() map[datatypes.MonomerType]string
 }
 
 type IInputDataBuilder interface {

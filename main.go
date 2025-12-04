@@ -12,6 +12,7 @@ import (
 	"polymers/output_format"
 	"polymers/savers"
 	"polymers/views"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -35,8 +36,8 @@ func main() {
 	var spaceDimention global_data.SpaceDimention
 	spaceDimention.X = 16
 	spaceDimention.Y = 16
-	spaceDimention.Z = 16
-	output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+	spaceDimention.Z = 130
+	//output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	output_format.GetPrint().PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
 	output_format.GetPrint().PrintlnInfo("Configuring the global data")
@@ -233,13 +234,50 @@ func main() {
 				break
 			}
 
-			views.ForEachPolymer(globula, func(pv *views.PolymerView) {
-				currentLetterNumber := 0
-				views.ForEachMonomer(pv, func(m *datatypes.Monomer) {
-					m.MonomerType = globula.GetMonomerTypeByLiteral(string(pattern[currentLetterNumber]))
-					currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
+			if globula.Is(views.GLOBULA_GLOBULA_TYPE) {
+				views.ForEachPolymer(globula, func(pv *views.PolymerView) {
+					currentLetterNumber := 0
+					views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
+						m.MonomerType = globula.GetMonomerTypeByLiteral(string(pattern[currentLetterNumber]))
+						currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
+						return true
+					})
 				})
-			})
+			} else {
+				literalsTable := globula.GetLiterals()
+				literals := make([]datatypes.MonomerType, 0)
+				for m := range *literalsTable {
+					literals = append(literals, m)
+				}
+				slices.SortFunc(literals, func(a, b datatypes.MonomerType) int {
+					if int(a) < int(b) {
+						return -1
+					} else if int(a) == int(b) {
+						return 0
+					} else {
+						return 1
+					}
+				})
+				threshold := len(*literalsTable) / 2
+				latestType := threshold + 1
+				views.ForEachPolymer(globula, func(pv *views.PolymerView) {
+					currentLetterNumber := 0
+					views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
+						for _, monType := range literals {
+							if string(pattern[currentLetterNumber]) == (*literalsTable)[monType] {
+								m.MonomerType = monType
+								if latestType < threshold {
+									m.MonomerType = m.MonomerType + datatypes.MonomerType(threshold)
+								}
+								latestType = int(m.MonomerType)
+								currentLetterNumber = currentLetterNumber + 1
+								return true
+							}
+						}
+						return false
+					})
+				})
+			}
 
 			globulas = append(globulas, globula)
 
@@ -285,7 +323,7 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 		output_format.GetPrint().PrintlnError("The result of building is nil")
 	} else {
 		globula := views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType())
-		globula.SetLiterals(build_globula.GetLiteralsTable())
+		globula.SetLiterals(inputData_.GetLiterals())
 		globulas = append(globulas, globula)
 	}
 }
