@@ -8,6 +8,7 @@ import (
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
 	"polymers/datatypes"
+	"polymers/dfs"
 	"polymers/global_data"
 	"polymers/output_format"
 	"polymers/savers"
@@ -34,9 +35,9 @@ func main() {
 	fileNumber := 1
 	output_format.GetPrint().PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
 	var spaceDimention global_data.SpaceDimention
-	spaceDimention.X = 16
-	spaceDimention.Y = 16
-	spaceDimention.Z = 130
+	spaceDimention.X = 3
+	spaceDimention.Y = 3
+	spaceDimention.Z = 1
 	//output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	output_format.GetPrint().PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -303,6 +304,10 @@ func main() {
 			}
 			defer f.Close()
 			f.Write([]byte(text))
+
+		case interp.COMMAND_DFS:
+			globula := dfs.DoDFS()
+			globulas = append(globulas, globula)
 
 		default:
 			output_format.GetPrint().PrintlnError("'" + line[:len(line)-1] + "' is not supported")

@@ -27,6 +27,7 @@ const (
 	COMMAND_SCRIPT_STR            = "script"
 	COMMAND_COMMON_STATS_STR      = "common_stats"
 	COMMAND_FILE_STR              = "file"
+	COMMAND_DFS_STR               = "dfs"
 )
 
 type Command = int
@@ -50,6 +51,7 @@ const (
 	COMMAND_PATTERN
 	COMMAND_SCRIPT
 	COMMAND_COMMON_STATS
+	COMMAND_DFS
 )
 
 var currProgram string
@@ -199,6 +201,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_COMMON_STATS_STR {
 		return commonStats()
+	}
+
+	if token == COMMAND_DFS_STR {
+		return dfs()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined command: " + token
@@ -602,4 +608,8 @@ func getPattern_S4(raw string, curr *int, start int, dst *string) error {
 			return err
 		}
 	}
+}
+
+func dfs() (Command, interface{}) {
+	return COMMAND_DFS, nil
 }
