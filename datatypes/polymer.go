@@ -28,6 +28,7 @@ func (polymer *Polymer) AddMonomer(monomer *Monomer) {
 		monomer.PrevMonomer = lastMonomer
 	}
 	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.field.MakeFilled(monomer)
 }
 
 func (polymer *Polymer) Len() int {

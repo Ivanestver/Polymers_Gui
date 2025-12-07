@@ -117,7 +117,6 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 	for _, p := range polymers {
 		startMonomer := field.DefineStartMonomer()
 		p.AddMonomer(startMonomer)
-		field.MakeFilled(startMonomer)
 	}
 
 	blacklist := make([]int, 0)
@@ -151,7 +150,6 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 			}
 			currentMonomer = field.GetMonomerByCoords(currentPosition)
 			polymer.AddMonomer(currentMonomer)
-			field.MakeFilled(currentMonomer)
 
 			persentage := float64(polymer.Len()) / float64(alg.inputData.MaxMonomersCount) * 100
 			intPersentage := int(persentage)

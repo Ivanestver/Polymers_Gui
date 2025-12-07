@@ -136,7 +136,6 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 		// add a start monomer
 		mon := field.GetMonomerByCoords(*startPosition)
 		polymer.AddMonomer(mon)
-		field.MakeFilled(mon)
 		// move forward until the distance between a current monomer and the start monomers are more than inputData.ThreadLength
 		forwardVector := base.Vector3D{X: 0, Y: 0, Z: 1}
 		currPosition := &base.Vector3D{X: startPosition.X, Y: startPosition.Y, Z: startPosition.Z}
@@ -147,7 +146,6 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 			}
 			mon = field.GetMonomerByCoords(*nextPosition)
 			polymer.AddMonomer(mon)
-			field.MakeFilled(mon)
 			currPosition = nextPosition
 		}
 	}
