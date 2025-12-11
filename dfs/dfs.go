@@ -21,29 +21,31 @@ func DoDFS() *views.GlobulaView {
 	printInf := output_format.GetPrint()
 
 	printInf.Printfln("Enter the outcoming axis: %d - X, %d - Y, %d - Z", dt.X_AXIS, dt.Y_AXIS, dt.Z_AXIS)
-	var outcomingAxis dt.Axis = dt.X_AXIS
+	//var outcomingAxis dt.Axis = dt.X_AXIS
 	//printInf.Readln(&outcomingAxis)
 
 	printInf.Printfln("Enter the direction: %d - X, %d - Y, %d - Z", dt.X_AXIS, dt.Y_AXIS, dt.Z_AXIS)
-	//var directionAxis dt.Axis = dt.Y_AXIS
+	var directionAxis dt.Axis = dt.Y_AXIS
 	//printInf.Readln(&directionAxis)
 
 	direction := dt.DIRECTION_FORWARD
-	outcomingSide := dt.GetSide(outcomingAxis, direction)
+	outcomingSide := dt.GetSide(directionAxis, direction)
 	polymerNumber := int64(1)
-	for y := int64(0); y < globalData.SpaceDimention.Y; y++ {
-		if cycles := makeForwardingCycles(0, y, outcomingSide, field, &polymerNumber); cycles != nil {
-			minLengthPolymer := slices.MinFunc(*cycles, func(c1, c2 *dt.Polymer) int {
-				if c1.Len() < c2.Len() {
-					return -1
-				} else if c1.Len() == c2.Len() {
-					return 0
-				} else {
-					return 1
-				}
-			})
+	for x := int64(0); x < globalData.SpaceDimention.X; x++ {
+		for z := int64(0); z < globalData.SpaceDimention.Z; z++ {
+			if cycles := makeForwardingCycles(base.Vector3D{X: x, Y: 0, Z: z}, outcomingSide, field, &polymerNumber); cycles != nil {
+				minLengthPolymer := slices.MinFunc(*cycles, func(c1, c2 *dt.Polymer) int {
+					if c1.Len() < c2.Len() {
+						return -1
+					} else if c1.Len() == c2.Len() {
+						return 0
+					} else {
+						return 1
+					}
+				})
 
-			polymers = append(polymers, slices.DeleteFunc(*cycles, func(c *dt.Polymer) bool { return c.Len() > minLengthPolymer.Len() })...)
+				polymers = append(polymers, slices.DeleteFunc(*cycles, func(c *dt.Polymer) bool { return c.Len() > minLengthPolymer.Len() })...)
+			}
 		}
 	}
 
@@ -54,21 +56,21 @@ func DoDFS() *views.GlobulaView {
 	return globula
 }
 
-func makeForwardingCycles(x, y int64, outcomingSide dt.Side, field *dt.Field, polymerNumber *int64) *[]*dt.Polymer {
-	startMonomer := field.GetMonomerByCoords(base.Vector3D{X: x, Y: y, Z: 0})
+func makeForwardingCycles(point base.Vector3D, outcomingSide dt.Side, field *dt.Field, polymerNumber *int64) *[]*dt.Polymer {
+	startMonomer := field.GetMonomerByCoords(point)
 	if startMonomer == nil {
 		return nil
 	}
 	movingSides := dt.GetMovementSides()
 	reversedSide := dt.GetReversedSide(outcomingSide)
 	movingSides = slices.DeleteFunc(movingSides, func(side dt.Side) bool { return side == reversedSide })
-	movingSides = []dt.Side{dt.SIDE_Forward, dt.SIDE_Left, dt.SIDE_Right}
+	//movingSides = []dt.Side{dt.SIDE_Forward, dt.SIDE_Left, dt.SIDE_Right}
 	var stack base.Stack
 	stack.Push(startMonomer)
 	visitedMons := make(map[base.Vector3D]bool)
 	currPath := make([]base.Vector3D, 0)
 	(*polymerNumber)++
-	paths := new([]*dt.Polymer)
+	pathsCoords := make([][]base.Vector3D, 0)
 	for !stack.IsEmpty() {
 		inf, ok := stack.Peek()
 		if !ok {
@@ -90,12 +92,8 @@ func makeForwardingCycles(x, y int64, outcomingSide dt.Side, field *dt.Field, po
 		}
 		currPath = append(currPath, currMon.Coords())
 		if isEdge(currMon, outcomingSide) {
-			path := dt.NewPolymer(field, *polymerNumber)
-			(*polymerNumber)++
-			for _, point := range currPath {
-				path.AddMonomer(field.GetMonomerByCoords(point))
-			}
-			*paths = append(*paths, path)
+			newPath := slices.Clone(currPath)
+			pathsCoords = append(pathsCoords, newPath)
 			continue
 		}
 		for _, movingSide := range movingSides {
@@ -104,7 +102,16 @@ func makeForwardingCycles(x, y int64, outcomingSide dt.Side, field *dt.Field, po
 			}
 		}
 	}
-	return paths
+	polymers := new([]*dt.Polymer)
+	for _, path := range pathsCoords {
+		newPolymer := dt.NewPolymer(field, *polymerNumber)
+		for _, point := range path {
+			newPolymer.AddMonomer(field.GetMonomerByCoords(point))
+		}
+		(*polymerNumber)++
+		*polymers = append(*polymers, newPolymer)
+	}
+	return polymers
 }
 
 func isEdge(mon *dt.Monomer, outComingSide dt.Side) bool {
@@ -115,8 +122,8 @@ func isEdge(mon *dt.Monomer, outComingSide dt.Side) bool {
 	point := mon.Coords()
 	return (outComingSide == dt.SIDE_Forward && point.X == edgeX) ||
 		(outComingSide == dt.SIDE_Backward && point.X == 0) ||
-		(outComingSide == dt.SIDE_Right && point.Y == edgeY) ||
-		(outComingSide == dt.SIDE_Left && point.Y == 0) ||
+		(outComingSide == dt.SIDE_Right && point.Y == 0) ||
+		(outComingSide == dt.SIDE_Left && point.Y == edgeY) ||
 		(outComingSide == dt.SIDE_Up && point.Z == edgeZ) ||
 		(outComingSide == dt.SIDE_Down && point.Z == 0)
 }

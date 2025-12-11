@@ -37,7 +37,7 @@ func main() {
 	var spaceDimention global_data.SpaceDimention
 	spaceDimention.X = 3
 	spaceDimention.Y = 3
-	spaceDimention.Z = 1
+	spaceDimention.Z = 2
 	//output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	output_format.GetPrint().PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
