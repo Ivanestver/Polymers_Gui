@@ -19,9 +19,7 @@ var printer output_format.IPrint
 func MakeAtomistic(globula *views.GlobulaView) {
 	polymer := getPolymer(globula)
 	resizePolymerByScale(&polymer, 2.9)
-	placeMolecules(&polymer, getMoleculeFromFile("C2ch.mol2"), "O")
-	placeMolecules(&polymer, getMoleculeFromFile("C2Och.mol2"), "N")
-	placeMolecules(&polymer, getMoleculeFromFile("C2Ach.mol2"), "C")
+	placeMolecules(polymer)
 	savePolymer(polymer)
 }
 
@@ -191,14 +189,16 @@ func fillBondsInfo(molecule *_Molecule, scanner *bufio.Scanner, bondsCount int) 
 	return nil
 }
 
-func placeMolecules(pattern *[]*_Molecule, prototype *_Molecule, label string) {
-	for i := 0; i < len(*pattern); i++ {
-		if (*pattern)[i].Atoms[0].Label != label {
-			continue
-		}
+func placeMolecules(polymer []*_Molecule) {
+	labelToPrototypeMap := make(map[string]*_Molecule)
+	labelToPrototypeMap["O"] = getMoleculeFromFile("C2ch.mol2")
+	labelToPrototypeMap["N"] = getMoleculeFromFile("C2Och.mol2")
+	labelToPrototypeMap["C"] = getMoleculeFromFile("C2Ach.mol2")
+	for i := 0; i < len(polymer); i++ {
+		prototype := labelToPrototypeMap[(polymer)[i].Atoms[0].Label]
 		molecule := prototype.Copy()
-		molecule.MoveTo(&(*pattern)[i].Atoms[0].Coords)
-		(*pattern)[i] = molecule
+		molecule.MoveTo(&(polymer)[i].Atoms[0].Coords)
+		(polymer)[i] = molecule
 	}
 }
 
