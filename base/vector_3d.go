@@ -82,10 +82,24 @@ func (vector *Vector3DF) AddF(other *Vector3DF) {
 	vector.Z += other.Z
 }
 
+func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
+	vector.X *= constant
+	vector.Y *= constant
+	vector.Z *= constant
+}
+
 func AddVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
 	return &Vector3DF{
 		X: left.X + right.X,
 		Y: left.Y + right.Y,
 		Z: left.Z + right.Z,
+	}
+}
+
+func SubtractVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
+	return &Vector3DF{
+		X: left.X - right.X,
+		Y: left.Y - right.Y,
+		Z: left.Z - right.Z,
 	}
 }
