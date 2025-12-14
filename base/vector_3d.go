@@ -1,5 +1,7 @@
 package base
 
+import "math"
+
 type Vector3D struct {
 	X int64
 	Y int64
@@ -38,6 +40,50 @@ func (vector *Vector3D) Add(other *Vector3D) {
 
 func AddVec(left *Vector3D, right *Vector3D) *Vector3D {
 	return &Vector3D{
+		X: left.X + right.X,
+		Y: left.Y + right.Y,
+		Z: left.Z + right.Z,
+	}
+}
+
+type Vector3DF struct {
+	X, Y, Z float64
+}
+
+func InvalidVectorF() Vector3DF {
+	return Vector3DF{
+		X: math.NaN(),
+		Y: math.NaN(),
+		Z: math.NaN(),
+	}
+}
+
+func (vector *Vector3DF) IsInvalidF() bool {
+	return math.IsNaN(vector.X) &&
+		math.IsNaN(vector.Y) &&
+		math.IsNaN(vector.Z)
+}
+
+func VectorsAreEqualF(left, right *Vector3DF) bool {
+	if left == nil && right == nil {
+		return true
+	}
+	if left == nil || right == nil {
+		return false
+	}
+	return left.X == right.X &&
+		left.Y == right.Y &&
+		left.Z == right.Z
+}
+
+func (vector *Vector3DF) AddF(other *Vector3DF) {
+	vector.X += other.X
+	vector.Y += other.Y
+	vector.Z += other.Z
+}
+
+func AddVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
+	return &Vector3DF{
 		X: left.X + right.X,
 		Y: left.Y + right.Y,
 		Z: left.Z + right.Z,
