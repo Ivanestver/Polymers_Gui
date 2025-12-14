@@ -1,6 +1,8 @@
 package base
 
-import "math"
+import (
+	"math"
+)
 
 type Vector3D struct {
 	X int64
@@ -50,18 +52,30 @@ type Vector3DF struct {
 	X, Y, Z float64
 }
 
-func InvalidVectorF() Vector3DF {
-	return Vector3DF{
-		X: math.NaN(),
-		Y: math.NaN(),
-		Z: math.NaN(),
-	}
-}
-
 func (vector *Vector3DF) IsInvalidF() bool {
 	return math.IsNaN(vector.X) &&
 		math.IsNaN(vector.Y) &&
 		math.IsNaN(vector.Z)
+}
+
+func (vector *Vector3DF) AddF(other *Vector3DF) {
+	vector.X += other.X
+	vector.Y += other.Y
+	vector.Z += other.Z
+}
+
+func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
+	vector.X *= constant
+	vector.Y *= constant
+	vector.Z *= constant
+}
+
+func Vector3D_To_Vector3DF(vector3D *Vector3D) Vector3DF {
+	return Vector3DF{
+		X: float64(vector3D.X),
+		Y: float64(vector3D.Y),
+		Z: float64(vector3D.Z),
+	}
 }
 
 func VectorsAreEqualF(left, right *Vector3DF) bool {
@@ -76,16 +90,12 @@ func VectorsAreEqualF(left, right *Vector3DF) bool {
 		left.Z == right.Z
 }
 
-func (vector *Vector3DF) AddF(other *Vector3DF) {
-	vector.X += other.X
-	vector.Y += other.Y
-	vector.Z += other.Z
-}
-
-func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
-	vector.X *= constant
-	vector.Y *= constant
-	vector.Z *= constant
+func InvalidVectorF() Vector3DF {
+	return Vector3DF{
+		X: math.NaN(),
+		Y: math.NaN(),
+		Z: math.NaN(),
+	}
 }
 
 func AddVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
