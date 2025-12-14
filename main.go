@@ -5,6 +5,7 @@ import (
 	"flag"
 	"math/rand"
 	"os"
+	"polymers/atomistic"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
 	"polymers/datatypes"
@@ -37,7 +38,7 @@ func main() {
 	var spaceDimention global_data.SpaceDimention
 	spaceDimention.X = 3
 	spaceDimention.Y = 3
-	spaceDimention.Z = 2
+	spaceDimention.Z = 4000
 	//output_format.GetPrint().Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	output_format.GetPrint().PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 
@@ -308,6 +309,12 @@ func main() {
 		case interp.COMMAND_DFS:
 			globula := dfs.DoDFS()
 			globulas = append(globulas, globula)
+
+		case interp.COMMAND_ATOMISTIC:
+			data := data.(map[string]string)
+			globulaName := data["globula"]
+			globula := getGlobulaByName(globulaName)
+			atomistic.MakeAtomistic(globula)
 
 		default:
 			output_format.GetPrint().PrintlnError("'" + line[:len(line)-1] + "' is not supported")

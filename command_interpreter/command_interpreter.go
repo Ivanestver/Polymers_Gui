@@ -28,6 +28,7 @@ const (
 	COMMAND_COMMON_STATS_STR      = "common_stats"
 	COMMAND_FILE_STR              = "file"
 	COMMAND_DFS_STR               = "dfs"
+	COMMAND_ATOMISTIC_STR         = "atomistic"
 )
 
 type Command = int
@@ -52,6 +53,7 @@ const (
 	COMMAND_SCRIPT
 	COMMAND_COMMON_STATS
 	COMMAND_DFS
+	COMMAND_ATOMISTIC
 )
 
 var currProgram string
@@ -205,6 +207,10 @@ func s() (Command, interface{}) {
 
 	if token == COMMAND_DFS_STR {
 		return dfs()
+	}
+
+	if token == COMMAND_ATOMISTIC_STR {
+		return atomistic()
 	}
 
 	return COMMAND_UNDEFINED, "Undefined command: " + token
@@ -612,4 +618,15 @@ func getPattern_S4(raw string, curr *int, start int, dst *string) error {
 
 func dfs() (Command, interface{}) {
 	return COMMAND_DFS, nil
+}
+
+func atomistic() (Command, interface{}) {
+	globulaName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+
+	m := make(map[string]string)
+	m["globula"] = globulaName
+	return COMMAND_ATOMISTIC, m
 }
