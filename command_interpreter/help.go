@@ -55,7 +55,7 @@ func printBuild() {
 	output_format.GetPrint().Printfln("\t\t%s - a thread", COMMAND_THREAD_STR)
 	output_format.GetPrint().Printfln("\t%s - the list of parameters specific for a given type:", paramsList)
 	output_format.GetPrint().Printfln("\t\t%s - globula count, polymers count in each globula, accept threshold, maximum monomers count, sphere radius", COMMAND_GLOBULA_STR)
-	output_format.GetPrint().Printfln("\t\t%s - cell X, cell Y, cell Z, diameter, length, max polymers count", COMMAND_THREAD_STR)
+	output_format.GetPrint().Printfln("\t\t%s - cell size along X, cell size along Y, cell size along Z, diameter, length, max polymers count", COMMAND_THREAD_STR)
 	output_format.GetPrint().Printfln("\t%s - the name of a built globula", globulaName)
 }
 
