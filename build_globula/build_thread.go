@@ -36,6 +36,7 @@ func (alg BuildThreadAlgInputData) GetLiterals() map[datatypes.MonomerType]strin
 	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
 	m[datatypes.MONOMER_TYPE_VYNIL] = "C"
 	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
+	m[datatypes.MONOMER_TYPE_S] = "S"
 	n := len(m)
 	for k, v := range m {
 		m1[k] = v

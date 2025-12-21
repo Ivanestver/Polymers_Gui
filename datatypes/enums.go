@@ -61,6 +61,7 @@ const (
 	MONOMER_TYPE_FWISE        MonomerType = 4
 	MONOMER_TYPE_CLWISE       MonomerType = 5
 	MONOMER_TYPE_WATER        MonomerType = 6
+	MONOMER_TYPE_S            MonomerType = 7
 )
 
 const (
@@ -184,6 +185,8 @@ func (monType *MonomerType) ToLiteral() (string, error) {
 		return "Cl", nil
 	case MONOMER_TYPE_CROSSLINKED:
 		return "H", nil
+	case MONOMER_TYPE_S:
+		return "S", nil
 	default:
 		return "", errors.New("there is no letter for this type")
 	}
