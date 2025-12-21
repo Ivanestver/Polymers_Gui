@@ -291,3 +291,27 @@ func getCommandsFromScript(filename string) []string {
 
 	return commands
 }
+
+func processPattern(data map[string]string) *views.GlobulaView {
+	globulaName := data["globulaName"]
+	originGlobula := getGlobulaByName(globulaName)
+	outputName := data["outputName"]
+	globula := originGlobula.DeepCopy(outputName)
+	pattern, ok := pattern_lib.GetPattern(data)
+	if !ok {
+		return nil
+	}
+
+	if pattern_lib.AnyLetterIsUndefined(pattern, globula) {
+		printer.PrintlnError("Please, define the missing decryptions to continue")
+		return nil
+	}
+
+	if globula.Is(views.GLOBULA_GLOBULA_TYPE) {
+		pattern_lib.ApplyAsGlobula(globula, pattern)
+	} else {
+		pattern_lib.ApplyAsThread(globula, pattern)
+	}
+
+	return globula
+}
