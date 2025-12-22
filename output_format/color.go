@@ -4,6 +4,7 @@ const (
 	resetCode  = "\033[0m"
 	redCode    = "\033[31m"
 	yellowCode = "\033[33m"
+	purpleCode = "\033[35m"
 )
 
 func MakeColored(msg, colorCode string) string {
@@ -16,4 +17,8 @@ func MakeRed(msg string) string {
 
 func MakeYellow(msg string) string {
 	return MakeColored(msg, yellowCode)
+}
+
+func MakePurple(msg string) string {
+	return MakeColored(msg, purpleCode)
 }

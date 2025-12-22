@@ -11,6 +11,10 @@ type IPrint interface {
 	PrintfInfo(msg string, args ...any)
 	PrintlnError(msg string)
 	PrintflnError(msg string, args ...any)
+	PrintlnWarning(msg string)
+	PrintWarning(msg string)
+	PrintfWarning(msg string, args ...any)
+	PrintflnWarning(msg string, args ...any)
 	Read(args ...any)
 	Readln(args ...any)
 }
