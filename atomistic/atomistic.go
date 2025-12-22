@@ -41,10 +41,10 @@ func MakeAtomistic(globula *views.GlobulaView, configFile string) {
 	resizePolymerByScale(polymer, config.Scale)
 	// Place molecules into their places
 	placeMolecules(polymer, config)
-	// Make connections between molecules
-	connectMonomers(polymer)
 	// Fill ends of the polymer
 	fillEnds(polymer)
+	// Make connections between molecules
+	connectMonomers(polymer)
 	// Save it into the file
 	savePolymer(polymer)
 }
@@ -222,6 +222,13 @@ func fillAtomsInfo(molecule *_Monomer, scanner *bufio.Scanner) error {
 		atom.Number, _ = strconv.Atoi(fields[0])
 		atom.Label = getLabel(fields)
 		atom.Coords = getCoords(fields)
+		if isHead(fields) {
+			molecule.Head = atom
+		} else if isTail(fields) {
+			molecule.Tail = atom
+		} else {
+			continue
+		}
 	}
 	return nil
 }
@@ -248,7 +255,30 @@ func getCoords(fields []string) base.Vector3DF {
 	}
 }
 
-func fillBondsInfo(molecule *_Monomer, scanner *bufio.Scanner, bondsCount int) error {
+func isHead(fields []string) bool {
+	return isEnd(fields, 1)
+}
+
+func isTail(fields []string) bool {
+	return isEnd(fields, 2)
+}
+
+func isEnd(fields []string, markExpected int) bool {
+	markReal := getEndMark(fields)
+	return markExpected == markReal
+}
+
+func getEndMark(fields []string) int {
+	mark := string(fields[len(fields)-1][0])
+	if number, err := strconv.ParseInt(mark, 10, 32); err == nil {
+		return int(number)
+	} else {
+		printer.PrintflnError("Could not parse the end mark as int (%s) due to the error: %s", mark, err.Error())
+		return -1
+	}
+}
+
+func fillBondsInfo(monomer *_Monomer, scanner *bufio.Scanner, bondsCount int) error {
 	// Assume we're at the first line of BONDS section
 	for i := 0; i < bondsCount && scanner.Scan(); i++ {
 		fields := strings.Fields(scanner.Text())
@@ -268,10 +298,10 @@ func fillBondsInfo(molecule *_Monomer, scanner *bufio.Scanner, bondsCount int) e
 			return err
 		}
 
-		part, ok := molecule.Bonds[startMonomerNumber]
+		part, ok := monomer.Bonds[startMonomerNumber]
 		if !ok {
-			molecule.Bonds[startMonomerNumber] = make(map[_AtomNumber]_BondValence)
-			part = molecule.Bonds[startMonomerNumber]
+			monomer.Bonds[startMonomerNumber] = make(map[_AtomNumber]_BondValence)
+			part = monomer.Bonds[startMonomerNumber]
 		}
 		part[endMonomerNumber] = bondType
 	}
@@ -280,10 +310,6 @@ func fillBondsInfo(molecule *_Monomer, scanner *bufio.Scanner, bondsCount int) e
 }
 
 func placeMolecules(polymer *_Polymer, config *_Config) {
-	labelToPrototypeMap := make(map[string]*_Monomer)
-	labelToPrototypeMap["O"] = getMoleculeFromFile("C2ch.mol2")
-	labelToPrototypeMap["N"] = getMoleculeFromFile("C2Och.mol2")
-	labelToPrototypeMap["C"] = getMoleculeFromFile("C2Ach.mol2")
 	for i := 0; i < len(polymer.Monomers); i++ {
 		prototype := config.Substitutions[polymer.Monomers[i].Atoms[0].Label]
 		molecule := prototype.GetLeft().Copy()
@@ -394,12 +420,10 @@ func connectMonomers(polymer *_Polymer) {
 		left := polymer.Monomers[i]
 		right := polymer.Monomers[i+1]
 
-		_, nextLeft := left.GetConnectionAtoms()
-		prevRight, _ := right.GetConnectionAtoms()
-		if _, ok := polymer.Bonds[nextLeft.Number]; !ok {
-			polymer.Bonds[nextLeft.Number] = make(map[_AtomNumber]_BondValence)
+		if _, ok := polymer.Bonds[left.Head.Number]; !ok {
+			polymer.Bonds[left.Head.Number] = make(map[_AtomNumber]_BondValence)
 		}
-		polymer.Bonds[nextLeft.Number][prevRight.Number] = 1
+		polymer.Bonds[left.Head.Number][right.Tail.Number] = 1
 	}
 }
 
@@ -409,50 +433,41 @@ func fillEnds(polymer *_Polymer) {
 }
 
 func fillStartingMonomer(polymer *_Polymer) {
-	polymer.Monomers = append([]*_Monomer{
-		{
-			Name: "Starting",
-			Atoms: []_Atom{
-				{
-					Number:  1,
-					Label:   "H",
-					Mass:    1,
-					Charge:  0,
-					Valence: 1,
-					Coords:  getStartingMonomerCoords(polymer),
-				},
+	startingMonomer := &_Monomer{
+		Name: "Starting",
+		Atoms: []_Atom{
+			{
+				Number:  1,
+				Label:   "H",
+				Mass:    1,
+				Charge:  0,
+				Valence: 1,
+				Coords:  getStartingMonomerCoords(polymer),
 			},
 		},
-	}, polymer.Monomers...)
-
-	if prev, _ := polymer.Monomers[1].GetConnectionAtoms(); prev != nil {
-		polymer.Bonds[1] = make(map[_AtomNumber]_BondValence)
-		polymer.Bonds[1][prev.Number] = 1
 	}
+	startingMonomer.Head = &startingMonomer.Atoms[0]
+	startingMonomer.Tail = &startingMonomer.Atoms[0]
+	polymer.Monomers = append([]*_Monomer{startingMonomer}, polymer.Monomers...)
 }
 
 func fillTerminatingMonomer(polymer *_Polymer) {
-	polymer.Monomers = append(polymer.Monomers,
-		&_Monomer{
-			Name: "Terminating",
-			Atoms: []_Atom{
-				{
-					Number:  getAtomsCount(polymer) + 1,
-					Label:   "H",
-					Mass:    1,
-					Charge:  0,
-					Valence: 1,
-					Coords:  getTerminatingMonomerCoords(polymer),
-				},
+	terminatingMonomer := &_Monomer{
+		Name: "Terminating",
+		Atoms: []_Atom{
+			{
+				Number:  getAtomsCount(polymer) + 1,
+				Label:   "H",
+				Mass:    1,
+				Charge:  0,
+				Valence: 1,
+				Coords:  getTerminatingMonomerCoords(polymer),
 			},
 		},
-	)
-
-	lastMonomerNumber := len(polymer.Monomers) - 1
-	if _, next := polymer.Monomers[lastMonomerNumber-1].GetConnectionAtoms(); next != nil {
-		polymer.Bonds[next.Number] = make(map[_AtomNumber]_BondValence)
-		polymer.Bonds[next.Number][polymer.Monomers[lastMonomerNumber].Atoms[0].Number] = 1
 	}
+	terminatingMonomer.Head = &terminatingMonomer.Atoms[0]
+	terminatingMonomer.Tail = &terminatingMonomer.Atoms[0]
+	polymer.Monomers = append(polymer.Monomers, terminatingMonomer)
 }
 
 func getStartingMonomerCoords(polymer *_Polymer) base.Vector3DF {

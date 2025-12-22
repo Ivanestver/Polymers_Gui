@@ -19,6 +19,8 @@ type _Monomer struct {
 	Atoms []_Atom
 	Bonds map[_AtomNumber]map[_AtomNumber]_BondValence
 	Mass  int
+	Head  *_Atom
+	Tail  *_Atom
 }
 
 type _Polymer struct {
@@ -74,26 +76,16 @@ func (molecule *_Monomer) Copy() *_Monomer {
 			newM[i] = j
 		}
 	}
-
-	return newMolecule
-}
-
-func (monomer *_Monomer) GetConnectionAtoms() (*_Atom, *_Atom) {
-	var prev, next *_Atom
-	for i := range monomer.Atoms {
-		atom := &monomer.Atoms[i]
-		if prev != nil && next != nil {
-			break
-		}
-		if atom.Label == "C" && len(monomer.Bonds[atom.Number]) < 4 {
-			if prev == nil {
-				prev = atom
-			} else {
-				next = atom
-			}
+	for i, atom := range molecule.Atoms {
+		switch atom.Number {
+		case molecule.Head.Number:
+			newMolecule.Head = &newMolecule.Atoms[i]
+		case molecule.Tail.Number:
+			newMolecule.Tail = &newMolecule.Atoms[i]
 		}
 	}
-	return prev, next
+
+	return newMolecule
 }
 
 type _Subtitution struct {
