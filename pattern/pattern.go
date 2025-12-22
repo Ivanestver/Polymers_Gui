@@ -90,7 +90,7 @@ func ApplyAsThread(globula *views.GlobulaView, pattern string) {
 						m.MonomerType = m.MonomerType + datatypes.MonomerType(threshold)
 					}
 					latestType = int(m.MonomerType)
-					currentLetterNumber = currentLetterNumber + 1
+					currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
 					return true
 				}
 			}
