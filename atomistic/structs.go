@@ -95,3 +95,27 @@ func (monomer *_Monomer) GetConnectionAtoms() (*_Atom, *_Atom) {
 	}
 	return prev, next
 }
+
+type _Subtitution struct {
+	left  *_Monomer
+	right *_Monomer
+}
+
+func _NewSubstitution(left, right *_Monomer) *_Subtitution {
+	return &_Subtitution{
+		left:  left,
+		right: right,
+	}
+}
+
+func (substitution *_Subtitution) GetLeft() *_Monomer {
+	return substitution.left
+}
+
+func (substitution *_Subtitution) GetRight() *_Monomer {
+	if substitution.right != nil {
+		return substitution.right
+	} else {
+		return substitution.left
+	}
+}

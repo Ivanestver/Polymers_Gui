@@ -628,5 +628,12 @@ func atomistic() (Command, interface{}) {
 
 	m := make(map[string]string)
 	m["globula"] = globulaName
+
+	fileName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
+	}
+	m["config"] = fileName
+
 	return COMMAND_ATOMISTIC, m
 }

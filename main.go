@@ -227,8 +227,8 @@ func main() {
 			data := data.(map[string]string)
 			globulaName := data["globula"]
 			globula := getGlobulaByName(globulaName)
-			if globula != nil {
-				atomistic.MakeAtomistic(globula)
+			if config, ok := data["config"]; ok && globula != nil {
+				atomistic.MakeAtomistic(globula, config)
 			} else {
 				printer.PrintflnError("Could not find a globula of the name %s", globulaName)
 			}

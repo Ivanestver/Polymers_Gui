@@ -16,19 +16,101 @@ import (
 
 var printer output_format.IPrint
 
-func MakeAtomistic(globula *views.GlobulaView) {
+type _Config struct {
+	Scale         float64
+	Substitutions map[string]*_Subtitution
+}
+
+func _NewConfig() *_Config {
+	return &_Config{
+		Scale:         0.0,
+		Substitutions: make(map[string]*_Subtitution),
+	}
+}
+
+func MakeAtomistic(globula *views.GlobulaView, configFile string) {
+	printer = output_format.GetPrint()
+	config, err := createConfig(configFile)
+	if err != nil {
+		printer.PrintflnError("When atomistic: %s", err.Error())
+		return
+	}
 	// Retrieve the polymer from globula
 	polymer := getPolymer(globula)
 	// Resize it to an apropriate size
-	resizePolymerByScale(polymer, 2.9)
+	resizePolymerByScale(polymer, config.Scale)
 	// Place molecules into their places
-	placeMolecules(polymer)
+	placeMolecules(polymer, config)
 	// Make connections between molecules
 	connectMonomers(polymer)
 	// Fill ends of the polymer
 	fillEnds(polymer)
 	// Save it into the file
 	savePolymer(polymer)
+}
+
+func createConfig(configFileName string) (*_Config, error) {
+	file, err := os.Open(configFileName)
+	if err != nil {
+		return nil, err
+	}
+	scanner := bufio.NewScanner(file)
+	config := _NewConfig()
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) == 0 {
+			printer.PrintlnWarning("Line is empty")
+			continue
+		}
+
+		parts := strings.Split(line, " ")
+		if len(parts) < 2 {
+			printer.PrintlnWarning("The line has wrong format: " + line)
+			continue
+		}
+
+		switch parts[0] {
+		case "scale":
+			writeScale(config, parts[1:], line)
+		case "monomer":
+			writeMonomer(config, parts[1:], line)
+		}
+	}
+	return config, nil
+}
+
+func writeScale(config *_Config, parts []string, line string) {
+	if scale, err := strconv.ParseFloat(parts[0], 64); err == nil {
+		config.Scale = scale
+	} else {
+		printer.PrintflnWarning("The following error occured: %s (in line: %s)", err.Error(), line)
+	}
+}
+
+func writeMonomer(config *_Config, parts []string, line string) {
+	label := parts[0]
+	variants, err := strconv.Atoi(parts[1])
+	if err != nil {
+		printer.PrintflnWarning("The error occured: %s (in line '%s')", err.Error(), line)
+		return
+	}
+	if variants < 1 || variants > 2 {
+		printer.PrintflnWarning("The number of variants must be either 1 or 2 (in line %s)", line)
+		return
+	}
+	var substitution *_Subtitution
+	if variants == 1 {
+		substitution = _NewSubstitution(
+			getMoleculeFromFile(parts[2]),
+			nil,
+		)
+	} else {
+		substitution = _NewSubstitution(
+			getMoleculeFromFile(parts[2]),
+			getMoleculeFromFile(parts[3]),
+		)
+	}
+	config.Substitutions[label] = substitution
 }
 
 func getPolymer(globula *views.GlobulaView) *_Polymer {
@@ -63,7 +145,6 @@ func resizePolymerByScale(pattern *_Polymer, scale float64) {
 
 func getMoleculeFromFile(filePath string) *_Monomer {
 	file, err := os.Open(filePath)
-	printer = output_format.GetPrint()
 	if err != nil {
 		printer.PrintlnError(err.Error())
 		return nil
@@ -198,14 +279,14 @@ func fillBondsInfo(molecule *_Monomer, scanner *bufio.Scanner, bondsCount int) e
 	return nil
 }
 
-func placeMolecules(polymer *_Polymer) {
+func placeMolecules(polymer *_Polymer, config *_Config) {
 	labelToPrototypeMap := make(map[string]*_Monomer)
 	labelToPrototypeMap["O"] = getMoleculeFromFile("C2ch.mol2")
 	labelToPrototypeMap["N"] = getMoleculeFromFile("C2Och.mol2")
 	labelToPrototypeMap["C"] = getMoleculeFromFile("C2Ach.mol2")
 	for i := 0; i < len(polymer.Monomers); i++ {
-		prototype := labelToPrototypeMap[polymer.Monomers[i].Atoms[0].Label]
-		molecule := prototype.Copy()
+		prototype := config.Substitutions[polymer.Monomers[i].Atoms[0].Label]
+		molecule := prototype.GetLeft().Copy()
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule
 	}
