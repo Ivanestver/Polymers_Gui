@@ -310,9 +310,22 @@ func fillBondsInfo(monomer *_Monomer, scanner *bufio.Scanner, bondsCount int) er
 }
 
 func placeMolecules(polymer *_Polymer, config *_Config) {
+	const (
+		isLeft = iota
+		isRight
+	)
+	prevMonomerState := isRight
 	for i := 0; i < len(polymer.Monomers); i++ {
-		prototype := config.Substitutions[polymer.Monomers[i].Atoms[0].Label]
-		molecule := prototype.GetLeft().Copy()
+		label := polymer.Monomers[i].Atoms[0].Label
+		prototype := config.Substitutions[label]
+		var molecule *_Monomer
+		if prevMonomerState == isRight {
+			molecule = prototype.GetLeft().Copy()
+			prevMonomerState = isLeft
+		} else {
+			molecule = prototype.GetRight().Copy()
+			prevMonomerState = isRight
+		}
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule
 	}
