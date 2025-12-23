@@ -313,6 +313,7 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 	const (
 		isLeft = iota
 		isRight
+		COUNT
 	)
 	prevMonomerState := isRight
 	for i := 0; i < len(polymer.Monomers); i++ {
@@ -321,11 +322,10 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 		var molecule *_Monomer
 		if prevMonomerState == isRight {
 			molecule = prototype.GetLeft().Copy()
-			prevMonomerState = isLeft
 		} else {
 			molecule = prototype.GetRight().Copy()
-			prevMonomerState = isRight
 		}
+		prevMonomerState = (prevMonomerState + 1) % COUNT
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule
 	}
