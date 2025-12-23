@@ -7,5 +7,5 @@
 *.spt
 *.zip
 *.png
-*.mol2
+*.mol2*
 *.docx*
