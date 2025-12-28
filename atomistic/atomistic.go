@@ -94,23 +94,22 @@ func writeMonomer(config *_Config, parts []string, line string) {
 		printer.PrintflnWarning("The error occured: %s (in line '%s')", err.Error(), line)
 		return
 	}
-	if variants < 1 || variants > 2 {
-		printer.PrintflnWarning("The number of variants must be either 1 or 2 (in line %s)", line)
+	if variants < 1 {
+		printer.PrintflnWarning("The number of variants must be not less than 1 (in line %s)", line)
 		return
 	}
-	var substitution *_Subtitution
-	if variants == 1 {
-		substitution = _NewSubstitution(
-			getMoleculeFromFile(parts[2]),
-			nil,
-		)
-	} else {
-		substitution = _NewSubstitution(
-			getMoleculeFromFile(parts[2]),
-			getMoleculeFromFile(parts[3]),
-		)
+	substitution := make(_Subtitution, variants)
+	for i := 0; i < variants; i++ {
+		substitution[i] = getMoleculeFromFile(parts[2+i])
 	}
-	config.Substitutions[label] = substitution
+	config.Substitutions[label] = &substitution
+}
+
+func writeSave(config *_Config, parts []string, line string) {
+	if len(parts) == 0 {
+		printer.PrintflnError("The file name must be specified (in line: %s)", line)
+	}
+	config.SaveFile = parts[0]
 }
 
 func getPolymer(globula *views.GlobulaView) *_Polymer {
@@ -311,20 +310,17 @@ func fillBondsInfo(monomer *_Monomer, scanner *bufio.Scanner, bondsCount int) er
 
 func placeMolecules(polymer *_Polymer, config *_Config) {
 	const (
-		isLeft = iota
-		isRight
+		isFirst = iota
+		isSecond
+		isThird
 		COUNT
 	)
-	prevMonomerState := isRight
+	prevMonomerState := isThird
 	for i := 0; i < len(polymer.Monomers); i++ {
 		label := polymer.Monomers[i].Atoms[0].Label
 		prototype := config.Substitutions[label]
 		var molecule *_Monomer
-		if prevMonomerState == isRight {
-			molecule = prototype.GetLeft().Copy()
-		} else {
-			molecule = prototype.GetRight().Copy()
-		}
+		molecule = prototype.GetNext(prevMonomerState).Copy()
 		prevMonomerState = (prevMonomerState + 1) % COUNT
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule
@@ -334,7 +330,7 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 }
 
 func reNumberAtoms(polymer *_Polymer) {
-	atomNumber := 2
+	atomNumber := 1
 	for _, monomer := range polymer.Monomers {
 		replacementMap := make(map[_AtomNumber]_AtomNumber)
 		for i := 0; i < len(monomer.Atoms); i++ {
