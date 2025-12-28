@@ -78,18 +78,12 @@ func ApplyAsThread(globula *views.GlobulaView, pattern string) {
 			return 1
 		}
 	})
-	threshold := len(*literalsTable) / 2
-	latestType := threshold + 1
 	views.ForEachPolymer(globula, func(pv *views.PolymerView) {
 		currentLetterNumber := 0
 		views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
 			for _, monType := range literals {
 				if string(pattern[currentLetterNumber]) == (*literalsTable)[monType] {
 					m.MonomerType = monType
-					if latestType < threshold {
-						m.MonomerType = m.MonomerType + datatypes.MonomerType(threshold)
-					}
-					latestType = int(m.MonomerType)
 					currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
 					return true
 				}
