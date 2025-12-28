@@ -89,26 +89,8 @@ func (molecule *_Monomer) Copy() *_Monomer {
 	return newMolecule
 }
 
-type _Subtitution struct {
-	left  *_Monomer
-	right *_Monomer
-}
+type _Subtitution []*_Monomer
 
-func _NewSubstitution(left, right *_Monomer) *_Subtitution {
-	return &_Subtitution{
-		left:  left,
-		right: right,
-	}
-}
-
-func (substitution *_Subtitution) GetLeft() *_Monomer {
-	return substitution.left
-}
-
-func (substitution *_Subtitution) GetRight() *_Monomer {
-	if substitution.right != nil {
-		return substitution.right
-	} else {
-		return substitution.left
-	}
+func (substitution *_Subtitution) GetNext(current int) *_Monomer {
+	return (*substitution)[(current+1)%len(*substitution)]
 }
