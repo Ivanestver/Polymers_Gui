@@ -77,11 +77,12 @@ func (molecule *_Monomer) Copy() *_Monomer {
 		}
 	}
 	for i, atom := range molecule.Atoms {
-		switch atom.Number {
-		case molecule.Head.Number:
+		if molecule.Head != nil && molecule.Head.Number == atom.Number {
 			newMolecule.Head = &newMolecule.Atoms[i]
-		case molecule.Tail.Number:
+		} else if molecule.Tail != nil && molecule.Tail.Number == atom.Number {
 			newMolecule.Tail = &newMolecule.Atoms[i]
+		} else {
+			continue
 		}
 	}
 
