@@ -319,7 +319,7 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 		COUNT
 	)
 	prevMonomerState := isThird
-	for i := 0; i < len(polymer.Monomers); i++ {
+	for i := 0; i < len(polymer.Monomers)-1; i++ {
 		label := polymer.Monomers[i].Atoms[0].Label
 		prototype := config.Substitutions[label]
 		var molecule *_Monomer
@@ -328,8 +328,19 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule
 	}
+	placeLastMonomer(polymer, config)
 
 	reNumberAtoms(polymer)
+}
+
+func placeLastMonomer(polymer *_Polymer, config *_Config) {
+	i := len(polymer.Monomers) - 1
+	label := polymer.Monomers[i].Atoms[0].Label
+	prototype := config.Substitutions[label]
+	var molecule *_Monomer
+	molecule = (*prototype)[len(*prototype)-1].Copy()
+	molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
+	polymer.Monomers[i] = molecule
 }
 
 func reNumberAtoms(polymer *_Polymer) {
@@ -359,7 +370,7 @@ func savePolymer(polymer *_Polymer, config *_Config) {
 	bytesData := []byte(makeFileContent(polymer))
 	var filename string
 	if len(config.SaveFile) > 0 {
-		filename = config.SaveFile
+		filename = config.SaveFile + ".mol2"
 	} else {
 		filename = "output_data.mol2"
 	}
