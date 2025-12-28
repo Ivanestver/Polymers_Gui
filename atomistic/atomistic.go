@@ -19,6 +19,7 @@ var printer output_format.IPrint
 type _Config struct {
 	Scale         float64
 	Substitutions map[string]*_Subtitution
+	SaveFile      string
 }
 
 func _NewConfig() *_Config {
@@ -42,11 +43,11 @@ func MakeAtomistic(globula *views.GlobulaView, configFile string) {
 	// Place molecules into their places
 	placeMolecules(polymer, config)
 	// Fill ends of the polymer
-	fillEnds(polymer)
+	//fillEnds(polymer)
 	// Make connections between molecules
 	connectMonomers(polymer)
 	// Save it into the file
-	savePolymer(polymer)
+	savePolymer(polymer, config)
 }
 
 func createConfig(configFileName string) (*_Config, error) {
@@ -74,6 +75,8 @@ func createConfig(configFileName string) (*_Config, error) {
 			writeScale(config, parts[1:], line)
 		case "monomer":
 			writeMonomer(config, parts[1:], line)
+		case "save":
+			writeSave(config, parts[1:], line)
 		}
 	}
 	return config, nil
@@ -352,9 +355,15 @@ func reNumberAtoms(polymer *_Polymer) {
 	}
 }
 
-func savePolymer(polymer *_Polymer) {
+func savePolymer(polymer *_Polymer, config *_Config) {
 	bytesData := []byte(makeFileContent(polymer))
-	if err := os.WriteFile("output_data.mol2", bytesData, 0644); err != nil {
+	var filename string
+	if len(config.SaveFile) > 0 {
+		filename = config.SaveFile
+	} else {
+		filename = "output_data.mol2"
+	}
+	if err := os.WriteFile(filename, bytesData, 0644); err != nil {
 		printer.PrintlnError(err.Error())
 	}
 }
