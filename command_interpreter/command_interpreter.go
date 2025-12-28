@@ -93,7 +93,8 @@ func getNextToken() (string, error) {
 		char == '.' ||
 		char == '%' ||
 		char == '(' || char == ')' ||
-		char == '*' {
+		char == '*' ||
+		char == ',' {
 		token += string(getCurrChar())
 		moveForward()
 		if finished() {

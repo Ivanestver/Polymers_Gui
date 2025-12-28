@@ -7,6 +7,7 @@ import (
 	"polymers/output_format"
 	"polymers/views"
 	"strconv"
+	"strings"
 )
 
 type BuildThreadAlgInputData struct {
@@ -77,12 +78,28 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		output_format.GetPrint().Print("Input the thread diameter: ")
 		output_format.GetPrint().Readln(&inputData.ThreadRadius)
 	} else {
-		radius, err := strconv.ParseFloat(predefinedParams[3], 64)
-		if err != nil {
-			return inputData, err
+		param := predefinedParams[3]
+		if param[0] == '(' {
+			split := strings.Split(param, ",")
+			radius, err := strconv.ParseFloat(split[0][1:], 64)
+			if err != nil {
+				return inputData, err
+			}
+			inputData.ThreadRadius = radius
+			inputData.ThreadRadius /= 2
+			maxPolymersCount, err := strconv.Atoi(split[1][:len(split[1])])
+			if err != nil {
+				return inputData, err
+			}
+			inputData.MaxPolymersCount = maxPolymersCount
+		} else {
+			polymersCount, err := strconv.Atoi(param)
+			if err != nil {
+				return inputData, err
+			}
+			inputData.ThreadRadius = 57.0 // It's enough to place 10,000 threads
+			inputData.MaxPolymersCount = polymersCount
 		}
-		inputData.ThreadRadius = radius
-		inputData.ThreadRadius /= 2
 	}
 
 	if predefinedParamsCount < 5 {
@@ -95,18 +112,6 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 			return inputData, err
 		}
 		inputData.ThreadLength = float64(threadLength)
-	}
-
-	if predefinedParamsCount < 6 {
-		output_format.GetPrint().Print("Input the max polymers count: ")
-		output_format.GetPrint().Readln(&inputData.MaxPolymersCount)
-	} else {
-		inputData.MaxPolymersCount = -1
-		maxPolymersCount, err := strconv.Atoi(predefinedParams[5])
-		if err != nil {
-			return inputData, err
-		}
-		inputData.MaxPolymersCount = maxPolymersCount
 	}
 
 	inputData.particleName = particleName
