@@ -228,13 +228,14 @@ func pattern() (Command, interface{}) {
 	if err != nil {
 		return COMMAND_UNDEFINED, "Wrong source type"
 	}
-	if t == COMMAND_FILE_STR {
+	switch t {
+	case COMMAND_FILE_STR:
 		fileName, err := getParameterAsString()
 		if err != nil {
 			return COMMAND_UNDEFINED, "Wrong usage"
 		}
 		m["fileName"] = fileName
-	} else if t == COMMAND_PATTERN_STR {
+	case COMMAND_PATTERN_STR:
 		patt, err := getParameterAsString()
 		if err != nil {
 			return COMMAND_UNDEFINED, "Wrong usage"
@@ -244,7 +245,7 @@ func pattern() (Command, interface{}) {
 		} else {
 			return COMMAND_UNDEFINED, err.Error()
 		}
-	} else {
+	default:
 		return COMMAND_UNDEFINED, "Wrong source type"
 	}
 
