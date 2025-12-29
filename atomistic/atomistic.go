@@ -237,7 +237,7 @@ func fillAtomsInfo(molecule *_Monomer, scanner *bufio.Scanner) error {
 
 func getLabel(fields []string) string {
 	var builder strings.Builder
-	for _, c := range fields[1] {
+	for _, c := range fields[5] {
 		if !unicode.IsLetter(c) {
 			break
 		}
