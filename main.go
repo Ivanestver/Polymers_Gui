@@ -15,6 +15,7 @@ import (
 	"polymers/savers"
 	"polymers/views"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,30 +31,57 @@ func getGlobulaByName(name string) *views.GlobulaView {
 	return nil
 }
 
+func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
+	var spaceDimention global_data.SpaceDimention
+	if len(*commands) == 0 {
+		printer.PrintInfo("Please, type the space dimention: ")
+		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+	}
+	line := (*commands)[0]
+	parts := strings.Split(line, " ")
+	if len(parts) != 4 || parts[0] != "space" {
+		printer.PrintInfo("Please, type the space dimention: ")
+		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+	} else {
+		*commands = (*commands)[1:]
+		if x, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+			spaceDimention.X = x
+		} else {
+			printer.PrintlnError(err.Error())
+		}
+		if y, err := strconv.ParseInt(parts[2], 10, 64); err == nil {
+			spaceDimention.Y = y
+		} else {
+			printer.PrintlnError(err.Error())
+		}
+		if z, err := strconv.ParseInt(parts[3], 10, 64); err == nil {
+			spaceDimention.Z = z
+		} else {
+			printer.PrintlnError(err.Error())
+		}
+	}
+	printer.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
+	return spaceDimention
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	output_format.SetPrint(&output_format.ColoredConsolePrint{})
 	fileNumber := 1
 	printer = output_format.GetPrint()
-	printer.PrintInfo("Welcome to the Polymer Builder 2.0. Please, type the space dimention: ")
-	var spaceDimention global_data.SpaceDimention
-	spaceDimention.X = 3
-	spaceDimention.Y = 3
-	spaceDimention.Z = 4000
-	//printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
-	printer.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
-
-	printer.PrintlnInfo("Configuring the global data")
-	global_data.ConfigureGlobalData(spaceDimention)
-	printer.PrintlnInfo("Configuring the global data finished")
-	printer.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
-	cmdReader := bufio.NewReader(os.Stdin)
+	printer.PrintlnInfo("Welcome to the Polymer Builder 2.0")
 	commands := make([]string, 0)
 	scriptPtr := flag.String("script", "", "define a script file")
 	flag.Parse()
 	if scriptPtr != nil {
 		commands = getCommandsFromScript(*scriptPtr)
 	}
+	spaceDimention := setUpSpaceDimention(&commands)
+	printer.PrintlnInfo("Configuring the global data")
+	global_data.ConfigureGlobalData(spaceDimention)
+	printer.PrintlnInfo("Configuring the global data finished")
+	printer.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
+	cmdReader := bufio.NewReader(os.Stdin)
 	isWorking := true
 	for isWorking {
 		printer.Print("> ")
