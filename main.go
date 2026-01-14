@@ -10,6 +10,7 @@ import (
 	interp "polymers/command_interpreter"
 	"polymers/dfs"
 	"polymers/global_data"
+	"polymers/loaders"
 	"polymers/output_format"
 	pattern_lib "polymers/pattern"
 	"polymers/savers"
@@ -259,6 +260,20 @@ func main() {
 				atomistic.MakeAtomistic(globula, config)
 			} else {
 				printer.PrintflnError("Could not find a globula of the name %s", globulaName)
+			}
+
+		case interp.COMMAND_LOADER:
+			data := data.(map[string]string)
+			filetype := data["filetype"]
+			filename := data["filename"]
+			if loader, err := loaders.NewLoader(filetype); err == nil {
+				if newGlobula, err := loader.Load(filename); err == nil {
+					globulas = append(globulas, newGlobula)
+				} else {
+					printer.PrintflnError("When loading: %s", err.Error())
+				}
+			} else {
+				printer.PrintflnError("When loading: %s", err.Error())
 			}
 
 		default:

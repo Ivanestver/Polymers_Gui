@@ -29,6 +29,7 @@ const (
 	COMMAND_FILE_STR              = "file"
 	COMMAND_DFS_STR               = "dfs"
 	COMMAND_ATOMISTIC_STR         = "atomistic"
+	COMMAND_LOADER_STR            = "load"
 )
 
 type Command = int
@@ -54,6 +55,7 @@ const (
 	COMMAND_COMMON_STATS
 	COMMAND_DFS
 	COMMAND_ATOMISTIC
+	COMMAND_LOADER
 )
 
 var currProgram string
@@ -166,10 +168,11 @@ func s() (Command, interface{}) {
 		COMMAND_COMMON_STATS_STR:      commonStats,
 		COMMAND_DFS_STR:               dfs,
 		COMMAND_ATOMISTIC_STR:         atomistic,
+		COMMAND_LOADER_STR:            load,
 	}[token]; ok {
 		return f()
 	} else {
-	return COMMAND_UNDEFINED, "Undefined command: " + token
+		return COMMAND_UNDEFINED, "Undefined command: " + token
 	}
 }
 
@@ -594,4 +597,22 @@ func atomistic() (Command, interface{}) {
 	m["config"] = fileName
 
 	return COMMAND_ATOMISTIC, m
+}
+
+func load() (Command, interface{}) {
+	filetype, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, "no filetype specified"
+	}
+
+	m := make(map[string]string)
+	m["filetype"] = filetype
+
+	filename, err := getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, "no filename specified"
+	}
+	m["filename"] = filename
+
+	return COMMAND_LOADER, m
 }
