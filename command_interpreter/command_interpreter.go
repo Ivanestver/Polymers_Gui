@@ -150,71 +150,27 @@ func s() (Command, interface{}) {
 		return COMMAND_UNDEFINED, error.Error()
 	}
 
-	if token == COMMAND_HELP_STR {
-		return COMMAND_HELP, nil
-	}
-
-	if token == COMMAND_PATTERN_STR {
-		return pattern()
-	}
-
-	if token == COMMAND_BUILD_STR {
-		return build()
-	}
-
-	if token == COMMAND_SHOW_STR {
-		return show()
-	}
-
-	if token == COMMAND_SAVE_STR {
-		return save()
-	}
-
-	if token == COMMAND_CLUSTERS_STR {
-		return clusters()
-	}
-
-	if token == COMMAND_AGE_STR {
-		return age()
-	}
-
-	if token == COMMAND_HIGHLIGHT_BORDERS_STR {
-		return borders()
-	}
-
-	if token == COMMAND_RESET_STR {
-		return resetGlobula()
-	}
-
-	if token == COMMAND_EXIT_STR {
-		return COMMAND_EXIT, nil
-	}
-
-	if token == COMMAND_WATERIZE_STR {
-		return waterize()
-	}
-
-	if token == COMMAND_TRUNK_STR {
-		return trunk()
-	}
-
-	if token == COMMAND_SCRIPT_STR {
-		return script()
-	}
-
-	if token == COMMAND_COMMON_STATS_STR {
-		return commonStats()
-	}
-
-	if token == COMMAND_DFS_STR {
-		return dfs()
-	}
-
-	if token == COMMAND_ATOMISTIC_STR {
-		return atomistic()
-	}
-
+	if f, ok := map[string]func() (Command, interface{}){
+		COMMAND_PATTERN_STR:           pattern,
+		COMMAND_BUILD_STR:             build,
+		COMMAND_SHOW_STR:              show,
+		COMMAND_SAVE_STR:              save,
+		COMMAND_CLUSTERS_STR:          clusters,
+		COMMAND_AGE_STR:               age,
+		COMMAND_HIGHLIGHT_BORDERS_STR: borders,
+		COMMAND_RESET_STR:             resetGlobula,
+		COMMAND_EXIT_STR:              func() (Command, interface{}) { return COMMAND_EXIT, nil },
+		COMMAND_WATERIZE_STR:          waterize,
+		COMMAND_TRUNK_STR:             trunk,
+		COMMAND_SCRIPT_STR:            script,
+		COMMAND_COMMON_STATS_STR:      commonStats,
+		COMMAND_DFS_STR:               dfs,
+		COMMAND_ATOMISTIC_STR:         atomistic,
+	}[token]; ok {
+		return f()
+	} else {
 	return COMMAND_UNDEFINED, "Undefined command: " + token
+	}
 }
 
 func pattern() (Command, interface{}) {
