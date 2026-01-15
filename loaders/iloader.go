@@ -6,9 +6,15 @@ import (
 )
 
 type ILoader interface {
-	Load(filename string) (*views.GlobulaView, error)
+	Load(filename, globulaName string) (*views.GlobulaView, error)
 }
 
 func NewLoader(loaderType string) (ILoader, error) {
-	return nil, errors.New("not a registered type")
+	if loader, ok := map[string]ILoader{
+		"lammps": &_LammpsLoader{},
+	}[loaderType]; ok {
+		return loader, nil
+	} else {
+		return nil, errors.New("not a registered type")
+	}
 }

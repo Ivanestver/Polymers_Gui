@@ -37,11 +37,12 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	if len(*commands) == 0 {
 		printer.PrintInfo("Please, type the space dimention: ")
 		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+		return spaceDimention
 	}
 	line := (*commands)[0]
 	parts := strings.Split(line, " ")
 	if len(parts) != 4 || parts[0] != "space" {
-		printer.PrintInfo("Please, type the space dimention: ")
+		printer.PrintInfo("No space dimention definition found. Please, type the space dimention: ")
 		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	} else {
 		*commands = (*commands)[1:]
@@ -266,8 +267,9 @@ func main() {
 			data := data.(map[string]string)
 			filetype := data["filetype"]
 			filename := data["filename"]
+			globulaName := data["globulaName"]
 			if loader, err := loaders.NewLoader(filetype); err == nil {
-				if newGlobula, err := loader.Load(filename); err == nil {
+				if newGlobula, err := loader.Load(filename, globulaName); err == nil {
 					globulas = append(globulas, newGlobula)
 				} else {
 					printer.PrintflnError("When loading: %s", err.Error())

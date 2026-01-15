@@ -153,6 +153,7 @@ func s() (Command, interface{}) {
 	}
 
 	if f, ok := map[string]func() (Command, interface{}){
+		COMMAND_HELP_STR:              func() (Command, interface{}) { return COMMAND_HELP, nil },
 		COMMAND_PATTERN_STR:           pattern,
 		COMMAND_BUILD_STR:             build,
 		COMMAND_SHOW_STR:              show,
@@ -608,11 +609,17 @@ func load() (Command, interface{}) {
 	m := make(map[string]string)
 	m["filetype"] = filetype
 
-	filename, err := getNextToken()
+	filename, err := getParameterAsString()
 	if err != nil {
 		return COMMAND_UNDEFINED, "no filename specified"
 	}
 	m["filename"] = filename
+
+	globulaName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, "no filename specified"
+	}
+	m["globulaName"] = globulaName
 
 	return COMMAND_LOADER, m
 }
