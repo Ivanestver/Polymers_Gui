@@ -74,7 +74,8 @@ func (loader *_LammpsLoader) load(globulaName string) error {
 	for i := 0; i < len(polymers); i++ {
 		polymers[i] = loader.polymers[i]
 	}
-	loader.builtGlobula = views.NewGlobulaView(globulaName, polymers, views.GLOBULA_GLOBULA_TYPE)
+	literalsTable := build_globula.BuildThreadAlgInputData{}.GetLiterals()
+	loader.builtGlobula = views.NewGlobulaView(globulaName, polymers, views.GLOBULA_THREAD_TYPE, literalsTable)
 	return nil
 }
 

@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"math"
 	"math/rand"
 	"polymers/base"
@@ -34,7 +35,7 @@ type GlobulaView struct {
 	globulaProperties map[GlobulaProperty]bool
 }
 
-func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProperty) *GlobulaView {
+func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
 	newGlobulaView.name = name
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
@@ -51,6 +52,7 @@ func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProp
 	}
 	newGlobulaView.commonClusterDone = false
 	newGlobulaView.literalsTable = make(map[dt.MonomerType]string)
+	maps.Copy(newGlobulaView.literalsTable, literalsTable)
 	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
 	newGlobulaView.globulaProperties[globulaType] = true
 	return newGlobulaView

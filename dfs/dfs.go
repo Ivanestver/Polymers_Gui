@@ -49,10 +49,9 @@ func DoDFS() *views.GlobulaView {
 		}
 	}
 
-	globula := views.NewGlobulaView("DFS", polymers, views.GLOBULA_GLOBULA_TYPE)
 	m := make(map[dt.MonomerType]string)
 	m[dt.MONOMER_TYPE_USUAL] = "O"
-	globula.SetLiterals(m)
+	globula := views.NewGlobulaView("DFS", polymers, views.GLOBULA_GLOBULA_TYPE, m)
 	return globula
 }
 
