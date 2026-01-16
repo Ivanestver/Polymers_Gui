@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"polymers/atomistic"
+	"polymers/base"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
 	"polymers/dfs"
@@ -74,9 +75,10 @@ func main() {
 	printer.PrintlnInfo("Welcome to the Polymer Builder 2.0")
 	commands := make([]string, 0)
 	scriptPtr := flag.String("script", "", "define a script file")
+	modePtr := flag.String("mode", "", "define mode to manage execution")
 	flag.Parse()
-	if scriptPtr != nil {
-		commands = getCommandsFromScript(*scriptPtr)
+	if len(*scriptPtr) > 0 {
+		commands = getCommandsFromScript(*scriptPtr, *modePtr)
 	}
 	spaceDimention := setUpSpaceDimention(&commands)
 	printer.PrintlnInfo("Configuring the global data")
@@ -234,7 +236,7 @@ func main() {
 			if !err {
 				printer.PrintlnError("Usage: script <filename>")
 			}
-			commands = getCommandsFromScript(filename)
+			commands = getCommandsFromScript(filename, "")
 
 		case interp.COMMAND_COMMON_STATS:
 			data := data.(map[string]string)
@@ -315,7 +317,7 @@ func PrintGlobulaInfo(globula *views.GlobulaView) {
 	printer.Println("\t\tMonomers in total: " + strconv.Itoa(monomersCount))
 }
 
-func getCommandsFromScript(filename string) []string {
+func getCommandsFromScript(filename string, mode string) []string {
 	commands := make([]string, 0)
 
 	file, err := os.Open(filename)
@@ -325,12 +327,33 @@ func getCommandsFromScript(filename string) []string {
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
+	modeSectionStart := base.Stack{}
+	isTakeOnlyMode := (len(mode) > 0)
 	for scanner.Scan() {
 		line := scanner.Text()
+		line = strings.TrimSpace(line)
 		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
-		commands = append(commands, line)
+		if isTakeOnlyMode { // if --mode has been defined
+			if line[len(line)-1] == '{' { // if it's a label
+				modeSectionStart.Push(line) // mark the following commands are within this mode
+			} else { // it's not a label
+				if !modeSectionStart.IsEmpty() { // the mode is activated
+					if line == "}" { // the section is over
+						modeSectionStart.Pop()
+					} else if modeSectionStart.PeekNotSafe() == mode+"{" {
+						commands = append(commands, line) // this is valid command
+					} else {
+						continue
+					}
+				} else {
+					commands = append(commands, line)
+				}
+			}
+		} else {
+			commands = append(commands, line)
+		}
 	}
 
 	return commands
