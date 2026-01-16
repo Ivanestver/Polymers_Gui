@@ -24,6 +24,10 @@ func (s *Stack) Peek() (interface{}, bool) {
 	return (*s)[index], true
 }
 
+func (s *Stack) PeekNotSafe() interface{} {
+	return (*s)[len(*s)-1]
+}
+
 func (s *Stack) IsEmpty() bool {
 	return len(*s) == 0
 }
