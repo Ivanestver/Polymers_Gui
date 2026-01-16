@@ -239,7 +239,7 @@ func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
 
 	monomerTypes := make([]dt.MonomerType, 0)
 	mTypes := globula.GetLiterals()
-	for k, _ := range *mTypes {
+	for k := range *mTypes {
 		monomerTypes = append(monomerTypes, k)
 	}
 	slices.SortFunc(monomerTypes, func(a, b dt.MonomerType) int {

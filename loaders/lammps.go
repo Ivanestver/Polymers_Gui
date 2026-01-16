@@ -28,7 +28,10 @@ type _LammpsMetadata struct {
 		sth2 float64
 	}
 	polymers map[int]*datatypes.Polymer
-	atoms    map[int64]*datatypes.Monomer
+	atoms    map[int64]struct {
+		Monomer       *datatypes.Monomer
+		PolymerNumber int
+	}
 }
 
 type _LammpsLoader struct {
@@ -94,7 +97,10 @@ func (loader *_LammpsLoader) loadMetadata() error {
 			break
 		}
 	}
-	loader.atoms = make(map[int64]*datatypes.Monomer)
+	loader.atoms = make(map[int64]struct {
+		Monomer       *datatypes.Monomer
+		PolymerNumber int
+	})
 
 	// read atoms types section
 	if err := writeMetadata(loader, &loader.atomTypesCount, "atom types"); err != nil {
@@ -225,7 +231,7 @@ func (loader *_LammpsLoader) loadAtoms() error {
 	}
 	loader.scanner.Scan()
 
-	literals := build_globula.CalcAlgInputData{}.GetLiterals()
+	literals := build_globula.BuildThreadAlgInputData{}.GetLiterals()
 	loader.polymers = make(map[int]*datatypes.Polymer)
 	field := datatypes.NewField(uint64(global_data.GetGlobalData().SpaceDimention.X))
 	for atomLineNumber := 0; atomLineNumber < loader.atomsCount && loader.scanner.Scan(); atomLineNumber++ {
@@ -261,11 +267,6 @@ func (loader *_LammpsLoader) loadAtoms() error {
 		if err != nil {
 			return err
 		}
-		polymer, ok := loader.polymers[polymerNumber]
-		if !ok {
-			polymer = datatypes.NewPolymer(field, int64(polymerNumber))
-			loader.polymers[polymerNumber] = polymer
-		}
 
 		monomer :=
 			field.GetMonomerByCoords(base.Vector3D{
@@ -273,11 +274,26 @@ func (loader *_LammpsLoader) loadAtoms() error {
 				Y: y,
 				Z: z,
 			})
-		monomer.MonomerType = getMonomerTypeByLiteral(literals, loader.atomTypes[atomTypeNumber].Label)
 		monomer.Number = atomNumberInFile
+		monomer.MonomerType = getMonomerTypeByLiteral(literals, loader.atomTypes[atomTypeNumber].Label)
 
-		polymer.AddMonomer(monomer)
-		loader.atoms[atomNumberInFile] = monomer
+		loader.atoms[atomNumberInFile] = struct {
+			Monomer       *datatypes.Monomer
+			PolymerNumber int
+		}{Monomer: monomer, PolymerNumber: polymerNumber}
+	}
+
+	for i := 1; i <= len(loader.atoms); i++ {
+		atom, ok := loader.atoms[int64(i)]
+		if !ok {
+			return fmt.Errorf("missing line in the Atoms section: %d", i)
+		}
+		polymer, ok := loader.polymers[atom.PolymerNumber]
+		if !ok {
+			polymer = datatypes.NewPolymer(field, int64(atom.PolymerNumber))
+			loader.polymers[atom.PolymerNumber] = polymer
+		}
+		polymer.AddMonomer(atom.Monomer)
 	}
 	return nil
 }
@@ -320,7 +336,7 @@ func (loader *_LammpsLoader) loadBonds() error {
 		firstAtom := loader.atoms[firstAtomNumber]
 		secondAtom := loader.atoms[secondAtomNumber]
 
-		if err := datatypes.MakeConnection(firstAtom, secondAtom, datatypes.ConnectionType(connectionType)); err != nil {
+		if err := datatypes.MakeConnection(firstAtom.Monomer, secondAtom.Monomer, datatypes.ConnectionType(connectionType)); err != nil {
 			return err
 		}
 	}

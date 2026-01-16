@@ -57,7 +57,9 @@ func NewField(sphereRadius uint64) *Field {
 }
 
 func (field *Field) MakeFilled(monomer *Monomer) {
-	monomer.MonomerType = MONOMER_TYPE_USUAL
+	if monomer.MonomerType == MONOMER_TYPE_UNDEFINED {
+		monomer.MonomerType = MONOMER_TYPE_USUAL
+	}
 }
 
 func (field *Field) MakeFree(monomer *Monomer) {
