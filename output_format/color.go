@@ -1,5 +1,9 @@
 package output_format
 
+import (
+	"github.com/gookit/color"
+)
+
 const (
 	resetCode  = "\033[0m"
 	redCode    = "\033[31m"
@@ -7,18 +11,14 @@ const (
 	purpleCode = "\033[35m"
 )
 
-func MakeColored(msg, colorCode string) string {
-	return colorCode + msg + resetCode
-}
-
 func MakeRed(msg string) string {
-	return MakeColored(msg, redCode)
+	return color.Red.Sprint(msg)
 }
 
 func MakeYellow(msg string) string {
-	return MakeColored(msg, yellowCode)
+	return color.Yellow.Sprint(msg, yellowCode)
 }
 
 func MakePurple(msg string) string {
-	return MakeColored(msg, purpleCode)
+	return color.RGB(78, 0, 142).Sprint(msg)
 }
