@@ -312,13 +312,11 @@ func fillBondsInfo(monomer *_Monomer, scanner *bufio.Scanner, bondsCount int) er
 }
 
 func placeMolecules(polymer *_Polymer, config *_Config) {
-	const (
-		isFirst = iota
-		isSecond
-		isThird
-		COUNT
-	)
-	prevMonomerState := isThird
+	COUNT := 1
+	for key := range config.Substitutions {
+		COUNT = max(COUNT, len(*config.Substitutions[key]))
+	}
+	prevMonomerState := COUNT - 1
 	for i := 0; i < len(polymer.Monomers)-1; i++ {
 		label := polymer.Monomers[i].Atoms[0].Label
 		prototype := config.Substitutions[label]
