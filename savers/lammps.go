@@ -62,7 +62,6 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	highestNumberBond := base.Max(bondTypes)
 
 	addString(&content, strconv.Itoa(getAtomsCount(globula))+" atoms")
-	//addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
 	addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
 	addString(&content, strconv.Itoa(bondCount)+" bonds")
 	addString(&content, strconv.Itoa(int(*highestNumberBond))+" bond types")
@@ -77,11 +76,11 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 	addString(&content, "Masses")
 	addNewLine(&content)
 	mapMonomerTypeNumber := make(map[dt.MonomerType]int)
-	for _, t := range monomerTypes {
+	for i, t := range monomerTypes {
 		if t == dt.MONOMER_TYPE_UNDEFINED {
 			continue
 		}
-		mapMonomerTypeNumber[t] = int(t) + 1
+		mapMonomerTypeNumber[t] = i + 1
 		addString(&content, strconv.Itoa(mapMonomerTypeNumber[t])+" 1 # "+globula.GetLiteral(t))
 	}
 
@@ -212,10 +211,11 @@ func getAtomsCount(globula *views.GlobulaView) int {
 }
 
 func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
-	/*monomersTypes_map := make(map[dt.MonomerType]bool)
+	monomersTypes_map := make(map[dt.MonomerType]bool)
 	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		views.ForEachMonomer(pol, func(mon *datatypes.Monomer) {
+		views.ForEachMonomer(pol, func(mon *datatypes.Monomer) bool {
 			monomersTypes_map[mon.MonomerType] = true
+			return true
 		})
 	})
 
@@ -235,23 +235,25 @@ func getMonomerTypes(globula *views.GlobulaView) []dt.MonomerType {
 			return 1
 		}
 	})
-	return monomersTypes*/
+	return monomersTypes
 
-	monomerTypes := make([]dt.MonomerType, 0)
-	mTypes := globula.GetLiterals()
-	for k := range *mTypes {
-		monomerTypes = append(monomerTypes, k)
-	}
-	slices.SortFunc(monomerTypes, func(a, b dt.MonomerType) int {
-		if int(a) < int(b) {
-			return -1
-		} else if int(a) == int(b) {
-			return 0
-		} else {
-			return 1
+	/*
+		monomerTypes := make([]dt.MonomerType, 0)
+		mTypes := globula.GetLiterals()
+		for k := range *mTypes {
+			monomerTypes = append(monomerTypes, k)
 		}
-	})
-	return monomerTypes
+		slices.SortFunc(monomerTypes, func(a, b dt.MonomerType) int {
+			if int(a) < int(b) {
+				return -1
+			} else if int(a) == int(b) {
+				return 0
+			} else {
+				return 1
+			}
+		})
+		return monomerTypes
+	*/
 }
 
 func getBondTypes(globula *views.GlobulaView) ([]dt.ConnectionType, int) {
