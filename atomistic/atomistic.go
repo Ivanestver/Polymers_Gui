@@ -316,12 +316,12 @@ func placeMolecules(polymer *_Polymer, config *_Config) {
 	for key := range config.Substitutions {
 		COUNT = max(COUNT, len(*config.Substitutions[key]))
 	}
-	prevMonomerState := COUNT - 1
+	prevMonomerState := 0
 	for i := 0; i < len(polymer.Monomers)-1; i++ {
 		label := polymer.Monomers[i].Atoms[0].Label
 		prototype := config.Substitutions[label]
 		var molecule *_Monomer
-		molecule = prototype.GetNext(prevMonomerState).Copy()
+		molecule = prototype.GetMonomer(prevMonomerState).Copy()
 		prevMonomerState = (prevMonomerState + 1) % COUNT
 		molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 		polymer.Monomers[i] = molecule

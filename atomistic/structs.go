@@ -91,6 +91,6 @@ func (molecule *_Monomer) Copy() *_Monomer {
 
 type _Subtitution []*_Monomer
 
-func (substitution *_Subtitution) GetNext(current int) *_Monomer {
-	return (*substitution)[(current+1)%len(*substitution)]
+func (substitution *_Subtitution) GetMonomer(current int) *_Monomer {
+	return (*substitution)[current%len(*substitution)]
 }
