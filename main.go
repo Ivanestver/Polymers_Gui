@@ -70,7 +70,6 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	output_format.SetPrint(&output_format.ColoredConsolePrint{})
-	fileNumber := 1
 	printer = output_format.GetPrint()
 	printer.PrintlnInfo("Welcome to the Polymer Builder 2.0")
 	commands := make([]string, 0)
@@ -125,7 +124,7 @@ func main() {
 				break
 			}
 			content, _ := savers.SaveToLammps(globula)
-			f, err := os.Create(globulaName + strconv.Itoa(fileNumber) + ".data")
+			f, err := os.Create(globulaName + ".data")
 			if err != nil {
 				printer.PrintlnError(err.Error())
 				return
@@ -140,7 +139,6 @@ func main() {
 			if err := json.NewEncoder(f).Encode(globula); err != nil {
 				printer.PrintlnError(err.Error())
 			}*/
-			fileNumber++
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
 			globulaName := data.(string)
 			var originalGlobula *views.GlobulaView = getGlobulaByName(globulaName)
