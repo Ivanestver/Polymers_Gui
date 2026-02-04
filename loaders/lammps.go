@@ -174,7 +174,7 @@ func (loader *_LammpsLoader) loadMasses() error {
 			break
 		}
 		parts := strings.Split(line, " ")
-		if len(parts) != 4 {
+		if len(parts) < 2 || len(parts) > 4 {
 			return fmt.Errorf("wrong line in the Masses section (line number in there: %d)", atomTypeLineNumber+1)
 		}
 		number := parts[0]
@@ -182,7 +182,22 @@ func (loader *_LammpsLoader) loadMasses() error {
 		if err != nil {
 			return err
 		}
-		label := parts[3]
+		literals := build_globula.BuildThreadAlgInputData{}.GetLiterals()
+		var label string
+		if len(parts) > 2 {
+			label = parts[3]
+		} else {
+			for t, l := range literals {
+				n, _ := strconv.Atoi(number)
+				if int(t) == n {
+					label = l
+					break
+				}
+			}
+			if len(label) == 0 {
+				label = "C"
+			}
+		}
 		loader.atomTypes[number] = struct {
 			Mass  int
 			Label string
