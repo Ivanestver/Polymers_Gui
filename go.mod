@@ -1,9 +1,15 @@
 module polymers
 
-go 1.21
+go 1.25.6
+
+// replace github.com/Ivanestver/lammps-file-parser => /home/ivan/projects/lammps-file-parser
 
 require (
-	github.com/gookit/color v1.6.0 // indirect
+	github.com/Ivanestver/lammps-file-parser v0.0.0-20260204210243-e5546ad424ed
+	github.com/gookit/color v1.6.0
+)
+
+require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sys v0.30.0 // indirect
 )
