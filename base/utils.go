@@ -9,6 +9,10 @@ func EcludianDistance(c1, c2 Vector3D) float64 {
 	return math.Sqrt(float64((c2.X-c1.X)*(c2.X-c1.X) + (c2.Y-c1.Y)*(c2.Y-c1.Y) + (c2.Z-c1.Z)*(c2.Z-c1.Z)))
 }
 
+func EcludianDistanceF(c1, c2 Vector3DF) float64 {
+	return math.Sqrt((c2.X-c1.X)*(c2.X-c1.X) + (c2.Y-c1.Y)*(c2.Y-c1.Y) + (c2.Z-c1.Z)*(c2.Z-c1.Z))
+}
+
 func Contains[T comparable](container []T, value T) bool {
 	for _, v := range container {
 		if v == value {

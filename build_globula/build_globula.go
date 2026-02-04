@@ -188,14 +188,14 @@ func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *d
 	return configCopy
 }
 
-func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, U_current float64) base.Vector3D {
+func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, U_current float64) base.Vector3DF {
 	deltasOfPotentialConfigs := make([]float64, len(potentialConfigs))
 	for i := 0; i < len(potentialConfigs); i++ {
 		deltasOfPotentialConfigs[i] = U_current - potentialConfigs[i].CalcEnergy()
 	}
 	maxDelta := base.Max_float(deltasOfPotentialConfigs)
 	if math.IsNaN(maxDelta) {
-		return base.InvalidVector()
+		return base.InvalidVectorF()
 	}
 
 	if !base.All(deltasOfPotentialConfigs, func(delta float64) bool { return delta == maxDelta }) {

@@ -6,7 +6,7 @@ import (
 )
 
 type Monomer struct {
-	coords      base.Vector3D
+	coords      base.Vector3DF
 	MonomerType MonomerType
 	PrevMonomer *Monomer
 	NextMonomer *Monomer
@@ -14,7 +14,7 @@ type Monomer struct {
 	Number      int64
 }
 
-func NewMonomer(coords base.Vector3D, monomerType MonomerType) *Monomer {
+func NewMonomer(coords base.Vector3DF, monomerType MonomerType) *Monomer {
 	newMonomer := new(Monomer)
 	newMonomer.coords = coords
 	newMonomer.MonomerType = monomerType
@@ -66,7 +66,7 @@ func (monomer *Monomer) GetTypeOfConnectionWithSide(side Side) ConnectionType {
 	}
 }
 
-func (mon *Monomer) Coords() base.Vector3D {
+func (mon *Monomer) Coords() base.Vector3DF {
 	return mon.coords
 }
 
@@ -134,7 +134,7 @@ func MonomersAreEqual(left, right *Monomer) bool {
 		return false
 	}
 
-	return base.VectorsAreEqual(&left.coords, &right.coords) &&
+	return base.VectorsAreEqualF(&left.coords, &right.coords) &&
 		left.Number == right.Number
 }
 
@@ -143,7 +143,7 @@ func GetSideByMonomers(from, to *Monomer) Side {
 		return SIDE_Undefined
 	}
 
-	result := base.Vector3D{
+	result := base.Vector3DF{
 		X: to.coords.X - from.coords.X,
 		Y: to.coords.Y - from.coords.Y,
 		Z: to.coords.Z - from.coords.Z,
@@ -232,10 +232,10 @@ func GetSideByMonomers(from, to *Monomer) Side {
 }
 
 type MonomerJSON struct {
-	Coords      base.Vector3D
+	Coords      base.Vector3DF
 	MonomerType MonomerType
-	PrevMonomer base.Vector3D
-	NextMonomer base.Vector3D
+	PrevMonomer base.Vector3DF
+	NextMonomer base.Vector3DF
 	Sides       map[Side]ConnectionJSON
 	Number      int64
 }

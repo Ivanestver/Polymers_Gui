@@ -116,7 +116,7 @@ func GetConnectionType(sideOne, sideTwo *Monomer) ConnectionType {
 }
 
 type ConnectionJSON struct {
-	monomers [2]base.Vector3D
+	monomers [2]base.Vector3DF
 	ConnType ConnectionType
 }
 

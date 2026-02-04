@@ -112,9 +112,9 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 					" "+strconv.Itoa(polymerNumber)+" "+
 					strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
 					" 0.00000 "+
-					strconv.FormatInt(monCoords.X, 10)+" "+
-					strconv.FormatInt(monCoords.Y, 10)+" "+
-					strconv.FormatInt(monCoords.Z, 10)+" "+
+					strconv.FormatFloat(monCoords.X, 'e', 5, 64)+" "+
+					strconv.FormatFloat(monCoords.Y, 'e', 5, 64)+" "+
+					strconv.FormatFloat(monCoords.Z, 'e', 5, 64)+" "+
 					"0 0 0")
 			return true
 		})
@@ -130,7 +130,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 			for i = 0; i < shape[0]; i++ {
 				for j = 0; j < shape[1]; j++ {
 					for k = 0; k < shape[2]; k++ {
-						mon := field.GetMonomerByCoords(base.Vector3D{X: i, Y: j, Z: k})
+						mon := field.GetMonomerByCoords(base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)})
 						if mon == nil || mon.MonomerType != datatypes.MONOMER_TYPE_WATER {
 							continue
 						}

@@ -33,7 +33,7 @@ func DoDFS() *views.GlobulaView {
 	polymerNumber := int64(1)
 	for x := int64(0); x < globalData.SpaceDimention.X; x++ {
 		for z := int64(0); z < globalData.SpaceDimention.Z; z++ {
-			if cycles := makeForwardingCycles(base.Vector3D{X: x, Y: 0, Z: z}, outcomingSide, field, &polymerNumber); cycles != nil {
+			if cycles := makeForwardingCycles(base.Vector3DF{X: float64(x), Y: 0, Z: float64(z)}, outcomingSide, field, &polymerNumber); cycles != nil {
 				minLengthPolymer := slices.MinFunc(*cycles, func(c1, c2 *dt.Polymer) int {
 					if c1.Len() < c2.Len() {
 						return -1
@@ -55,7 +55,7 @@ func DoDFS() *views.GlobulaView {
 	return globula
 }
 
-func makeForwardingCycles(point base.Vector3D, outcomingSide dt.Side, field *dt.Field, polymerNumber *int64) *[]*dt.Polymer {
+func makeForwardingCycles(point base.Vector3DF, outcomingSide dt.Side, field *dt.Field, polymerNumber *int64) *[]*dt.Polymer {
 	startMonomer := field.GetMonomerByCoords(point)
 	if startMonomer == nil {
 		return nil
@@ -66,10 +66,10 @@ func makeForwardingCycles(point base.Vector3D, outcomingSide dt.Side, field *dt.
 	//movingSides = []dt.Side{dt.SIDE_Forward, dt.SIDE_Left, dt.SIDE_Right}
 	var stack base.Stack
 	stack.Push(startMonomer)
-	visitedMons := make(map[base.Vector3D]bool)
-	currPath := make([]base.Vector3D, 0)
+	visitedMons := make(map[base.Vector3DF]bool)
+	currPath := make([]base.Vector3DF, 0)
 	(*polymerNumber)++
-	pathsCoords := make([][]base.Vector3D, 0)
+	pathsCoords := make([][]base.Vector3DF, 0)
 	for !stack.IsEmpty() {
 		inf, ok := stack.Peek()
 		if !ok {
@@ -81,7 +81,7 @@ func makeForwardingCycles(point base.Vector3D, outcomingSide dt.Side, field *dt.
 		} else {
 			if visited {
 				currCoords := currMon.Coords()
-				if base.VectorsAreEqual(&currPath[len(currPath)-1], &currCoords) {
+				if base.VectorsAreEqualF(&currPath[len(currPath)-1], &currCoords) {
 					currPath = slices.Delete(currPath, len(currPath)-1, len(currPath))
 					visitedMons[currMon.Coords()] = false
 				}
@@ -115,9 +115,9 @@ func makeForwardingCycles(point base.Vector3D, outcomingSide dt.Side, field *dt.
 
 func isEdge(mon *dt.Monomer, outComingSide dt.Side) bool {
 	spaceDimention := &global_data.GetGlobalData().SpaceDimention
-	edgeX := spaceDimention.X - 1
-	edgeY := spaceDimention.Y - 1
-	edgeZ := spaceDimention.Z - 1
+	edgeX := float64(spaceDimention.X) - 1
+	edgeY := float64(spaceDimention.Y) - 1
+	edgeZ := float64(spaceDimention.Z) - 1
 	point := mon.Coords()
 	return (outComingSide == dt.SIDE_Forward && point.X == edgeX) ||
 		(outComingSide == dt.SIDE_Backward && point.X == 0) ||

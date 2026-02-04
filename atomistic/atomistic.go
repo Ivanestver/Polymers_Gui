@@ -130,7 +130,7 @@ func getPolymer(globula *views.GlobulaView) []*_Polymer {
 				Atoms: []_Atom{
 					{
 						Label:  globula.GetLiteral(m.MonomerType),
-						Coords: base.Vector3D_To_Vector3DF(&coords),
+						Coords: coords,
 					},
 				},
 			})

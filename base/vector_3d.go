@@ -52,7 +52,7 @@ type Vector3DF struct {
 	X, Y, Z float64
 }
 
-func (vector *Vector3DF) IsInvalidF() bool {
+func (vector *Vector3DF) IsInvalid() bool {
 	return math.IsNaN(vector.X) &&
 		math.IsNaN(vector.Y) &&
 		math.IsNaN(vector.Z)

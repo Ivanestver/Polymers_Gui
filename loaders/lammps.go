@@ -240,47 +240,49 @@ func (loader *_LammpsLoader) loadAtoms() error {
 			return fmt.Errorf("wrong line in the Atoms section (line number in there: %d)", atomLineNumber+1)
 		}
 
-		atomNumberInFile, err := strconv.ParseInt(parts[0], 10, 64)
+		atomID, err := strconv.ParseInt(parts[0], 10, 64)
 		if err != nil {
 			return err
 		}
 
-		polymerNumber, err := strconv.Atoi(parts[1])
+		polymerID, err := strconv.Atoi(parts[1])
 		if err != nil {
 			return err
 		}
-		polymerNumber--
+		polymerID--
 
 		atomTypeNumber := parts[2]
 
-		x, err := strconv.ParseInt(parts[4], 10, 64)
+		// Miss the charge because of needing it
+
+		x, err := strconv.ParseFloat(parts[4], 64)
 		if err != nil {
 			return err
 		}
 
-		y, err := strconv.ParseInt(parts[5], 10, 64)
+		y, err := strconv.ParseFloat(parts[5], 64)
 		if err != nil {
 			return err
 		}
 
-		z, err := strconv.ParseInt(parts[6], 10, 64)
+		z, err := strconv.ParseFloat(parts[6], 64)
 		if err != nil {
 			return err
 		}
 
 		monomer :=
-			field.GetMonomerByCoords(base.Vector3D{
+			field.GetMonomerByCoords(base.Vector3DF{
 				X: x,
 				Y: y,
 				Z: z,
 			})
-		monomer.Number = atomNumberInFile
+		monomer.Number = atomID
 		monomer.MonomerType = getMonomerTypeByLiteral(literals, loader.atomTypes[atomTypeNumber].Label)
 
-		loader.atoms[atomNumberInFile] = struct {
+		loader.atoms[atomID] = struct {
 			Monomer       *datatypes.Monomer
 			PolymerNumber int
-		}{Monomer: monomer, PolymerNumber: polymerNumber}
+		}{Monomer: monomer, PolymerNumber: polymerID}
 	}
 
 	for i := 1; i <= len(loader.atoms); i++ {

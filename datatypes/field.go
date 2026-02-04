@@ -24,7 +24,7 @@ func NewField(sphereRadius uint64) *Field {
 		for j = 0; j < shape[1]; j++ {
 			newField.field[i] = append(newField.field[i], []*Monomer{})
 			for k = 0; k < shape[2]; k++ {
-				newField.field[i][j] = append(newField.field[i][j], NewMonomer(base.Vector3D{X: i, Y: j, Z: k}, MONOMER_TYPE_UNDEFINED))
+				newField.field[i][j] = append(newField.field[i][j], NewMonomer(base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}, MONOMER_TYPE_UNDEFINED))
 			}
 		}
 	}
@@ -66,8 +66,8 @@ func (field *Field) MakeFree(monomer *Monomer) {
 	monomer.MonomerType = MONOMER_TYPE_UNDEFINED
 }
 
-func (field *Field) IsFree(coords base.Vector3D) bool {
-	var monomer *Monomer = field.field[coords.X][coords.Y][coords.Z]
+func (field *Field) IsFree(coords base.Vector3DF) bool {
+	var monomer *Monomer = field.field[int(coords.X)][int(coords.Y)][int(coords.Z)]
 	return monomer.IsTypeOf(MONOMER_TYPE_UNDEFINED)
 }
 
@@ -93,11 +93,11 @@ func (field *Field) IsBusy() bool {
 	return true
 }
 
-func (field *Field) GetMonomerByCoords(coords base.Vector3D) *Monomer {
-	return field.field[coords.X][coords.Y][coords.Z]
+func (field *Field) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
+	return field.field[int64(coords.X)][int64(coords.Y)][int64(coords.Z)]
 }
 
-func (field *Field) GetAvailableCells(currPos base.Vector3D) []*Monomer {
+func (field *Field) GetAvailableCells(currPos base.Vector3DF) []*Monomer {
 	availableCells := make([]*Monomer, 0)
 	monomer := field.GetMonomerByCoords(currPos)
 	for _, side := range GetMovementSides() {
@@ -112,10 +112,10 @@ func (field *Field) GetAvailableCells(currPos base.Vector3D) []*Monomer {
 
 func (field *Field) DefineStartMonomer() *Monomer {
 	globalData := global_data.GetGlobalData()
-	startPosition := base.Vector3D{
-		X: globalData.SpaceDimention.X / 2,
-		Y: globalData.SpaceDimention.Y / 2,
-		Z: globalData.SpaceDimention.Z / 2,
+	startPosition := base.Vector3DF{
+		X: float64(globalData.SpaceDimention.X) / 2,
+		Y: float64(globalData.SpaceDimention.Y) / 2,
+		Z: float64(globalData.SpaceDimention.Z) / 2,
 	}
 
 	for !field.IsFree(startPosition) {

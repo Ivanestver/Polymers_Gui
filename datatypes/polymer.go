@@ -156,13 +156,13 @@ func (polymer *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float
 }
 
 func (polymer *Polymer) MarshalJSON() ([]byte, error) {
-	pol := make([]base.Vector3D, polymer.Len())
+	pol := make([]base.Vector3DF, polymer.Len())
 	for i, item := range polymer.polymer {
 		pol[i] = item.coords
 	}
 	return json.Marshal(&struct {
 		Field         *Field
-		Polymer       []base.Vector3D
+		Polymer       []base.Vector3DF
 		PolymerNumber int64
 	}{
 		Field:         polymer.field,
