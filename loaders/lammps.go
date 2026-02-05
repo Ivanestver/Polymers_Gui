@@ -3,11 +3,9 @@ package loaders
 import (
 	"os"
 	"polymers/base"
-	"polymers/build_globula"
 	"polymers/datatypes"
 	"polymers/global_data"
 	"polymers/views"
-	"strings"
 
 	lammps_parser "github.com/Ivanestver/lammps-file-parser/parser"
 	lammps_structs "github.com/Ivanestver/lammps-file-parser/structs"
@@ -41,17 +39,22 @@ func (loader *_LammpsLoader) Load(filename, globulaname string) (*views.GlobulaV
 	if err != nil {
 		return nil, err
 	}
-	jsonStruct, err := lammps_parser.Parse(string(content), globulaname)
+	jsonStruct, err := lammps_parser.Parse(string(content), filename)
 	if err != nil {
 		return nil, err
 	}
-	return parseFromJson(&jsonStruct, strings.Split(filename, ".")[0])
+	return parseFromJson(&jsonStruct, globulaname)
 }
 
 func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, globulaName string) (*views.GlobulaView, error) {
 	field := makeField()
 	polymers := makePolymers(jsonStruct, field)
-	globula := views.NewGlobulaView(globulaName, polymers, views.GLOBULA_THREAD_TYPE, build_globula.BuildThreadAlgInputData{}.GetLiterals())
+	literals := make(map[datatypes.MonomerType]string)
+	literals[0] = "O"
+	literals[1] = "N"
+	literals[2] = "C"
+	literals[3] = "S"
+	globula := views.NewGlobulaView(globulaName, polymers, views.GLOBULA_THREAD_TYPE, literals)
 	return globula, nil
 }
 
@@ -67,7 +70,7 @@ func getMaxDimention() uint64 {
 func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Field) []*datatypes.Polymer {
 	polymersMap := make(map[int]*datatypes.Polymer)
 	for _, atom := range lammpsStruct.Atoms {
-		moleculeID := atom.MoleculeID
+		moleculeID := atom.MoleculeID - 1
 		polymer, ok := polymersMap[moleculeID]
 		if !ok {
 			polymersMap[moleculeID] = datatypes.NewPolymer(field, int64(moleculeID))
@@ -77,11 +80,11 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Fi
 			X: atom.X,
 			Y: atom.Y,
 			Z: atom.Z,
-		}, datatypes.MonomerType(atom.AtomType)))
+		}, datatypes.MonomerType(atom.AtomType-1)))
 	}
 	polymers := make([]*datatypes.Polymer, len(polymersMap))
 	for i, polymer := range polymersMap {
-		polymers[i-1] = polymer
+		polymers[i] = polymer
 	}
 	return polymers
 }

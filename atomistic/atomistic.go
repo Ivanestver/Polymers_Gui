@@ -329,7 +329,11 @@ func placeMolecules(polymers []*_Polymer, config *_Config) {
 		prevMonomerState := 0
 		for i := 0; i < len(polymer.Monomers)-1; i++ {
 			label := polymer.Monomers[i].Atoms[0].Label
-			prototype := config.Substitutions[label]
+			prototype, ok := config.Substitutions[label]
+			if !ok {
+				printer.PrintflnError("No prototype for the label '%s'", label)
+				continue
+			}
 			var molecule *_Monomer
 			molecule = prototype.GetMonomer(prevMonomerState).Copy()
 			prevMonomerState = (prevMonomerState + 1) % COUNT
@@ -345,7 +349,11 @@ func placeMolecules(polymers []*_Polymer, config *_Config) {
 func placeLastMonomer(polymer *_Polymer, config *_Config) {
 	i := len(polymer.Monomers) - 1
 	label := polymer.Monomers[i].Atoms[0].Label
-	prototype := config.Substitutions[label]
+	prototype, ok := config.Substitutions[label]
+	if !ok {
+		printer.PrintflnError("placeLastMonomer: No prototype for the label '%s'", label)
+		return
+	}
 	var molecule *_Monomer
 	molecule = (*prototype)[len(*prototype)-1].Copy()
 	molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
@@ -473,6 +481,11 @@ func connectMonomers(polymers []*_Polymer) {
 		for i := 0; i < len(polymer.Monomers)-1; i++ {
 			left := polymer.Monomers[i]
 			right := polymer.Monomers[i+1]
+
+			if left.Head == nil || right.Tail == nil {
+				printer.PrintflnError("connectMonomers: no head or tail for monomers with numbers '%d' and '%d'", i, i+1)
+				continue
+			}
 
 			if _, ok := polymer.Bonds[left.Head.Number]; !ok {
 				polymer.Bonds[left.Head.Number] = make(map[_AtomNumber]_BondValence)
