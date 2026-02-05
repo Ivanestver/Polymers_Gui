@@ -43,7 +43,7 @@ func (loader *_LammpsLoader) Load(filename, globulaname string) (*views.GlobulaV
 	if err != nil {
 		return nil, err
 	}
-	return parseFromJson(&jsonStruct, globulaname)
+	return parseFromJson(jsonStruct, globulaname)
 }
 
 func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, globulaName string) (*views.GlobulaView, error) {
