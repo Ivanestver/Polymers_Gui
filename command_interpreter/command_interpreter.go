@@ -96,7 +96,8 @@ func getNextToken() (string, error) {
 		char == '%' ||
 		char == '(' || char == ')' ||
 		char == '*' ||
-		char == ',' {
+		char == ',' ||
+		char == '-' {
 		token += string(getCurrChar())
 		moveForward()
 		if finished() {
@@ -392,10 +393,51 @@ func age() (Command, interface{}) {
 		return COMMAND_UNDEFINED, string("Error: make_crosslinks parameter must be either \"true\" or \"false\"")
 	}
 
+	token, err = getNextToken()
+	if err != nil {
+		return COMMAND_UNDEFINED, err
+	}
+	ageAlgType, err := strconv.Atoi(token)
+	if err != nil {
+		return COMMAND_UNDEFINED, err
+	}
+
+	newGlobulaName, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err
+	}
+
 	m := make(map[string]interface{})
+	// For Age Algorithm Type 3
+	if !finished() && ageAlgType == 3 {
+		ncut, err := getNextToken()
+		if err != nil {
+			return COMMAND_UNDEFINED, err
+		}
+		m["ncut"] = ncut
+		if finished() {
+			return COMMAND_UNDEFINED, errors.New("Wrong usage of the age command")
+		}
+		nOContaining, err := getNextToken()
+		if err != nil {
+			return COMMAND_UNDEFINED, err
+		}
+		m["OContaining"] = nOContaining
+		if finished() {
+			return COMMAND_UNDEFINED, errors.New("Wrong usage of the age command")
+		}
+		ncross, err := getNextToken()
+		if err != nil {
+			return COMMAND_UNDEFINED, err
+		}
+		m["ncross"] = ncross
+	}
+
 	m["globula"] = globulaName
 	m["count"] = groupCount
 	m["make_crosslinks"] = (token == "true")
+	m["alg_type"] = ageAlgType
+	m["new_globula_name"] = newGlobulaName
 	return COMMAND_AGE, m
 }
 

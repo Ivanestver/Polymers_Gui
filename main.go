@@ -163,12 +163,14 @@ func main() {
 			groupsCountStr := data["count"].(string)
 			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
+			algType := data["alg_type"].(int)
+			newGlobulaName := data["new_globula_name"].(string)
 			originalGlobula := getGlobulaByName(globulaName)
 			if originalGlobula == nil {
 				printer.PrintlnError("There is no globula named " + globulaName)
 				break
 			}
-			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_aged_" + strconv.Itoa(len(globulas)))
+			globula := originalGlobula.DeepCopy(newGlobulaName)
 			globulas = append(globulas, globula)
 			groupsCount := 0
 			if groupsCountStr[len(groupsCountStr)-1] == '%' {
@@ -177,7 +179,25 @@ func main() {
 			} else {
 				groupsCount, _ = strconv.Atoi(groupsCountStr)
 			}
-			globula.DoAging2(groupsCount, doCrosslinks)
+			if algType == 1 {
+				globula.DoAging1(groupsCount)
+			} else if algType == 2 {
+				globula.DoAging2(groupsCount, doCrosslinks)
+			} else if algType == 3 {
+				ncut, ok := data["ncut"].(int)
+				if ok {
+					continue
+				}
+				nOContaining, ok := data["nOContaining"].(int)
+				if ok {
+					continue
+				}
+				ncross, ok := data["ncross"].(int)
+				if ok {
+					continue
+				}
+				globula.DoAging3(ncut, nOContaining, ncross)
+			}
 
 		case interp.COMMAND_RESET:
 			data := data.(map[string]interface{})

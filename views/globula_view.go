@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"maps"
 	"math"
 	"math/rand"
@@ -575,6 +576,92 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 	if timesRepeated == maxTimesRepeated {
 		print("Didn't make all crosslinks! The number of crosslinks done: " + strconv.FormatInt(int64(currentCount), 10))
 	}
+}
+
+func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
+	if ncut < OcontainingCount {
+		return errors.New("ncut is less that the O-containing monomers count")
+	}
+	printer := output_format.GetPrint()
+	// First, distribute O containing monomers
+	if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
+		dt.MONOMER_TYPE_O_CONTAINING,
+		dt.MONOMER_TYPE_VYNIL); warning != nil {
+		printer.PrintlnWarning(warning.Error())
+	} else if err != nil {
+		return err
+	}
+
+	// Then, distribute what's left
+	if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
+		dt.MONOMER_TYPE_VYNIL,
+		dt.MONOMER_TYPE_VYNIL); warning != nil {
+		printer.PrintlnWarning(warning.Error())
+	} else if err != nil {
+		return err
+	}
+
+	// At the end, distribute crosslinks
+	if warning, err := globula.aging3DistributeCrosslinks(ncross); warning != nil {
+		printer.PrintlnWarning(warning.Error())
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext dt.MonomerType) (warning, err error) {
+	warning = nil
+	err = nil
+	trialsCount := 0
+	for OcontainingCount > 0 && trialsCount < 10 {
+		chosenPolymerNumber := rand.Intn(globula.Len())
+		chosenPolymer := globula.polymers[chosenPolymerNumber]
+		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
+		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
+		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
+		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL ||
+			nextChosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			trialsCount++
+			continue
+		}
+		dt.BreakConnection1(chosenMonomer, nextChosenMonomer)
+		chosenMonomer.MonomerType = typePrev
+		nextChosenMonomer.MonomerType = typeNext
+		OcontainingCount--
+		trialsCount = 0
+	}
+	if trialsCount != 0 {
+		return fmt.Errorf("%d O containing monomers weren't distributed", OcontainingCount), nil
+	}
+	return nil, nil
+}
+
+func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err error) {
+	warning = nil
+	err = nil
+	trialsCount := 0
+	for ncross > 0 && trialsCount < 10 {
+		chosenPolymerNumber := rand.Intn(globula.Len())
+		chosenPolymer := globula.polymers[chosenPolymerNumber]
+		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
+		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
+		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
+		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL ||
+			nextChosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			trialsCount++
+			continue
+		}
+		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
+		chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+		nextChosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+		ncross--
+		trialsCount = 0
+	}
+	if trialsCount != 0 {
+		return fmt.Errorf("%d crosslinks weren't distributed", ncross), nil
+	}
+	return nil, nil
 }
 
 func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
