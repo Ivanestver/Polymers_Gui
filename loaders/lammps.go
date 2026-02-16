@@ -7,7 +7,7 @@ import (
 	"polymers/global_data"
 	"polymers/views"
 
-	lammps_parser "github.com/Ivanestver/lammps-file-parser/parser"
+	lammps_parser "github.com/Ivanestver/lammps-file-parser/deserialize"
 	lammps_structs "github.com/Ivanestver/lammps-file-parser/structs"
 )
 
@@ -39,7 +39,7 @@ func (loader *_LammpsLoader) Load(filename, globulaname string) (*views.GlobulaV
 	if err != nil {
 		return nil, err
 	}
-	jsonStruct, err := lammps_parser.Parse(string(content), filename)
+	jsonStruct, err := lammps_parser.Deserialize(string(content), filename)
 	if err != nil {
 		return nil, err
 	}
