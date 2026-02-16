@@ -75,6 +75,18 @@ func BreakConnection(mon1, mon2 *Monomer, side Side) error {
 	return nil
 }
 
+func BreakConnection1(mon1, mon2 *Monomer) error {
+	if mon1 == nil || mon2 == nil {
+		return errors.New("one of monomers is nil")
+	}
+	side := mon1.GetSideOfSibling(mon2)
+	if side == SIDE_Undefined {
+		return errors.New("The monomers are not sibiings")
+	}
+	mon1.sides[side].ConnType = CONNECTION_TYPE_UNDEFINED
+	return nil
+}
+
 func TierConnection(mon1, mon2 *Monomer, side Side) error {
 	if mon1 == nil || mon2 == nil {
 		return errors.New("one of monomers is nil")
