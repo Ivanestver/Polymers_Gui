@@ -76,11 +76,13 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Fi
 			polymersMap[moleculeID] = datatypes.NewPolymer(field, int64(moleculeID))
 			polymer = polymersMap[moleculeID]
 		}
-		polymer.AddMonomer(datatypes.NewMonomer(base.Vector3DF{
+		a := field.GetMonomerByCoords(base.Vector3DF{
 			X: atom.X,
 			Y: atom.Y,
 			Z: atom.Z,
-		}, datatypes.MonomerType(atom.AtomType-1)))
+		})
+		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
+		polymer.AddMonomer(a)
 	}
 	polymers := make([]*datatypes.Polymer, len(polymersMap))
 	for i, polymer := range polymersMap {
