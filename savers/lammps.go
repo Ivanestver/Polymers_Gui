@@ -2,13 +2,14 @@ package savers
 
 import (
 	"math"
-	"polymers/base"
 	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/global_data"
 	"polymers/views"
 	"slices"
-	"strconv"
+
+	serializer "github.com/Ivanestver/lammps-file-parser/serialize"
+	lammps_structs "github.com/Ivanestver/lammps-file-parser/structs"
 )
 
 func addString(source *string, str string) {
@@ -52,156 +53,149 @@ func makeOrderedIntPair(first, second int64) intPair {
 }
 
 func SaveToLammps(globula *views.GlobulaView) (string, error) {
-	var content string
-	addString(&content, "LAMMPS data file via write_data, version 24 Dec 2020, timestep = 40000000")
-	addNewLine(&content)
-
-	monomerTypes := getMonomerTypes(globula)
-	bondTypes, bondCount := getBondTypes(globula)
-	lowerestNumberBond := base.Min(bondTypes)
-	highestNumberBond := base.Max(bondTypes)
-
-	addString(&content, strconv.Itoa(getAtomsCount(globula))+" atoms")
-	addString(&content, strconv.Itoa(len(monomerTypes))+" atom types")
-	addString(&content, strconv.Itoa(bondCount)+" bonds")
-	addString(&content, strconv.Itoa(int(*highestNumberBond))+" bond types")
-	addNewLine(&content)
-
-	spaceDim := global_data.GetGlobalData().SpaceDimention
-	addString(&content, "0 "+strconv.FormatInt(spaceDim.X, 10)+" xlo xhi")
-	addString(&content, "0 "+strconv.FormatInt(spaceDim.Y, 10)+" ylo yhi")
-	addString(&content, "0 "+strconv.FormatInt(spaceDim.Z, 10)+" zlo zhi")
-	addNewLine(&content)
-
-	addString(&content, "Masses")
-	addNewLine(&content)
-	mapMonomerTypeNumber := make(map[dt.MonomerType]int)
-	for i, t := range monomerTypes {
-		if t == dt.MONOMER_TYPE_UNDEFINED {
-			continue
-		}
-		mapMonomerTypeNumber[t] = i + 1
-		addString(&content, strconv.Itoa(mapMonomerTypeNumber[t])+" 1 # "+globula.GetLiteral(t))
+	lammpsStruct, err := turnGlobulaIntoLammpsStruct(globula)
+	if err != nil {
+		return "", err
 	}
+	return serializer.Serialize(lammpsStruct)
+}
 
-	addNewLine(&content)
+func turnGlobulaIntoLammpsStruct(globula *views.GlobulaView) (*lammps_structs.LammpsStruct, error) {
+	lammpsStruct := lammps_structs.NewEmptyLammpsStruct()
+	writeSpaceDimention(lammpsStruct)
+	writeAtoms(globula, lammpsStruct)
+	writeBonds(globula, lammpsStruct)
+	return lammpsStruct, nil
+}
 
-	addString(&content, "Bond Coeffs # harmonic")
-	addNewLine(&content)
+func writeSpaceDimention(lammpsStruct *lammps_structs.LammpsStruct) {
+	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_X] = [2]float64{0, float64(spaceDimention.X)}
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Y] = [2]float64{0, float64(spaceDimention.Y)}
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Z] = [2]float64{0, float64(spaceDimention.Z)}
+}
 
-	for i := (int)(*lowerestNumberBond); i <= (int)(*highestNumberBond); i++ {
-		addString(&content, strconv.Itoa(i)+" 100 "+strconv.FormatFloat(bondTypeMass((dt.ConnectionType)(i)), 'f', 3, 64))
-	}
-	addNewLine(&content)
-
-	addString(&content, "Atoms # full")
-	addNewLine(&content)
-
-	maxNumber := -1
-	polymerNumber := 0
-	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		polymerNumber++
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
-			if mon.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
-				return true
+func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
+	polymerID := 1
+	atomsTypes := make(map[dt.MonomerType]lammps_structs.Pair[int, string])
+	updateAtomsInfo := createUpdateAtomsInfo(lammpsStruct, atomsTypes, globula)
+	// Write atoms and gather atom types info
+	views.ForEachPolymer(globula, func(polymer *views.PolymerView) {
+		views.ForEachMonomer(polymer, func(monomer *dt.Monomer) bool {
+			if monomer.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
+				panic("Monomer cannot be undefined inside a polymer")
 			}
-			monCoords := mon.Coords()
-			maxNumber = *base.Max_int([]int{maxNumber, int(mon.Number)})
-			addString(&content,
-				strconv.Itoa(int(mon.Number))+
-					" "+strconv.Itoa(polymerNumber)+" "+
-					strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
-					" 0.00000 "+
-					strconv.FormatFloat(monCoords.X, 'e', 5, 64)+" "+
-					strconv.FormatFloat(monCoords.Y, 'e', 5, 64)+" "+
-					strconv.FormatFloat(monCoords.Z, 'e', 5, 64)+" "+
-					"0 0 0")
+			updateAtomsInfo(monomer, polymerID)
 			return true
 		})
+		polymerID++
 	})
-	if globula.Is(views.GLOBULA_WATERIZED) {
-		views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
-			field := pv.GetUnderlinedField()
-			var globalData *global_data.GlobalData = global_data.GetGlobalData()
-			shape := [...]int64{globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z}
-			var i int64
-			var j int64
-			var k int64
-			for i = 0; i < shape[0]; i++ {
-				for j = 0; j < shape[1]; j++ {
-					for k = 0; k < shape[2]; k++ {
-						mon := field.GetMonomerByCoords(base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)})
-						if mon == nil || mon.MonomerType != datatypes.MONOMER_TYPE_WATER {
-							continue
-						}
-						maxNumber++
-						addString(&content, strconv.Itoa(maxNumber)+
-							" 1 "+
-							strconv.Itoa(mapMonomerTypeNumber[mon.MonomerType])+
-							" 0.00000 "+
-							strconv.FormatInt(i, 10)+" "+
-							strconv.FormatInt(j, 10)+" "+
-							strconv.FormatInt(k, 10)+" "+
-							"0 0 0")
-					}
-				}
-			}
-			return false
+
+	// Write the atom types info gathered
+	for _, p := range atomsTypes {
+		lammpsStruct.AtomTypes = append(lammpsStruct.AtomTypes, lammps_structs.AtomType{
+			Item1: p.Item1,
+			Item2: 1.0,
 		})
 	}
-	addNewLine(&content)
+}
 
-	addString(&content, "Bonds")
-	addNewLine(&content)
+func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[dt.MonomerType]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
+	return func(monomer *dt.Monomer, polymerID int) {
+		p, ok := atomsTypes[monomer.MonomerType]
+		if !ok {
+			atomsTypes[monomer.MonomerType] = lammps_structs.Pair[int, string]{
+				Item1: len(atomsTypes) + 1,
+				Item2: globula.GetLiteral(monomer.MonomerType),
+			}
+			p = atomsTypes[monomer.MonomerType]
+		}
+		lammpsStruct.Atoms = append(lammpsStruct.Atoms, lammps_structs.Atom{
+			Label:      p.Item2,
+			AtomID:     int(monomer.Number),
+			MoleculeID: polymerID,
+			AtomType:   p.Item1,
+			Q:          0.0,
+			AtomCoords: lammps_structs.AtomCoords{
+				X: monomer.Coords().X,
+				Y: monomer.Coords().Y,
+				Z: monomer.Coords().Z,
+			},
+		})
+	}
+}
 
-	bondNumber := 1
-	used_pairs := make(map[intPair]bool)
+func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
+	bondID := 1
+	bondTypes := make(map[dt.ConnectionType]lammps_structs.BondType)
+	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, globula, &bondID)
 	allSides := dt.GetAllSides()
-	views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-		views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
+	usedPairs := make(map[[2]int]bool)
+	views.ForEachPolymer(globula, func(polymer *views.PolymerView) {
+		views.ForEachMonomer(polymer, func(mon *dt.Monomer) bool {
 			for _, side := range allSides {
 				otherMon, err := mon.GetSibling(side)
-				connType := mon.GetTypeOfConnectionWithSide(side)
-				if err == nil && connType != dt.CONNECTION_TYPE_UNDEFINED && otherMon.Number != -1 {
-					newPair := makeOrderedIntPair(mon.Number, otherMon.Number)
-					if _, ok := used_pairs[newPair]; !ok {
-						addString(&content, strconv.Itoa(bondNumber)+" "+strconv.Itoa(int(connType))+" "+strconv.Itoa(int(mon.Number))+" "+strconv.Itoa(int(otherMon.Number)))
-						bondNumber += 1
-						used_pairs[newPair] = true
-					}
+				if err != nil {
+					continue
 				}
+				pair := [2]int{}
+				if mon.Number < otherMon.Number {
+					pair[0] = int(mon.Number)
+					pair[1] = int(otherMon.Number)
+				} else {
+					pair[0] = int(otherMon.Number)
+					pair[1] = int(mon.Number)
+				}
+				if _, ok := usedPairs[pair]; ok {
+					continue
+				}
+				usedPairs[pair] = true
+				updateBondInfo(mon, otherMon)
 			}
 			return true
 		})
 	})
 
-	/*
-		addNewLine(&content)
-		addString(&content, "Angles")
-		addNewLine(&content)
+	// Write the atom types info gathered
+	for _, p := range bondTypes {
+		lammpsStruct.BondTypes = append(lammpsStruct.BondTypes, p)
+	}
+}
 
-		angleNumber := 1
-		views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-			for i := 1; i < pol.Len(); i++ {
-				addString(&content, strconv.Itoa(angleNumber)+" 1 "+strconv.Itoa(i)+" "+strconv.Itoa(i+1)+" "+strconv.Itoa(i+1))
-				angleNumber++
+func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, globula *views.GlobulaView, bondID *int) func(*dt.Monomer, *dt.Monomer) {
+	return func(mon1, mon2 *dt.Monomer) {
+		side := mon1.GetSideOfSibling(mon2)
+		if side == dt.SIDE_Undefined {
+			return
+		}
+		connectionType := mon1.GetTypeOfConnectionWithSide(side)
+		if connectionType == dt.CONNECTION_TYPE_UNDEFINED { // Just in case
+			return
+		}
+
+		value, ok := bondTypes[connectionType]
+		if !ok {
+			value = lammps_structs.BondType{
+				Item1: len(bondTypes) + 1,
+				Item2: 1.0,
+				Item3: 100.0,
 			}
-		})
-	*/
+			bondTypes[connectionType] = value
+		}
 
-	return content, nil
+		lammpsStruct.Bonds = append(lammpsStruct.Bonds, lammps_structs.Bond{
+			BondID:         *bondID,
+			ConnectionType: value.Item1,
+			Ends:           [2]int{int(mon1.Number), int(mon2.Number)},
+		})
+	}
 }
 
 func getAtomsCount(globula *views.GlobulaView) int {
 	atomsCount := 0
 	if !globula.Is(views.GLOBULA_WATERIZED) {
 		views.ForEachPolymer(globula, func(pol *views.PolymerView) {
-			views.ForEachMonomer(pol, func(mon *dt.Monomer) bool {
-				if mon.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
-					atomsCount++
-				}
-				return true
-			})
+			atomsCount += pol.Len()
 		})
 	} else {
 		globalData := global_data.GetGlobalData()
