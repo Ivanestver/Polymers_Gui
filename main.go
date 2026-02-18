@@ -184,16 +184,16 @@ func main() {
 			} else if algType == 2 {
 				globula.DoAging2(groupsCount, doCrosslinks)
 			} else if algType == 3 {
-				ncut, ok := data["ncut"].(int)
-				if ok {
+				ncut, err := strconv.Atoi(data["ncut"].(string))
+				if err != nil {
 					continue
 				}
-				nOContaining, ok := data["nOContaining"].(int)
-				if ok {
+				nOContaining, err := strconv.Atoi(data["OContaining"].(string))
+				if err != nil {
 					continue
 				}
-				ncross, ok := data["ncross"].(int)
-				if ok {
+				ncross, err := strconv.Atoi(data["ncross"].(string))
+				if err != nil {
 					continue
 				}
 				globula.DoAging3(ncut, nOContaining, ncross)
