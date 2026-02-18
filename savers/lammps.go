@@ -61,7 +61,7 @@ func SaveToLammps(globula *views.GlobulaView) (string, error) {
 }
 
 func turnGlobulaIntoLammpsStruct(globula *views.GlobulaView) (*lammps_structs.LammpsStruct, error) {
-	lammpsStruct := lammps_structs.NewEmptyLammpsStruct()
+	lammpsStruct := lammps_structs.NewLammpsStruct(0, 0, 0, 0)
 	writeSpaceDimention(lammpsStruct)
 	writeAtoms(globula, lammpsStruct)
 	writeBonds(globula, lammpsStruct)
