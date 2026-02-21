@@ -556,11 +556,5 @@ func load() (Command, interface{}) {
 	}
 	m["filename"] = filename
 
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, "no filename specified"
-	}
-	m["globulaName"] = globulaName
-
 	return COMMAND_LOADER, m
 }

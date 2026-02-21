@@ -225,9 +225,8 @@ func main() {
 			data := data.(map[string]string)
 			filetype := data["filetype"]
 			filename := data["filename"]
-			globulaName := data["globulaName"]
 			if loader, err := loaders.NewLoader(filetype); err == nil {
-				if newGlobula, err := loader.Load(filename, globulaName); err == nil {
+				if newGlobula, err := loader.Load(filename); err == nil {
 					globula = newGlobula
 				} else {
 					printer.PrintflnError("When loading: %s", err.Error())
@@ -254,7 +253,7 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 	if finishedPolymers == nil {
 		printer.PrintlnError("The result of building is nil")
 	} else {
-		globula = views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
+		globula = views.NewGlobulaView(finishedPolymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
 	}
 }
 

@@ -35,7 +35,7 @@ type GlobulaView struct {
 	globulaProperties map[GlobulaProperty]bool
 }
 
-func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
+func NewGlobulaView(polymers []*dt.Polymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
 	for i := 0; i < len(polymers); i++ {

@@ -19,11 +19,6 @@ type BuildThreadAlgInputData struct {
 	ThreadRadius     float64
 	ThreadLength     float64
 	MaxPolymersCount int
-	particleName     string
-}
-
-func (alg BuildThreadAlgInputData) GetName() string {
-	return alg.particleName
 }
 
 func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
@@ -107,8 +102,6 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 		}
 		inputData.ThreadLength = float64(threadLength)
 	}
-
-	inputData.particleName = particleName
 
 	return inputData, nil
 }

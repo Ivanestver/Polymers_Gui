@@ -16,11 +16,6 @@ type CalcAlgInputData struct {
 	AcceptThreshold  float64
 	MaxMonomersCount int
 	SphereRadius     int
-	particleName     string
-}
-
-func (data CalcAlgInputData) GetName() string {
-	return data.particleName
 }
 
 func (data CalcAlgInputData) GetGlobulaType() views.GlobulaProperty {
@@ -92,8 +87,6 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 		}
 		inputData.SphereRadius = sphereRadius
 	}
-
-	inputData.particleName = particleName
 
 	return inputData, nil
 }

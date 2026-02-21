@@ -34,7 +34,7 @@ type _LammpsMetadata struct {
 type _LammpsLoader struct {
 }
 
-func (loader *_LammpsLoader) Load(filename, globulaname string) (*views.GlobulaView, error) {
+func (loader *_LammpsLoader) Load(filename string) (*views.GlobulaView, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -43,10 +43,10 @@ func (loader *_LammpsLoader) Load(filename, globulaname string) (*views.GlobulaV
 	if err != nil {
 		return nil, err
 	}
-	return parseFromJson(jsonStruct, globulaname)
+	return parseFromJson(jsonStruct)
 }
 
-func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, globulaName string) (*views.GlobulaView, error) {
+func parseFromJson(jsonStruct *lammps_structs.LammpsStruct) (*views.GlobulaView, error) {
 	field := makeField()
 	polymers := makePolymers(jsonStruct, field)
 	literals := make(map[datatypes.MonomerType]string)
@@ -54,7 +54,7 @@ func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, globulaName string) 
 	literals[1] = "N"
 	literals[2] = "C"
 	literals[3] = "S"
-	globula := views.NewGlobulaView(globulaName, polymers, views.GLOBULA_THREAD_TYPE, literals)
+	globula := views.NewGlobulaView(polymers, views.GLOBULA_THREAD_TYPE, literals)
 	return globula, nil
 }
 

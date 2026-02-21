@@ -6,7 +6,7 @@ import (
 )
 
 type ILoader interface {
-	Load(filename, globulaName string) (*views.GlobulaView, error)
+	Load(filename string) (*views.GlobulaView, error)
 }
 
 func NewLoader(loaderType string) (ILoader, error) {
