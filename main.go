@@ -24,10 +24,6 @@ import (
 var globula *views.GlobulaView
 var printer output_format.IPrint
 
-func getGlobulaByName(name string) *views.GlobulaView {
-	return globula
-}
-
 func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	var spaceDimention global_data.SpaceDimention
 	if len(*commands) == 0 {
@@ -100,20 +96,17 @@ func main() {
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.COMMAND_SHOW_GLOBULA:
-			globulaName := data.(string)
-			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			if globula != nil {
 				PrintGlobulaInfo(globula)
 			} else {
-				printer.PrintlnError("There is no globula called \"" + globulaName + "\"")
+				printer.PrintlnError("There is no globula called")
 			}
 		case interp.COMMAND_SAVE_GLOBULA:
-			globulaName := data.(string)
-			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			if globula == nil {
-				printer.PrintlnError("There is no globula called \"" + globulaName + "\"")
+				printer.PrintlnError("There is no globula called")
 				break
 			}
+			globulaName := data.(string)
 			content, _ := savers.SaveToLammps(globula)
 			f, err := os.Create(globulaName + ".data")
 			if err != nil {
@@ -122,19 +115,7 @@ func main() {
 			}
 			defer f.Close()
 			f.Write([]byte(content))
-			/*f, err = os.Create(globulaName + strconv.Itoa(fileNumber) + ".json")
-			if err != nil {
-				printer.PrintlnError(err.Error())
-				break
-			}
-			if err := json.NewEncoder(f).Encode(globula); err != nil {
-				printer.PrintlnError(err.Error())
-			}*/
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
-			globulaName := data.(string)
-			var globula *views.GlobulaView = getGlobulaByName(globulaName)
-			globula.Name()
-
 			printer.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			if xClusters != nil {
@@ -153,7 +134,6 @@ func main() {
 			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
-			globula := getGlobulaByName(globulaName)
 			if globula == nil {
 				printer.PrintlnError("There is no globula named " + globulaName)
 				break
@@ -187,33 +167,19 @@ func main() {
 			}
 
 		case interp.COMMAND_RESET:
-			data := data.(map[string]interface{})
-			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
 			globula.Reset()
 
 		case interp.COMMAND_RESET_FULL:
-			data := data.(map[string]interface{})
-			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
 			globula.FullReset()
 
 		case interp.COMMAND_HIGHLIGHT_BORDERS:
-			data := data.(map[string]interface{})
-			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
 			globula.HighlightBorders()
 
 		case interp.COMMAND_WATERIZE:
-			data := data.(map[string]interface{})
-			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
 			globula.Waterize()
 
 		case interp.COMMAND_TRUNK:
 			data := data.(map[string]interface{})
-			globulaName := data["globula"].(string)
-			globula := getGlobulaByName(globulaName)
 			newSize, ok := data["new_size"]
 			if ok {
 				globula.MakeHomogenousAsCustom(newSize.(int))
@@ -238,8 +204,6 @@ func main() {
 
 		case interp.COMMAND_COMMON_STATS:
 			data := data.(map[string]string)
-			globulaName := data["globula"]
-			globula := getGlobulaByName(globulaName)
 			text := globula.GetStatistics()
 			f, err := os.Create(data["filename"])
 			if err != nil {
@@ -251,12 +215,10 @@ func main() {
 
 		case interp.COMMAND_ATOMISTIC:
 			data := data.(map[string]string)
-			globulaName := data["globula"]
-			globula := getGlobulaByName(globulaName)
 			if config, ok := data["config"]; ok && globula != nil {
 				atomistic.MakeAtomistic(globula, config)
 			} else {
-				printer.PrintflnError("Could not find a globula of the name %s", globulaName)
+				printer.PrintflnError("Build a globula first")
 			}
 
 		case interp.COMMAND_LOADER:
@@ -297,7 +259,6 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 }
 
 func PrintGlobulaInfo(globula *views.GlobulaView) {
-	printer.Println("\n\tGlobula Name: " + globula.Name())
 	printer.Println("\tPolymers Count: " + strconv.Itoa(globula.Len()))
 	printer.Println("\tPolymers:")
 	var monomersCount int
@@ -353,8 +314,6 @@ func getCommandsFromScript(filename string, mode string) []string {
 }
 
 func processPattern(data map[string]string) (*views.GlobulaView, error) {
-	globulaName := data["globulaName"]
-	globula := getGlobulaByName(globulaName)
 	pattern, ok := pattern_lib.GetPattern(data)
 	if !ok {
 		return nil, errors.New("Couldn't retrieve pattern")

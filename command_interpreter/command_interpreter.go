@@ -176,12 +176,7 @@ func s() (Command, interface{}) {
 }
 
 func pattern() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, "Wrong usage"
-	}
 	m := make(map[string]string)
-	m["globulaName"] = globulaName
 
 	t, err := getNextToken()
 	if err != nil {
@@ -269,31 +264,7 @@ func show() (Command, interface{}) {
 }
 
 func showGlobula() (Command, interface{}) {
-	getNextToken() // skip all the empty spaces until " or the end
-	if finished() {
-		return COMMAND_UNDEFINED, nil
-	}
-
-	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Wrong usage"
-	}
-	moveForward()
-	var globulaName string
-	for !finished() {
-		token, error := getNextToken()
-		if error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		if len(globulaName) == 0 {
-			globulaName += token
-		} else {
-			globulaName += " " + token
-		}
-		if string(getCurrChar()) == "\"" {
-			return COMMAND_SHOW_GLOBULA, globulaName
-		}
-	}
-	return COMMAND_UNDEFINED, "Globula name must be wrapped with \"\""
+	return COMMAND_SHOW_GLOBULA, nil
 }
 
 func save() (Command, interface{}) {
@@ -318,7 +289,6 @@ func save() (Command, interface{}) {
 			globulaName += " " + token
 		}
 		if string(getCurrChar()) == "\"" {
-			return COMMAND_SAVE_GLOBULA, globulaName
 		}
 	}
 	return COMMAND_UNDEFINED, "Globula name must be wrapped with \"\""
@@ -330,29 +300,7 @@ func clusters() (Command, interface{}) {
 		return COMMAND_UNDEFINED, "Wrong usage"
 	}
 
-	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Wrong usage"
-	}
-	moveForward()
-	var globulaName string
-	for !finished() {
-		token, error := getNextToken()
-		if error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		if len(globulaName) == 0 {
-			globulaName += token
-		} else {
-			globulaName += " " + token
-		}
-		if string(getCurrChar()) == "\"" {
-			moveForward()
-			break
-		}
-	}
-
 	tokenAll, err := getNextToken()
-	print(tokenAll)
 	if err != nil {
 		return COMMAND_UNDEFINED, err.Error()
 	}
@@ -399,11 +347,6 @@ func age() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err
 	}
 
-	newGlobulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err
-	}
-
 	m := make(map[string]interface{})
 	// For Age Algorithm Type 3
 	if !finished() && ageAlgType == 3 {
@@ -434,29 +377,17 @@ func age() (Command, interface{}) {
 	m["count"] = groupCount
 	m["make_crosslinks"] = (token == "true")
 	m["alg_type"] = ageAlgType
-	m["new_globula_name"] = newGlobulaName
 	return COMMAND_AGE, m
 }
 
 func borders() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-	m := make(map[string]interface{})
-	m["globula"] = globulaName
-	return COMMAND_HIGHLIGHT_BORDERS, m
+	return COMMAND_HIGHLIGHT_BORDERS, nil
 }
 
 func resetGlobula() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
 	getNextToken() // skip empty spaces
 	if finished() {
 		m := make(map[string]interface{})
-		m["globula"] = globulaName
 		m["full"] = false
 		return COMMAND_RESET, m
 	}
@@ -468,7 +399,6 @@ func resetGlobula() (Command, interface{}) {
 
 	if token == COMMAND_FULL_STR {
 		m := make(map[string]interface{})
-		m["globula"] = globulaName
 		m["full"] = true
 		return COMMAND_RESET_FULL, m
 	}
@@ -477,23 +407,11 @@ func resetGlobula() (Command, interface{}) {
 }
 
 func waterize() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-	m := make(map[string]interface{})
-	m["globula"] = globulaName
-	return COMMAND_WATERIZE, m
+	return COMMAND_WATERIZE, nil
 }
 
 func trunk() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-	getNextToken()
 	m := make(map[string]interface{})
-	m["globula"] = globulaName
 	if finished() { // No size has been provided, therefore, use the shortest
 		return COMMAND_TRUNK, m
 	}
@@ -521,13 +439,7 @@ func script() (Command, interface{}) {
 }
 
 func commonStats() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-	getNextToken()
 	m := make(map[string]string)
-	m["globula"] = globulaName
 
 	filename, err := getParameterAsString()
 	if err != nil {
@@ -618,13 +530,7 @@ func getPattern_S4(raw string, curr *int, start int, dst *string) error {
 }
 
 func atomistic() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-
 	m := make(map[string]string)
-	m["globula"] = globulaName
 
 	fileName, err := getParameterAsString()
 	if err != nil {

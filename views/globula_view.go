@@ -26,7 +26,6 @@ const (
 const crosslinksCount = 0.5
 
 type GlobulaView struct {
-	name              string
 	polymers          []*PolymerView
 	xClusters         *ClusterView
 	yClusters         *ClusterView
@@ -38,7 +37,6 @@ type GlobulaView struct {
 
 func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
-	newGlobulaView.name = name
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
 	for i := 0; i < len(polymers); i++ {
 		newGlobulaView.polymers[i] = NewPolymerView(polymers[i])
@@ -57,10 +55,6 @@ func NewGlobulaView(name string, polymers []*dt.Polymer, globulaType GlobulaProp
 	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
 	newGlobulaView.globulaProperties[globulaType] = true
 	return newGlobulaView
-}
-
-func (globula *GlobulaView) Name() string {
-	return globula.name
 }
 
 func (globula *GlobulaView) Len() int {
@@ -163,7 +157,6 @@ func (globula *GlobulaView) MarshalJSON() ([]byte, error) {
 		Polymers   []*PolymerView
 		Properties map[GlobulaProperty]bool
 	}{
-		Name:       globula.name,
 		Polymers:   globula.polymers,
 		Properties: globula.globulaProperties,
 	})
@@ -675,7 +668,6 @@ func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
 	}
 
 	newGlobula := new(GlobulaView)
-	newGlobula.name = newName
 	newGlobula.commonClusterDone = false
 	newGlobula.polymers = newPolymers
 	newGlobula.literalsTable = make(map[dt.MonomerType]string)
@@ -702,7 +694,7 @@ func (globula *GlobulaView) Waterize() {
 
 func (globula *GlobulaView) MakeHomogenousAsShortest() error {
 	if globula.Len() == 0 {
-		return errors.New("The globula \"" + globula.name + "\"is empty")
+		return errors.New("The globula is empty")
 	}
 	// find the length of the shortest chain
 	shortestChainLength := globula.polymers[0].Len()
