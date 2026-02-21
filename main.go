@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"math/rand"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"polymers/base"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
-	"polymers/dfs"
 	"polymers/global_data"
 	"polymers/loaders"
 	"polymers/output_format"
@@ -21,16 +21,11 @@ import (
 	"time"
 )
 
-var globulas []*views.GlobulaView
+var globula *views.GlobulaView
 var printer output_format.IPrint
 
 func getGlobulaByName(name string) *views.GlobulaView {
-	for _, glob := range globulas {
-		if glob.Name() == name {
-			return glob
-		}
-	}
-	return nil
+	return globula
 }
 
 func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
@@ -104,10 +99,6 @@ func main() {
 		case interp.COMMAND_BUILD:
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
-		case interp.COMMAND_SHOW_GLOBULAS_LIST:
-			for _, globula := range globulas {
-				printer.PrintlnInfo(globula.Name())
-			}
 		case interp.COMMAND_SHOW_GLOBULA:
 			globulaName := data.(string)
 			var globula *views.GlobulaView = getGlobulaByName(globulaName)
@@ -141,10 +132,8 @@ func main() {
 			}*/
 		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
 			globulaName := data.(string)
-			var originalGlobula *views.GlobulaView = getGlobulaByName(globulaName)
-			globula := originalGlobula.DeepCopy(originalGlobula.Name() + "_all_clusters")
+			var globula *views.GlobulaView = getGlobulaByName(globulaName)
 			globula.Name()
-			globulas = append(globulas, globula)
 
 			printer.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
@@ -164,14 +153,11 @@ func main() {
 			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
-			newGlobulaName := data["new_globula_name"].(string)
-			originalGlobula := getGlobulaByName(globulaName)
-			if originalGlobula == nil {
+			globula := getGlobulaByName(globulaName)
+			if globula == nil {
 				printer.PrintlnError("There is no globula named " + globulaName)
 				break
 			}
-			globula := originalGlobula.DeepCopy(newGlobulaName)
-			globulas = append(globulas, globula)
 			groupsCount := 0
 			if groupsCountStr[len(groupsCountStr)-1] == '%' {
 				percent, _ := strconv.ParseFloat(groupsCountStr[:len(groupsCountStr)-1], 64)
@@ -192,6 +178,7 @@ func main() {
 				if err != nil {
 					continue
 				}
+				nOContaining = int(float64(ncut) * float64(nOContaining) / 100.0)
 				ncross, err := strconv.Atoi(data["ncross"].(string))
 				if err != nil {
 					continue
@@ -214,36 +201,29 @@ func main() {
 		case interp.COMMAND_HIGHLIGHT_BORDERS:
 			data := data.(map[string]interface{})
 			globulaName := data["globula"].(string)
-			originGlobula := getGlobulaByName(globulaName)
-			globula := originGlobula.DeepCopy(globulaName + "highlighted_borders")
+			globula := getGlobulaByName(globulaName)
 			globula.HighlightBorders()
 
 		case interp.COMMAND_WATERIZE:
 			data := data.(map[string]interface{})
 			globulaName := data["globula"].(string)
-			originGlobula := getGlobulaByName(globulaName)
-			globula := originGlobula.DeepCopy(globulaName + "_waterized")
+			globula := getGlobulaByName(globulaName)
 			globula.Waterize()
-			globulas = append(globulas, globula)
 
 		case interp.COMMAND_TRUNK:
 			data := data.(map[string]interface{})
 			globulaName := data["globula"].(string)
-			originGlobula := getGlobulaByName(globulaName)
+			globula := getGlobulaByName(globulaName)
 			newSize, ok := data["new_size"]
-			var globula *views.GlobulaView
 			if ok {
-				globula = originGlobula.DeepCopy(globulaName + "_trunk_custom")
 				globula.MakeHomogenousAsCustom(newSize.(int))
 			} else {
-				globula = originGlobula.DeepCopy(globulaName + "_trunk_shortest")
 				globula.MakeHomogenousAsShortest()
 			}
-			globulas = append(globulas, globula)
 
 		case interp.COMMAND_PATTERN:
-			if globula := processPattern(data.(map[string]string)); globula != nil {
-				globulas = append(globulas, globula)
+			if _, err := processPattern(data.(map[string]string)); err != nil {
+				printer.PrintlnError(err.Error())
 			}
 
 		case interp.COMMAND_EXIT:
@@ -269,10 +249,6 @@ func main() {
 			defer f.Close()
 			f.Write([]byte(text))
 
-		case interp.COMMAND_DFS:
-			globula := dfs.DoDFS()
-			globulas = append(globulas, globula)
-
 		case interp.COMMAND_ATOMISTIC:
 			data := data.(map[string]string)
 			globulaName := data["globula"]
@@ -290,7 +266,7 @@ func main() {
 			globulaName := data["globulaName"]
 			if loader, err := loaders.NewLoader(filetype); err == nil {
 				if newGlobula, err := loader.Load(filename, globulaName); err == nil {
-					globulas = append(globulas, newGlobula)
+					globula = newGlobula
 				} else {
 					printer.PrintflnError("When loading: %s", err.Error())
 				}
@@ -316,8 +292,7 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 	if finishedPolymers == nil {
 		printer.PrintlnError("The result of building is nil")
 	} else {
-		globula := views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
-		globulas = append(globulas, globula)
+		globula = views.NewGlobulaView(inputData_.GetName(), finishedPolymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
 	}
 }
 
@@ -377,19 +352,17 @@ func getCommandsFromScript(filename string, mode string) []string {
 	return commands
 }
 
-func processPattern(data map[string]string) *views.GlobulaView {
+func processPattern(data map[string]string) (*views.GlobulaView, error) {
 	globulaName := data["globulaName"]
-	originGlobula := getGlobulaByName(globulaName)
-	outputName := data["outputName"]
-	globula := originGlobula.DeepCopy(outputName)
+	globula := getGlobulaByName(globulaName)
 	pattern, ok := pattern_lib.GetPattern(data)
 	if !ok {
-		return nil
+		return nil, errors.New("Couldn't retrieve pattern")
 	}
 
 	if pattern_lib.AnyLetterIsUndefined(pattern, globula) {
 		printer.PrintlnError("Please, define the missing decryptions to continue")
-		return nil
+		return nil, errors.New("Please, define the missing decryptions to continue")
 	}
 
 	if globula.Is(views.GLOBULA_GLOBULA_TYPE) {
@@ -398,5 +371,5 @@ func processPattern(data map[string]string) *views.GlobulaView {
 		pattern_lib.ApplyAsThread(globula, pattern)
 	}
 
-	return globula
+	return globula, nil
 }

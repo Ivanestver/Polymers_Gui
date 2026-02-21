@@ -38,7 +38,6 @@ const (
 	COMMAND_UNDEFINED = -1
 	COMMAND_HELP      = iota
 	COMMAND_BUILD
-	COMMAND_SHOW_GLOBULAS_LIST
 	COMMAND_SHOW_GLOBULA
 	COMMAND_SAVE_GLOBULA
 	COMMAND_HIGHLIGHT_CLUSTERS_ALL
@@ -53,7 +52,6 @@ const (
 	COMMAND_PATTERN
 	COMMAND_SCRIPT
 	COMMAND_COMMON_STATS
-	COMMAND_DFS
 	COMMAND_ATOMISTIC
 	COMMAND_LOADER
 )
@@ -168,7 +166,6 @@ func s() (Command, interface{}) {
 		COMMAND_TRUNK_STR:             trunk,
 		COMMAND_SCRIPT_STR:            script,
 		COMMAND_COMMON_STATS_STR:      commonStats,
-		COMMAND_DFS_STR:               dfs,
 		COMMAND_ATOMISTIC_STR:         atomistic,
 		COMMAND_LOADER_STR:            load,
 	}[token]; ok {
@@ -274,7 +271,7 @@ func show() (Command, interface{}) {
 func showGlobula() (Command, interface{}) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
-		return COMMAND_SHOW_GLOBULAS_LIST, nil
+		return COMMAND_UNDEFINED, nil
 	}
 
 	if string(getCurrChar()) != "\"" {
@@ -618,10 +615,6 @@ func getPattern_S4(raw string, curr *int, start int, dst *string) error {
 			return err
 		}
 	}
-}
-
-func dfs() (Command, interface{}) {
-	return COMMAND_DFS, nil
 }
 
 func atomistic() (Command, interface{}) {
