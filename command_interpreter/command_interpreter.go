@@ -220,7 +220,7 @@ func build() (Command, interface{}) {
 	}
 
 	predefinedParams := make([]string, 0)
-	for getCurrChar() != '"' {
+	for !finished() {
 		p, err := getNextToken()
 		if err != nil {
 			continue
@@ -268,30 +268,11 @@ func showGlobula() (Command, interface{}) {
 }
 
 func save() (Command, interface{}) {
-	getNextToken() // skip all the empty spaces until " or the end
-	if finished() {
-		return COMMAND_UNDEFINED, "Wrong usage"
+	filename, err := getParameterAsString()
+	if err != nil {
+		return COMMAND_UNDEFINED, err.Error()
 	}
-
-	if string(getCurrChar()) != "\"" {
-		return COMMAND_UNDEFINED, "Wrong usage"
-	}
-	moveForward()
-	var globulaName string
-	for !finished() {
-		token, error := getNextToken()
-		if error != nil {
-			return COMMAND_UNDEFINED, error.Error()
-		}
-		if len(globulaName) == 0 {
-			globulaName += token
-		} else {
-			globulaName += " " + token
-		}
-		if string(getCurrChar()) == "\"" {
-		}
-	}
-	return COMMAND_UNDEFINED, "Globula name must be wrapped with \"\""
+	return COMMAND_SAVE_GLOBULA, filename
 }
 
 func clusters() (Command, interface{}) {

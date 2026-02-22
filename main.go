@@ -106,9 +106,9 @@ func main() {
 				printer.PrintlnError("There is no globula called")
 				break
 			}
-			globulaName := data.(string)
+			filename := data.(string)
 			content, _ := savers.SaveToLammps(globula)
-			f, err := os.Create(globulaName + ".data")
+			f, err := os.Create(filename)
 			if err != nil {
 				printer.PrintlnError(err.Error())
 				return
