@@ -294,13 +294,6 @@ func clusters() (Command, interface{}) {
 }
 
 func age() (Command, interface{}) {
-	globulaName, err := getParameterAsString()
-	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
-	}
-	if finished() {
-		return COMMAND_UNDEFINED, string("Wrong usage")
-	}
 	groupCount, err := getNextToken()
 	if err != nil {
 		return COMMAND_UNDEFINED, err

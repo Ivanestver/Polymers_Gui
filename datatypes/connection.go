@@ -32,6 +32,9 @@ func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 		return errors.New("one of monomers is nil")
 	}
 	side := GetSideByMonomers(mon1, mon2)
+	if side == SIDE_Undefined {
+		panic("Cannot connect non-contiguous monomers")
+	}
 	conn := mon1.sides[side]
 	if conn == nil {
 		newConn := NewConnection([2]*Monomer{mon1, mon2}, connectionType)
