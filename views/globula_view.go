@@ -35,7 +35,7 @@ type GlobulaView struct {
 	globulaProperties map[GlobulaProperty]bool
 }
 
-func NewGlobulaView(polymers []*dt.Polymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
+func NewGlobulaView(polymers []dt.IPolymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
 	for i := 0; i < len(polymers); i++ {
@@ -655,25 +655,6 @@ func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err
 		return fmt.Errorf("%d crosslinks weren't distributed", ncross), nil
 	}
 	return nil, nil
-}
-
-func (globula *GlobulaView) DeepCopy(newName string) *GlobulaView {
-	newPolymers := make([]*PolymerView, len(globula.polymers))
-	if len(globula.polymers) > 0 {
-		newPolymers[0] = globula.polymers[0].DeepCopy(nil)
-		underlinedField := newPolymers[0].GetUnderlinedField()
-		for i := 1; i < len(globula.polymers); i++ {
-			newPolymers[i] = globula.polymers[i].DeepCopy(underlinedField)
-		}
-	}
-
-	newGlobula := new(GlobulaView)
-	newGlobula.commonClusterDone = false
-	newGlobula.polymers = newPolymers
-	newGlobula.literalsTable = make(map[dt.MonomerType]string)
-	newGlobula.SetLiterals(globula.literalsTable)
-	newGlobula.globulaProperties = globula.globulaProperties
-	return newGlobula
 }
 
 func (globula *GlobulaView) HighlightBorders() bool {

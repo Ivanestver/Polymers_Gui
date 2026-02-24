@@ -137,7 +137,7 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 				potentialConfigs[i] = alg.getNextConfig(polymer, continuations[i].Copy())
 			}
 
-			currentPosition := alg.getNextCurrentPosition(potentialConfigs, polymer.CalcEnergy())
+			currentPosition := alg.getNextCurrentPosition(potentialConfigs, datatypes.CalcEnergy(polymer))
 			if currentPosition.IsInvalid() {
 				continue
 			}
@@ -184,7 +184,7 @@ func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *d
 func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, U_current float64) base.Vector3DF {
 	deltasOfPotentialConfigs := make([]float64, len(potentialConfigs))
 	for i := 0; i < len(potentialConfigs); i++ {
-		deltasOfPotentialConfigs[i] = U_current - potentialConfigs[i].CalcEnergy()
+		deltasOfPotentialConfigs[i] = U_current - datatypes.CalcEnergy(potentialConfigs[i])
 	}
 	maxDelta := base.Max_float(deltasOfPotentialConfigs)
 	if math.IsNaN(maxDelta) {

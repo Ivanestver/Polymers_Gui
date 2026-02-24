@@ -30,6 +30,8 @@ const (
 	COMMAND_DFS_STR               = "dfs"
 	COMMAND_ATOMISTIC_STR         = "atomistic"
 	COMMAND_LOADER_STR            = "load"
+	COMMAND_LATTICE_STR           = "lattice"
+	COMMAND_REAL_STR              = "real"
 )
 
 type Command = int
@@ -511,7 +513,6 @@ func atomistic() (Command, interface{}) {
 		return COMMAND_UNDEFINED, err.Error()
 	}
 	m["config"] = fileName
-
 	return COMMAND_ATOMISTIC, m
 }
 
@@ -529,6 +530,15 @@ func load() (Command, interface{}) {
 		return COMMAND_UNDEFINED, "no filename specified"
 	}
 	m["filename"] = filename
+	m["field"] = COMMAND_REAL_STR
+
+	token, err := getNextToken()
+	if err != nil {
+		return COMMAND_LOADER, m
+	}
+	if token == COMMAND_LATTICE_STR {
+		m["field"] = COMMAND_LATTICE_STR
+	}
 
 	return COMMAND_LOADER, m
 }

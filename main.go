@@ -10,6 +10,7 @@ import (
 	"polymers/base"
 	"polymers/build_globula"
 	interp "polymers/command_interpreter"
+	"polymers/datatypes"
 	"polymers/global_data"
 	"polymers/loaders"
 	"polymers/output_format"
@@ -225,8 +226,16 @@ func main() {
 			data := data.(map[string]string)
 			filetype := data["filetype"]
 			filename := data["filename"]
-			if loader, err := loaders.NewLoader(filetype); err == nil {
-				if newGlobula, err := loader.Load(filename); err == nil {
+			fieldTypeStr := data["field"]
+			fieldType, ok := map[string]loaders.FieldType{
+				interp.COMMAND_REAL_STR:    loaders.FIELD_TYPE_REAL,
+				interp.COMMAND_LATTICE_STR: loaders.FIELD_TYPE_LATTICE,
+			}[fieldTypeStr]
+			if !ok {
+				printer.PrintflnError("No such a field type: %s", fieldType)
+			}
+			if loader, err := loaders.NewLoader(filetype, fieldType); err == nil {
+				if newGlobula, err := loader.Load(filename, fieldType); err == nil {
 					globula = newGlobula
 				} else {
 					printer.PrintflnError("When loading: %s", err.Error())
@@ -253,7 +262,11 @@ func buildGlobula(algType build_globula.AlgType, predefinedParams []string, part
 	if finishedPolymers == nil {
 		printer.PrintlnError("The result of building is nil")
 	} else {
-		globula = views.NewGlobulaView(finishedPolymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
+		polymers := make([]datatypes.IPolymer, len(finishedPolymers))
+		for i := 0; i < len(polymers); i++ {
+			polymers[i] = finishedPolymers[i]
+		}
+		globula = views.NewGlobulaView(polymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
 	}
 }
 

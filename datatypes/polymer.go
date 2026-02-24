@@ -51,13 +51,14 @@ func (polymer *Polymer) Field() *Field {
 	return polymer.field
 }
 
-func (polymer *Polymer) Copy() *Polymer {
+func (polymer *Polymer) Copy() IPolymer {
 	newPolymer := NewPolymer(polymer.field, polymer.polymerNumber)
 	newPolymer.polymer = polymer.polymer
 	return newPolymer
 }
 
-func (polymer *Polymer) DeepCopy(field *Field) *Polymer {
+func (polymer *Polymer) DeepCopy(args ...any) IPolymer {
+	field := args[0].(*Field)
 	newPolymer := new(Polymer)
 	newPolymer.polymerNumber = polymer.polymerNumber
 	if field == nil {
@@ -82,12 +83,12 @@ func (polymer *Polymer) GetMonomerByIdx(idx int) *Monomer {
 	return polymer.polymer[idx]
 }
 
-func (polymer *Polymer) CalcEnergy() float64 {
+func CalcEnergy(polymer IPolymer) float64 {
 	u := 0.0
 	last_point := polymer.LastMonomer()
 	var prelast_point *Monomer
 	if polymer.Len() > 1 {
-		prelast_point = polymer.polymer[polymer.Len()-2]
+		prelast_point = polymer.GetMonomerByIdx(polymer.Len() - 2)
 	} else {
 		prelast_point = last_point
 	}
@@ -169,4 +170,8 @@ func (polymer *Polymer) MarshalJSON() ([]byte, error) {
 		Polymer:       pol,
 		PolymerNumber: polymer.polymerNumber,
 	})
+}
+
+func (polymer *Polymer) GetPolymerType() PolymerType {
+	return POLYMER_TYPE_LATTICE
 }

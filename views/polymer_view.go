@@ -7,17 +7,17 @@ import (
 
 type PolymerView struct {
 	name    string
-	polymer *datatypes.Polymer
+	polymer datatypes.IPolymer
 }
 
-func NewPolymerView(polymer *datatypes.Polymer) *PolymerView {
+func NewPolymerView(polymer datatypes.IPolymer) *PolymerView {
 	newPolymerView := new(PolymerView)
 	newPolymerView.name = polymer.Name()
 	newPolymerView.polymer = polymer
 
 	prev := newPolymerView.polymer.GetMonomerByIdx(0)
 	curr := newPolymerView.polymer.GetMonomerByIdx(1)
-	for curr != nil {
+	for curr != nil && polymer.GetPolymerType() != datatypes.POLYMER_TYPE_REAL {
 		datatypes.MakeConnection(prev, curr, datatypes.CONNECTION_TYPE_ONE)
 		prev = curr
 		curr = curr.NextMonomer
@@ -53,7 +53,7 @@ func ForEachMonomer(polymer *PolymerView, pred func(*datatypes.Monomer) bool) {
 func (polymerView *PolymerView) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name    string
-		Polymer *datatypes.Polymer
+		Polymer datatypes.IPolymer
 	}{
 		Name:    polymerView.name,
 		Polymer: polymerView.polymer,
@@ -63,12 +63,16 @@ func (polymerView *PolymerView) MarshalJSON() ([]byte, error) {
 func (polymerView *PolymerView) DeepCopy(field *datatypes.Field) *PolymerView {
 	newPolymerView := new(PolymerView)
 	newPolymerView.name = polymerView.name
-	newPolymerView.polymer = polymerView.polymer.DeepCopy(field)
+	newPolymerView.polymer = polymerView.polymer.DeepCopy(field).(*datatypes.Polymer)
 	return newPolymerView
 }
 
 func (polymerView *PolymerView) GetUnderlinedField() *datatypes.Field {
-	return polymerView.polymer.Field()
+	if polymerView.polymer.GetPolymerType() == datatypes.POLYMER_TYPE_LATTICE {
+		return polymerView.polymer.(*datatypes.Polymer).Field()
+	} else {
+		return nil
+	}
 }
 
 func (polymerView *PolymerView) TrunkTo(newSize int) {
@@ -77,6 +81,6 @@ func (polymerView *PolymerView) TrunkTo(newSize int) {
 	}
 
 	for polymerView.Len() > newSize {
-		polymerView.polymer.MakeStepBack()
+		polymerView.polymer.(*datatypes.Polymer).MakeStepBack()
 	}
 }

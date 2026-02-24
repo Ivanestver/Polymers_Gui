@@ -34,7 +34,7 @@ type _LammpsMetadata struct {
 type _LammpsLoader struct {
 }
 
-func (loader *_LammpsLoader) Load(filename string) (*views.GlobulaView, error) {
+func (loader *_LammpsLoader) Load(filename string, fieldType FieldType) (*views.GlobulaView, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -43,12 +43,12 @@ func (loader *_LammpsLoader) Load(filename string) (*views.GlobulaView, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseFromJson(jsonStruct)
+	return parseFromJson(jsonStruct, fieldType)
 }
 
-func parseFromJson(jsonStruct *lammps_structs.LammpsStruct) (*views.GlobulaView, error) {
+func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType FieldType) (*views.GlobulaView, error) {
 	field := makeField()
-	polymers := makePolymers(jsonStruct, field)
+	polymers := makePolymers(jsonStruct, field, fieldType)
 	literals := make(map[datatypes.MonomerType]string)
 	literals[0] = "O"
 	literals[1] = "N"
@@ -67,16 +67,25 @@ func getMaxDimention() uint64 {
 	return uint64(max(globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z))
 }
 
-func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Field) []*datatypes.Polymer {
-	polymersMap := make(map[int]*datatypes.Polymer)
+func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Field, fieldType FieldType) []datatypes.IPolymer {
+	polymersMap := make(map[int]datatypes.IPolymer)
 	for _, atom := range lammpsStruct.Atoms {
 		moleculeID := atom.MoleculeID - 1
 		polymer, ok := polymersMap[moleculeID]
-		if !ok {
-			polymersMap[moleculeID] = datatypes.NewPolymer(field, int64(moleculeID))
-			polymer = polymersMap[moleculeID]
+		var a *datatypes.Monomer
+		switch fieldType {
+		case FIELD_TYPE_LATTICE:
+			if !ok {
+				polymersMap[moleculeID] = datatypes.NewPolymer(field, int64(moleculeID))
+				polymer = polymersMap[moleculeID]
+			}
+		case FIELD_TYPE_REAL:
+			if !ok {
+				polymersMap[moleculeID] = datatypes.NewRealPolymer(int64(moleculeID))
+				polymer = polymersMap[moleculeID]
+			}
 		}
-		a := field.GetMonomerByCoords(base.Vector3DF{
+		a = field.GetMonomerByCoords(base.Vector3DF{
 			X: atom.X,
 			Y: atom.Y,
 			Z: atom.Z,
@@ -84,7 +93,7 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Fi
 		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
 		polymer.AddMonomer(a)
 	}
-	polymers := make([]*datatypes.Polymer, len(polymersMap))
+	polymers := make([]datatypes.IPolymer, len(polymersMap))
 	for i, polymer := range polymersMap {
 		polymers[i] = polymer
 	}
