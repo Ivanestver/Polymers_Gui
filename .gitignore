@@ -10,3 +10,6 @@
 *.mol2*
 *.docx*
 polymers_tool
+2Ivan_add_water/
+*.mol
+*.bat
