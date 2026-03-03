@@ -9,6 +9,7 @@ type IPrint interface {
 	PrintlnInfo(msg string)
 	PrintInfo(msg string)
 	PrintfInfo(msg string, args ...any)
+	PrintflnInfo(msg string, args ...any)
 	PrintlnError(msg string)
 	PrintflnError(msg string, args ...any)
 	PrintlnWarning(msg string)

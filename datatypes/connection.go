@@ -50,6 +50,19 @@ func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 	return nil
 }
 
+func MakeConnectionUnsafe(mon1, mon2 *Monomer, side Side, connectionType ConnectionType) error {
+	if mon1 == nil || mon2 == nil {
+		return errors.New("Either of monomers is nil")
+	}
+	if side == SIDE_Undefined {
+		return errors.New("Side is undefined")
+	}
+	newConn := NewConnection([2]*Monomer{mon1, mon2}, connectionType)
+	mon1.sides[side] = newConn
+	mon2.sides[GetReversedSide(side)] = newConn
+	return nil
+}
+
 func BreakConnection(mon1, mon2 *Monomer, side Side) error {
 
 	if mon1 == nil || mon2 == nil {

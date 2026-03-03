@@ -5,11 +5,13 @@ import "strconv"
 type RealPolymer struct {
 	number   int64
 	monomers []*Monomer
+	field    *RealField
 }
 
-func NewRealPolymer(polymerNumber int64) *RealPolymer {
+func NewRealPolymer(field *RealField, polymerNumber int64) *RealPolymer {
 	return &RealPolymer{
 		number: polymerNumber,
+		field:  field,
 	}
 }
 
@@ -33,7 +35,7 @@ func (realPolymer *RealPolymer) Number() int64 {
 }
 
 func (realPolymer *RealPolymer) Copy() IPolymer {
-	newPolymer := NewRealPolymer(realPolymer.number)
+	newPolymer := NewRealPolymer(realPolymer.field, realPolymer.number)
 	newPolymer.monomers = realPolymer.monomers
 	return newPolymer
 }
@@ -65,6 +67,6 @@ func (realPolymer *RealPolymer) GetMonomerByIdx(idx int) *Monomer {
 	return realPolymer.monomers[idx]
 }
 
-func (realPolymer *RealPolymer) GetPolymerType() PolymerType {
-	return POLYMER_TYPE_REAL
+func (realPolymer *RealPolymer) GetFieldType() FieldType {
+	return FIELD_TYPE_REAL
 }

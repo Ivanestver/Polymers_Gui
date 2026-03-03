@@ -172,6 +172,6 @@ func (polymer *Polymer) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (polymer *Polymer) GetPolymerType() PolymerType {
-	return POLYMER_TYPE_LATTICE
+func (polymer *Polymer) GetFieldType() FieldType {
+	return FIELD_TYPE_LATTICE
 }

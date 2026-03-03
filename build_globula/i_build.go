@@ -10,6 +10,7 @@ type AlgType int
 const (
 	GlobulaBuildAlg AlgType = iota
 	ThreadBuildAlg
+	SurfaceBuildAlg
 )
 
 type ICalcAlg interface {
@@ -26,10 +27,15 @@ type IInputDataBuilder interface {
 }
 
 func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {
-	if algType == GlobulaBuildAlg {
+	switch algType {
+	case GlobulaBuildAlg:
 		return &CalcAlgInputDataBuilder{}
-	} else {
+	case ThreadBuildAlg:
 		return &BuildThreadAlgInputDataBuilder{}
+	case SurfaceBuildAlg:
+		return &SurfaceInputDataBuilder{}
+	default:
+		return nil
 	}
 }
 
@@ -46,6 +52,13 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 		inp, ok := inputData.(BuildThreadAlgInputData)
 		if ok {
 			return &BuildThreadAlg{
+				inputData: inp,
+			}
+		}
+	case SurfaceBuildAlg:
+		inp, ok := inputData.(*SurfaceAlgInputData)
+		if ok {
+			return &SurfaceCalcAlg{
 				inputData: inp,
 			}
 		}

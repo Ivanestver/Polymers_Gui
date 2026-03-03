@@ -2,21 +2,15 @@ package loaders
 
 import (
 	"errors"
+	"polymers/datatypes"
 	"polymers/views"
 )
 
-type FieldType = int
-
-const (
-	FIELD_TYPE_REAL FieldType = iota
-	FIELD_TYPE_LATTICE
-)
-
 type ILoader interface {
-	Load(filename string, field FieldType) (*views.GlobulaView, error)
+	Load(filename string, field datatypes.FieldType) (*views.GlobulaView, error)
 }
 
-func NewLoader(loaderType string, field FieldType) (ILoader, error) {
+func NewLoader(loaderType string, field datatypes.FieldType) (ILoader, error) {
 	if loader, ok := map[string]ILoader{
 		"lammps": &_LammpsLoader{},
 	}[loaderType]; ok {

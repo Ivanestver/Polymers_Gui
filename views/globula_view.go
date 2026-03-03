@@ -22,6 +22,7 @@ const (
 	GLOBULA_WATERIZED
 	GLOBULA_GLOBULA_TYPE
 	GLOBULA_THREAD_TYPE
+	GLOBULA_SURFACE_TYPE
 )
 const crosslinksCount = 0.5
 
@@ -577,22 +578,24 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	}
 	printer := output_format.GetPrint()
 	// First, distribute O containing monomers
-	if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
-		dt.MONOMER_TYPE_O_CONTAINING,
-		dt.MONOMER_TYPE_VYNIL); warning != nil {
-		printer.PrintlnWarning(warning.Error())
-	} else if err != nil {
-		return err
-	}
+	// if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
+	// 	dt.MONOMER_TYPE_O_CONTAINING,
+	// 	dt.MONOMER_TYPE_VYNIL); warning != nil {
+	// 	printer.PrintlnWarning(warning.Error())
+	// } else if err != nil {
+	// 	return err
+	// }
+	globula.breakConnections(OcontainingCount, dt.MONOMER_TYPE_VYNIL)
 
 	// Then, distribute what's left
-	if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
-		dt.MONOMER_TYPE_VYNIL,
-		dt.MONOMER_TYPE_VYNIL); warning != nil {
-		printer.PrintlnWarning(warning.Error())
-	} else if err != nil {
-		return err
-	}
+	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
+	// 	dt.MONOMER_TYPE_VYNIL,
+	// 	dt.MONOMER_TYPE_VYNIL); warning != nil {
+	// 	printer.PrintlnWarning(warning.Error())
+	// } else if err != nil {
+	// 	return err
+	// }
+	globula.turnRandomBinsIntoC(ncut - OcontainingCount)
 
 	// At the end, distribute crosslinks
 	if warning, err := globula.aging3DistributeCrosslinks(ncross); warning != nil {
@@ -650,6 +653,67 @@ func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err
 		nextChosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
 		ncross--
 		trialsCount = 0
+	}
+	if trialsCount != 0 {
+		return fmt.Errorf("%d crosslinks weren't distributed", ncross), nil
+	}
+	return nil, nil
+}
+
+func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err error) {
+	warning = nil
+	err = nil
+	trialsCount := 0
+	for ncross > 0 && trialsCount < 10 {
+		chosenPolymerNumber := rand.Intn(globula.Len())
+		chosenPolymer := globula.polymers[chosenPolymerNumber]
+		chosenMonomerNumber := rand.Intn(chosenPolymer.Len())
+		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
+		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+			trialsCount++
+			continue
+		}
+		movementSides := dt.GetMovementSides()
+		for i := 0; i < len(movementSides); i++ {
+			chosenSide := movementSides[rand.Intn(len(movementSides))]
+			nextMonomer, _ := chosenMonomer.GetSibling(chosenSide)
+			getBorderMonomer := func(side dt.Side, startMonomer *dt.Monomer) *dt.Monomer {
+				curr := startMonomer
+				prev, _ := curr.GetSibling(side)
+				for prev != nil && prev.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
+					t := prev
+					prev, _ = curr.GetSibling(side)
+					curr = t
+				}
+				return curr
+			}
+			if (chosenMonomer.NextMonomer != nil && dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer)) ||
+				(chosenMonomer.PrevMonomer != nil && dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
+				continue
+			}
+			if nextMonomer == nil ||
+				nextMonomer.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
+				switch chosenSide {
+				case dt.SIDE_Forward:
+					nextMonomer = getBorderMonomer(dt.SIDE_Backward, chosenMonomer)
+				case dt.SIDE_Backward:
+					nextMonomer = getBorderMonomer(dt.SIDE_Forward, chosenMonomer)
+				case dt.SIDE_Up:
+					nextMonomer = getBorderMonomer(dt.SIDE_Down, chosenMonomer)
+				case dt.SIDE_Down:
+					nextMonomer = getBorderMonomer(dt.SIDE_Up, chosenMonomer)
+				default:
+					continue
+				}
+				dt.MakeConnectionUnsafe(chosenMonomer, nextMonomer, chosenSide, dt.CONNECTION_TYPE_CROSSLINKS)
+			} else {
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
+			}
+			chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+			nextMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+			trialsCount = 0
+			break
+		}
 	}
 	if trialsCount != 0 {
 		return fmt.Errorf("%d crosslinks weren't distributed", ncross), nil
@@ -854,4 +918,24 @@ func (visualizer *GlobulaView) showMeanLengthOfChains() string {
 	atomsCount := visualizer.GetAtomsCount()
 	builder.WriteString(strconv.FormatFloat(float64(atomsCount)/float64(visualizer.Len()), 'f', 2, 64))
 	return builder.String()
+}
+
+func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error {
+	if ncut < nOContaining {
+		return errors.New("ncut is less that the O-containing monomers count")
+	}
+	printer := output_format.GetPrint()
+	// First, distribute O containing monomers
+	globula.breakConnections(nOContaining, dt.MONOMER_TYPE_VYNIL)
+
+	// Then, distribute what's left
+	globula.turnRandomBinsIntoC(ncut - nOContaining)
+
+	// At the end, distribute crosslinks
+	if warning, err := globula.aging4DistributeCrosslinks(ncross); warning != nil {
+		printer.PrintlnWarning(warning.Error())
+	} else if err != nil {
+		return err
+	}
+	return nil
 }

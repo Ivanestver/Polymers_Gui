@@ -21,6 +21,7 @@ const (
 	COMMAND_FULL_STR              = "full"
 	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
 	COMMAND_THREAD_STR            = "thread"
+	COMMAND_SURFACE_STR           = "surface"
 	COMMAND_WATERIZE_STR          = "waterize"
 	COMMAND_TRUNK_STR             = "trunk"
 	COMMAND_PATTERN_STR           = "pattern"
@@ -249,6 +250,11 @@ func build() (Command, interface{}) {
 		return COMMAND_BUILD, m
 	}
 
+	if objective == COMMAND_SURFACE_STR {
+		m["alg"] = build_globula.SurfaceBuildAlg
+		return COMMAND_BUILD, m
+	}
+
 	return getUndefinedCommand(objective)
 }
 
@@ -324,8 +330,8 @@ func age() (Command, interface{}) {
 	}
 
 	m := make(map[string]interface{})
-	// For Age Algorithm Type 3
-	if !finished() && ageAlgType == 3 {
+	// For Age Algorithm Type 3 and 4
+	if !finished() && (ageAlgType == 3 || ageAlgType == 4) {
 		ncut, err := getNextToken()
 		if err != nil {
 			return COMMAND_UNDEFINED, err
@@ -349,7 +355,6 @@ func age() (Command, interface{}) {
 		m["ncross"] = ncross
 	}
 
-	m["globula"] = globulaName
 	m["count"] = groupCount
 	m["make_crosslinks"] = (token == "true")
 	m["alg_type"] = ageAlgType

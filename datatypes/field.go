@@ -15,7 +15,7 @@ type Field struct {
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
-	shape := [...]int64{globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z}
+	shape := [...]int64{int64(globalData.SpaceDimention.X), int64(globalData.SpaceDimention.Y), int64(globalData.SpaceDimention.Z)}
 	var i int64
 	var j int64
 	var k int64
@@ -74,9 +74,9 @@ func (field *Field) IsFree(coords base.Vector3DF) bool {
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
 	return base.Vector3D{
-		X: coords.X % globalData.SpaceDimention.X,
-		Y: coords.Y % globalData.SpaceDimention.Y,
-		Z: coords.Z % globalData.SpaceDimention.Z,
+		X: coords.X % int64(globalData.SpaceDimention.X),
+		Y: coords.Y % int64(globalData.SpaceDimention.Y),
+		Z: coords.Z % int64(globalData.SpaceDimention.Z),
 	}
 }
 

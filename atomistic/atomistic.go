@@ -482,6 +482,10 @@ func connectMonomers(polymers []*_Polymer) {
 			left := polymer.Monomers[i]
 			right := polymer.Monomers[i+1]
 
+			if left.Head == nil && right.Tail == nil {
+				continue
+			}
+
 			if left.Head == nil || right.Tail == nil {
 				printer.PrintflnError("connectMonomers: no head or tail for monomers with numbers '%d' and '%d'", i, i+1)
 				continue

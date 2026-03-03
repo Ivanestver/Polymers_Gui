@@ -2,7 +2,13 @@ package global_data
 
 import "polymers/base"
 
-type SpaceDimention base.Vector3D
+type SpaceDimention base.Vector3DF
+
+func (space *SpaceDimention) PointInSpace(point *base.Vector3DF) bool {
+	return 0 <= point.X && point.X < space.X &&
+		0 <= point.Y && point.Y < space.Y &&
+		0 <= point.Z && point.Z < space.Z
+}
 
 type GlobalData struct {
 	UpVector       base.Vector3D

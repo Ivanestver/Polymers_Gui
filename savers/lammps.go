@@ -94,10 +94,20 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	// Write the atom types info gathered
 	for _, p := range atomsTypes {
 		lammpsStruct.AtomTypes = append(lammpsStruct.AtomTypes, lammps_structs.AtomType{
-			Item1: p.Item1,
-			Item2: 1.0,
+			AtomType:  p.Item1,
+			AtomMass:  1.0,
+			AtomLabel: p.Item2,
 		})
 	}
+	slices.SortFunc(lammpsStruct.AtomTypes, func(atomType1, atomType2 lammps_structs.AtomType) int {
+		if atomType1.AtomType < atomType2.AtomType {
+			return -1
+		} else if atomType1.AtomType == atomType2.AtomType {
+			return 0
+		} else {
+			return 1
+		}
+	})
 }
 
 func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[dt.MonomerType]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
@@ -176,16 +186,16 @@ func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes 
 		value, ok := bondTypes[connectionType]
 		if !ok {
 			value = lammps_structs.BondType{
-				Item1: len(bondTypes) + 1,
-				Item2: 1.0,
-				Item3: 100.0,
+				BondID: len(bondTypes) + 1,
+				Sth1:   1.0,
+				Sth2:   100.0,
 			}
 			bondTypes[connectionType] = value
 		}
 
 		lammpsStruct.Bonds = append(lammpsStruct.Bonds, lammps_structs.Bond{
 			BondID:         *bondID,
-			ConnectionType: value.Item1,
+			ConnectionType: value.BondID,
 			Ends:           [2]int{int(mon1.Number), int(mon2.Number)},
 		})
 	}

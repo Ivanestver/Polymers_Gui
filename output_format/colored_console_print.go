@@ -33,7 +33,11 @@ func (print *ColoredConsolePrint) PrintInfo(msg string) {
 }
 
 func (print *ColoredConsolePrint) PrintfInfo(msg string, args ...any) {
-	print.Printf(MakeYellow("[INFO] ")+msg, args)
+	print.Printf(MakeYellow("[INFO] ")+msg, args...)
+}
+
+func (print *ColoredConsolePrint) PrintflnInfo(msg string, args ...any) {
+	print.PrintfInfo(MakeYellow("[INFO] ")+msg+"\n", args...)
 }
 
 func (print *ColoredConsolePrint) PrintlnError(msg string) {
@@ -41,7 +45,7 @@ func (print *ColoredConsolePrint) PrintlnError(msg string) {
 }
 
 func (print *ColoredConsolePrint) PrintflnError(msg string, args ...any) {
-	print.Printfln(MakeRed("[ERROR] "+msg), args)
+	print.Printfln(MakeRed("[ERROR] "+msg), args...)
 }
 
 func (print *ColoredConsolePrint) PrintlnWarning(msg string) {
@@ -53,11 +57,11 @@ func (print *ColoredConsolePrint) PrintWarning(msg string) {
 }
 
 func (print *ColoredConsolePrint) PrintfWarning(msg string, args ...any) {
-	print.Printf(MakePurple("[WARNING] "+msg), args)
+	print.Printf(MakePurple("[WARNING] "+msg), args...)
 }
 
 func (print *ColoredConsolePrint) PrintflnWarning(msg string, args ...any) {
-	print.Printfln(MakePurple("[WARNING] "+msg), args)
+	print.Printfln(MakePurple("[WARNING] "+msg), args...)
 }
 
 func (print *ColoredConsolePrint) Read(args ...any) {

@@ -76,7 +76,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 			}
 			inputData.ThreadRadius = radius
 			inputData.ThreadRadius /= 2
-			maxPolymersCount, err := strconv.Atoi(split[1][:len(split[1])])
+			maxPolymersCount, err := strconv.Atoi(split[1][:len(split[1])-1])
 			if err != nil {
 				return inputData, err
 			}
@@ -123,7 +123,7 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	var polymers []*datatypes.Polymer = make([]*datatypes.Polymer, len(startPositions))
 	// build the polymers
 	for i, startPosition := range startPositions {
-		output_format.GetPrint().PrintlnInfo("The start position is (" + strconv.FormatFloat(startPosition.X, 'b', 3, 64) + ", " + strconv.FormatFloat(startPosition.Y, 'b', 3, 64) + ", " + strconv.FormatFloat(startPosition.Y, 'b', 3, 64) + ")")
+		output_format.GetPrint().PrintflnInfo("The start position is (%f, %f, %f)", startPosition.X, startPosition.Y, startPosition.Z)
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 		polymer := polymers[i]
 		// add a start monomer
@@ -146,13 +146,13 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 }
 
 func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3DF {
-	globalData := global_data.GetGlobalData()
-	if globalData.SpaceDimention.Z < int64(alg.inputData.ThreadLength) {
+	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	if spaceDimention.Z < alg.inputData.ThreadLength {
 		return nil
 	}
 	center := &base.Vector3DF{
-		X: float64(globalData.SpaceDimention.X) / 2,
-		Y: float64(globalData.SpaceDimention.Y) / 2,
+		X: float64(int(spaceDimention.X / 2)),
+		Y: float64(int(spaceDimention.Y / 2)),
 		Z: 0,
 	}
 	startPositions := make([]*base.Vector3DF, 0)
@@ -161,7 +161,11 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3DF {
 	for len(toVisit) != 0 && (alg.inputData.MaxPolymersCount <= 0 || len(startPositions) < alg.inputData.MaxPolymersCount) {
 		currPoint := toVisit[0]
 		toVisit = toVisit[1:]
-		if base.Contains_if(startPositions, currPoint, func(it *base.Vector3DF, value *base.Vector3DF) bool { return base.VectorsAreEqualF(it, value) }) || base.EcludianDistanceF(*center, *currPoint) > alg.inputData.ThreadRadius {
+		if base.Contains_if(startPositions, currPoint, func(it *base.Vector3DF, value *base.Vector3DF) bool {
+			return base.VectorsAreEqualF(it, value)
+		}) ||
+			base.EcludianDistanceF(*center, *currPoint) > alg.inputData.ThreadRadius ||
+			!spaceDimention.PointInSpace(currPoint) {
 			continue
 		} else {
 			startPositions = append(startPositions, currPoint)

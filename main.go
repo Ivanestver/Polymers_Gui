@@ -39,17 +39,17 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
 	} else {
 		*commands = (*commands)[1:]
-		if x, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+		if x, err := strconv.ParseFloat(parts[1], 64); err == nil {
 			spaceDimention.X = x
 		} else {
 			printer.PrintlnError(err.Error())
 		}
-		if y, err := strconv.ParseInt(parts[2], 10, 64); err == nil {
+		if y, err := strconv.ParseFloat(parts[2], 64); err == nil {
 			spaceDimention.Y = y
 		} else {
 			printer.PrintlnError(err.Error())
 		}
-		if z, err := strconv.ParseInt(parts[3], 10, 64); err == nil {
+		if z, err := strconv.ParseFloat(parts[3], 64); err == nil {
 			spaceDimention.Z = z
 		} else {
 			printer.PrintlnError(err.Error())
@@ -132,11 +132,10 @@ func main() {
 		case interp.COMMAND_AGE:
 			data := data.(map[string]interface{})
 			groupsCountStr := data["count"].(string)
-			globulaName := data["globula"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
 			if globula == nil {
-				printer.PrintlnError("There is no globula named " + globulaName)
+				printer.PrintlnError("There is no globula")
 				break
 			}
 			groupsCount := 0
@@ -150,7 +149,7 @@ func main() {
 				globula.DoAging1(groupsCount)
 			} else if algType == 2 {
 				globula.DoAging2(groupsCount, doCrosslinks)
-			} else if algType == 3 {
+			} else if algType == 3 || algType == 4 {
 				ncut, err := strconv.Atoi(data["ncut"].(string))
 				if err != nil {
 					continue
@@ -164,7 +163,12 @@ func main() {
 				if err != nil {
 					continue
 				}
-				globula.DoAging3(ncut, nOContaining, ncross)
+				switch algType {
+				case 3:
+					globula.DoAging3(ncut, nOContaining, ncross)
+				case 4:
+					globula.DoAgingSurface(ncut, nOContaining, ncross)
+				}
 			}
 
 		case interp.COMMAND_RESET:
@@ -227,9 +231,9 @@ func main() {
 			filetype := data["filetype"]
 			filename := data["filename"]
 			fieldTypeStr := data["field"]
-			fieldType, ok := map[string]loaders.FieldType{
-				interp.COMMAND_REAL_STR:    loaders.FIELD_TYPE_REAL,
-				interp.COMMAND_LATTICE_STR: loaders.FIELD_TYPE_LATTICE,
+			fieldType, ok := map[string]datatypes.FieldType{
+				interp.COMMAND_REAL_STR:    datatypes.FIELD_TYPE_REAL,
+				interp.COMMAND_LATTICE_STR: datatypes.FIELD_TYPE_LATTICE,
 			}[fieldTypeStr]
 			if !ok {
 				printer.PrintflnError("No such a field type: %s", fieldType)

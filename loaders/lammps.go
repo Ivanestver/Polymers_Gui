@@ -34,7 +34,7 @@ type _LammpsMetadata struct {
 type _LammpsLoader struct {
 }
 
-func (loader *_LammpsLoader) Load(filename string, fieldType FieldType) (*views.GlobulaView, error) {
+func (loader *_LammpsLoader) Load(filename string, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -46,20 +46,20 @@ func (loader *_LammpsLoader) Load(filename string, fieldType FieldType) (*views.
 	return parseFromJson(jsonStruct, fieldType)
 }
 
-func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType FieldType) (*views.GlobulaView, error) {
-	field := makeField()
+func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
+	field := makeField(fieldType)
 	polymers := makePolymers(jsonStruct, field, fieldType)
 	literals := make(map[datatypes.MonomerType]string)
-	literals[0] = "O"
-	literals[1] = "N"
-	literals[2] = "C"
-	literals[3] = "S"
+	for _, atom := range jsonStruct.AtomTypes {
+		literals[datatypes.MonomerType(atom.AtomType-1)] = atom.AtomLabel
+	}
 	globula := views.NewGlobulaView(polymers, views.GLOBULA_THREAD_TYPE, literals)
 	return globula, nil
 }
 
-func makeField() *datatypes.Field {
-	return datatypes.NewField(getMaxDimention())
+func makeField(fieldType datatypes.FieldType) datatypes.IField {
+	//return datatypes.NewField(getMaxDimention())
+	return datatypes.CreateField(fieldType, getMaxDimention())
 }
 
 func getMaxDimention() uint64 {
@@ -67,23 +67,15 @@ func getMaxDimention() uint64 {
 	return uint64(max(globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z))
 }
 
-func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field *datatypes.Field, fieldType FieldType) []datatypes.IPolymer {
+func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IField, fieldType datatypes.FieldType) []datatypes.IPolymer {
 	polymersMap := make(map[int]datatypes.IPolymer)
 	for _, atom := range lammpsStruct.Atoms {
 		moleculeID := atom.MoleculeID - 1
 		polymer, ok := polymersMap[moleculeID]
 		var a *datatypes.Monomer
-		switch fieldType {
-		case FIELD_TYPE_LATTICE:
-			if !ok {
-				polymersMap[moleculeID] = datatypes.NewPolymer(field, int64(moleculeID))
-				polymer = polymersMap[moleculeID]
-			}
-		case FIELD_TYPE_REAL:
-			if !ok {
-				polymersMap[moleculeID] = datatypes.NewRealPolymer(int64(moleculeID))
-				polymer = polymersMap[moleculeID]
-			}
+		if !ok {
+			polymersMap[moleculeID] = datatypes.NewIPolymer(fieldType, field, int64(moleculeID))
+			polymer = polymersMap[moleculeID]
 		}
 		a = field.GetMonomerByCoords(base.Vector3DF{
 			X: atom.X,
