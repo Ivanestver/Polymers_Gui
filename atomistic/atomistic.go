@@ -237,6 +237,8 @@ func fillAtomsInfo(molecule *_Monomer, scanner *bufio.Scanner) error {
 			molecule.Head = atom
 		} else if isTail(fields) {
 			molecule.Tail = atom
+		} else if isRotationPivot(fields) {
+			molecule.RotationPivot = atom
 		} else {
 			continue
 		}
@@ -272,6 +274,10 @@ func isHead(fields []string) bool {
 
 func isTail(fields []string) bool {
 	return isEnd(fields, 2)
+}
+
+func isRotationPivot(fields []string) bool {
+	return isEnd(fields, -1)
 }
 
 func isEnd(fields []string, markExpected int) bool {

@@ -15,12 +15,13 @@ type _AtomNumber = int
 type _BondValence = int
 
 type _Monomer struct {
-	Name  string
-	Atoms []_Atom
-	Bonds map[_AtomNumber]map[_AtomNumber]_BondValence
-	Mass  int
-	Head  *_Atom
-	Tail  *_Atom
+	Name          string
+	Atoms         []_Atom
+	Bonds         map[_AtomNumber]map[_AtomNumber]_BondValence
+	Mass          int
+	Head          *_Atom
+	Tail          *_Atom
+	RotationPivot *_Atom
 }
 
 type _Polymer struct {
@@ -81,6 +82,8 @@ func (molecule *_Monomer) Copy() *_Monomer {
 			newMolecule.Head = &newMolecule.Atoms[i]
 		} else if molecule.Tail != nil && molecule.Tail.Number == atom.Number {
 			newMolecule.Tail = &newMolecule.Atoms[i]
+		} else if molecule.RotationPivot != nil && molecule.RotationPivot.Number == atom.Number {
+			newMolecule.RotationPivot = &newMolecule.Atoms[i]
 		} else {
 			continue
 		}
