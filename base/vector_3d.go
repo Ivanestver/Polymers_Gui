@@ -79,6 +79,10 @@ func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
 	vector.Z *= constant
 }
 
+func (vector *Vector3DF) Normalized() Vector3DF {
+	return MultiplyByConstantF(vector, 1.0/vector.Len())
+}
+
 func Vector3D_To_Vector3DF(vector3D *Vector3D) Vector3DF {
 	return Vector3DF{
 		X: float64(vector3D.X),
@@ -104,6 +108,14 @@ func InvalidVectorF() Vector3DF {
 		X: math.NaN(),
 		Y: math.NaN(),
 		Z: math.NaN(),
+	}
+}
+
+func IndentityVectorF() Vector3DF {
+	return Vector3DF{
+		X: 0.0,
+		Y: 0.0,
+		Z: 0.0,
 	}
 }
 
@@ -136,5 +148,31 @@ func RevertVecF(vec *Vector3DF) *Vector3DF {
 		X: -1 * vec.X,
 		Y: -1 * vec.Y,
 		Z: -1 * vec.Z,
+	}
+}
+
+func MakeVectorF(from, to *Point3DF) Vector3DF {
+	return Vector3DF{
+		X: to.X - from.X,
+		Y: to.Y - from.Y,
+		Z: to.Z - from.Z,
+	}
+}
+
+func GetAngle(v1, v2 Vector3DF) float64 {
+	return math.Acos(DotProduct(v1, v2) / (v1.Len() * v2.Len()))
+}
+
+func DotProduct(v1, v2 Vector3DF) float64 {
+	return v1.X*v2.X +
+		v1.Y*v2.Y +
+		v1.Z*v2.Z
+}
+
+func VectorProduct(v1, v2 Vector3DF) Vector3DF {
+	return Vector3DF{
+		X: v1.Y*v2.Z - v1.Z*v2.Y,
+		Y: -(v1.X*v2.Z - v1.Z*v2.X),
+		Z: v1.X*v2.Y - v1.Y*v2.X,
 	}
 }
