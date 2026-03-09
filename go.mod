@@ -5,7 +5,7 @@ go 1.25.6
 //replace github.com/Ivanestver/lammps-file-parser => /home/ivan/projects/lammps-file-parser
 
 require (
-	github.com/Ivanestver/lammps-file-parser v0.0.0-20260303183312-a0fe7597405e
+	github.com/Ivanestver/lammps-file-parser v0.0.0-20260304204318-35595525b1ca
 	github.com/gookit/color v1.6.0
 )
 
