@@ -176,3 +176,14 @@ func VectorProduct(v1, v2 Vector3DF) Vector3DF {
 		Z: v1.X*v2.Y - v1.Y*v2.X,
 	}
 }
+
+func RotateVector(originVector Vector3DF, angle float64, rotationVector Vector3DF) Vector3DF {
+	cosAngle := math.Cos(angle / 2)
+	sinAngle := math.Sin(angle / 2)
+	r := rotationVector.Normalized()
+	q := MakeQuaternionFromVector(cosAngle, MultiplyByConstantF(&r, sinAngle))
+	q_conjugate := q.Conjugate()
+	v := MakeQuaternionFromVector(0, originVector)
+	rotatedVector := MultiplyQuaternions(MultiplyQuaternions(q, v), q_conjugate)
+	return rotatedVector.V
+}
