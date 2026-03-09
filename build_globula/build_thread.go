@@ -127,17 +127,17 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 		polymer := polymers[i]
 		// add a start monomer
-		mon := field.GetMonomerByCoords(*startPosition)
+		mon := field.GetMonomerByCoords(startPosition)
 		polymer.AddMonomer(mon)
 		// move forward until the distance between a current monomer and the start monomers are more than inputData.ThreadLength
 		forwardVector := base.Vector3DF{X: 0, Y: 0, Z: 1}
-		currPosition := &base.Vector3DF{X: startPosition.X, Y: startPosition.Y, Z: startPosition.Z}
+		currPosition := base.Vector3DF{X: startPosition.X, Y: startPosition.Y, Z: startPosition.Z}
 		for {
-			nextPosition := base.AddVecF(currPosition, &forwardVector)
-			if base.EcludianDistanceF(*startPosition, *nextPosition) >= alg.inputData.ThreadLength {
+			nextPosition := base.AddVecF(currPosition, forwardVector)
+			if base.EcludianDistanceF(startPosition, nextPosition) >= alg.inputData.ThreadLength {
 				break
 			}
-			mon = field.GetMonomerByCoords(*nextPosition)
+			mon = field.GetMonomerByCoords(nextPosition)
 			polymer.AddMonomer(mon)
 			currPosition = nextPosition
 		}
@@ -145,27 +145,27 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	return polymers
 }
 
-func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3DF {
+func (alg *BuildThreadAlg) defineStartMonomers() []base.Vector3DF {
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
 	if spaceDimention.Z < alg.inputData.ThreadLength {
 		return nil
 	}
-	center := &base.Vector3DF{
+	center := base.Vector3DF{
 		X: float64(int(spaceDimention.X / 2)),
 		Y: float64(int(spaceDimention.Y / 2)),
 		Z: 0,
 	}
-	startPositions := make([]*base.Vector3DF, 0)
-	toVisit := make([]*base.Vector3DF, 0)
+	startPositions := make([]base.Vector3DF, 0)
+	toVisit := make([]base.Vector3DF, 0)
 	toVisit = append(toVisit, center)
 	for len(toVisit) != 0 && (alg.inputData.MaxPolymersCount <= 0 || len(startPositions) < alg.inputData.MaxPolymersCount) {
 		currPoint := toVisit[0]
 		toVisit = toVisit[1:]
-		if base.Contains_if(startPositions, currPoint, func(it *base.Vector3DF, value *base.Vector3DF) bool {
-			return base.VectorsAreEqualF(it, value)
+		if base.Contains_if(startPositions, currPoint, func(it base.Vector3DF, value base.Vector3DF) bool {
+			return base.VectorsAreEqualF(&it, &value)
 		}) ||
-			base.EcludianDistanceF(*center, *currPoint) > alg.inputData.ThreadRadius ||
-			!spaceDimention.PointInSpace(currPoint) {
+			base.EcludianDistanceF(center, currPoint) > alg.inputData.ThreadRadius ||
+			!spaceDimention.PointInSpace(&currPoint) {
 			continue
 		} else {
 			startPositions = append(startPositions, currPoint)
@@ -177,7 +177,7 @@ func (alg *BuildThreadAlg) defineStartMonomers() []*base.Vector3DF {
 			}
 
 			for _, direction := range directions {
-				toVisit = append(toVisit, base.AddVecF(currPoint, &direction))
+				toVisit = append(toVisit, base.AddVecF(currPoint, direction))
 			}
 		}
 	}

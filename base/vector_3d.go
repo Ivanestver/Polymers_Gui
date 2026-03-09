@@ -98,19 +98,27 @@ func InvalidVectorF() Vector3DF {
 	}
 }
 
-func AddVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
-	return &Vector3DF{
+func AddVecF(left Vector3DF, right Vector3DF) Vector3DF {
+	return Vector3DF{
 		X: left.X + right.X,
 		Y: left.Y + right.Y,
 		Z: left.Z + right.Z,
 	}
 }
 
-func SubtractVecF(left *Vector3DF, right *Vector3DF) *Vector3DF {
-	return &Vector3DF{
+func SubtractVecF(left Vector3DF, right Vector3DF) Vector3DF {
+	return Vector3DF{
 		X: left.X - right.X,
 		Y: left.Y - right.Y,
 		Z: left.Z - right.Z,
+	}
+}
+
+func MultiplyByConstantF(left *Vector3DF, c float64) Vector3DF {
+	return Vector3DF{
+		X: left.X * c,
+		Y: left.Y * c,
+		Z: left.Z * c,
 	}
 }
 

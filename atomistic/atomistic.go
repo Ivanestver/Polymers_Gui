@@ -143,13 +143,13 @@ func getPolymer(globula *views.GlobulaView) []*_Polymer {
 }
 
 func resizePolymerByScale(polymers []*_Polymer, scale float64) {
-	pivot := &polymers[0].Monomers[0].Atoms[0].Coords
+	pivot := polymers[0].Monomers[0].Atoms[0].Coords
 	for _, pattern := range polymers {
 		for j := 0; j < len(pattern.Monomers); j++ {
 			firstAtom := &pattern.Monomers[j].Atoms[0]
-			direction := base.SubtractVecF(&firstAtom.Coords, pivot)
+			direction := base.SubtractVecF(firstAtom.Coords, pivot)
 			direction.MultiplyByConstantF(scale)
-			firstAtom.Coords = *base.AddVecF(pivot, direction)
+			firstAtom.Coords = base.AddVecF(pivot, direction)
 		}
 	}
 }
@@ -546,9 +546,9 @@ func getStartingMonomerCoords(polymer *_Polymer) base.Vector3DF {
 	firstMonomerMassCenter := polymer.Monomers[0].GetMassCenter()
 	secondMonomerMassCenter := polymer.Monomers[1].GetMassCenter()
 
-	direction := base.SubtractVecF(&firstMonomerMassCenter, &secondMonomerMassCenter)
+	direction := base.SubtractVecF(firstMonomerMassCenter, secondMonomerMassCenter)
 
-	firstMonomerMassCenter.AddF(direction)
+	firstMonomerMassCenter.AddF(&direction)
 	return firstMonomerMassCenter
 }
 
@@ -557,8 +557,8 @@ func getTerminatingMonomerCoords(polymer *_Polymer) base.Vector3DF {
 	prelastMonomerMassCenter := polymer.Monomers[monomersCount-2].GetMassCenter()
 	lastMonomerMassCenter := polymer.Monomers[monomersCount-1].GetMassCenter()
 
-	direction := base.SubtractVecF(&lastMonomerMassCenter, &prelastMonomerMassCenter)
+	direction := base.SubtractVecF(lastMonomerMassCenter, prelastMonomerMassCenter)
 
-	lastMonomerMassCenter.AddF(direction)
+	lastMonomerMassCenter.AddF(&direction)
 	return lastMonomerMassCenter
 }

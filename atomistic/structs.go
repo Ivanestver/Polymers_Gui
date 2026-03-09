@@ -46,10 +46,10 @@ func (molecule *_Monomer) GetMassCenter() base.Vector3DF {
 
 func (molecule *_Monomer) MoveTo(point *base.Vector3DF) {
 	massCenter := molecule.GetMassCenter()
-	direction := base.SubtractVecF(point, &massCenter)
+	direction := base.SubtractVecF(*point, massCenter)
 	for i := 0; i < len(molecule.Atoms); i++ {
 		currentAtom := &molecule.Atoms[i]
-		currentAtom.Coords.AddF(direction)
+		currentAtom.Coords.AddF(&direction)
 	}
 }
 
