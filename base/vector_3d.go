@@ -98,9 +98,10 @@ func VectorsAreEqualF(left, right *Vector3DF) bool {
 	if left == nil || right == nil {
 		return false
 	}
-	return left.X == right.X &&
-		left.Y == right.Y &&
-		left.Z == right.Z
+	const EPSILON float64 = 0.0001
+	return math.Abs(left.X-right.X) < EPSILON &&
+		math.Abs(left.Y-right.Y) < EPSILON &&
+		math.Abs(left.Z-right.Z) < EPSILON
 }
 
 func InvalidVectorF() Vector3DF {
