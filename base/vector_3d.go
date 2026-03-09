@@ -48,8 +48,17 @@ func AddVec(left *Vector3D, right *Vector3D) *Vector3D {
 	}
 }
 
-type Vector3DF struct {
+type Point3DF struct {
 	X, Y, Z float64
+}
+
+type Vector3DF Point3DF
+
+func (vector *Vector3DF) Len() float64 {
+	return math.Sqrt(
+		vector.X*vector.X +
+			vector.Y*vector.Y +
+			vector.Z*vector.Z)
 }
 
 func (vector *Vector3DF) IsInvalid() bool {
