@@ -48,6 +48,7 @@ func MakeAtomistic(globula *views.GlobulaView, configFile string) {
 	placeMolecules(polymers, config)
 	// Fill ends of the polymer
 	//fillEnds(polymer)
+	rotateMonomers(polymers)
 	// Make connections between molecules
 	connectMonomers(polymers)
 	// Save it into the file
@@ -286,7 +287,7 @@ func isEnd(fields []string, markExpected int) bool {
 }
 
 func getEndMark(fields []string) int {
-	mark := string(fields[len(fields)-1][0])
+	mark := strings.Split(fields[len(fields)-1], ".")[0]
 	if number, err := strconv.ParseInt(mark, 10, 32); err == nil {
 		return int(number)
 	} else {
@@ -567,4 +568,51 @@ func getTerminatingMonomerCoords(polymer *_Polymer) base.Vector3DF {
 
 	lastMonomerMassCenter.AddF(&direction)
 	return lastMonomerMassCenter
+}
+
+func rotateMonomers(polymers []*_Polymer) {
+	RcmGlobal := getRcmGlobal(polymers)
+	for _, polymer := range polymers {
+		for _, mon := range polymer.Monomers {
+			if mon.RotationPivot == nil {
+				continue
+			}
+			Rcm := getRcm(mon)
+			destinationDirection := base.MakeVectorF((*base.Point3DF)(&RcmGlobal), (*base.Point3DF)(&Rcm))
+			rotationPivotDirection := base.MakeVectorF((*base.Point3DF)(&Rcm), (*base.Point3DF)(&mon.RotationPivot.Coords))
+			angle := base.GetAngle(rotationPivotDirection, destinationDirection)
+			rotationVector := base.VectorProduct(rotationPivotDirection, destinationDirection)
+			for atomNumber := range mon.Atoms {
+				initialDirection := base.MakeVectorF((*base.Point3DF)(&Rcm), (*base.Point3DF)(&mon.Atoms[atomNumber].Coords))
+				resultDirection := base.RotateVector(initialDirection, angle, rotationVector)
+				mon.Atoms[atomNumber].Coords = base.AddVecF(Rcm, resultDirection)
+			}
+		}
+	}
+}
+
+func getRcmGlobal(polymers []*_Polymer) base.Vector3DF {
+	v := base.IndentityVectorF()
+	n := 0.0
+	for _, polymer := range polymers {
+		for _, monomer := range polymer.Monomers {
+			for _, atom := range monomer.Atoms {
+				v.AddF(&atom.Coords)
+				n += 1.0
+			}
+		}
+	}
+	v.MultiplyByConstantF(1.0 / n)
+	return v
+}
+
+func getRcm(monomer *_Monomer) base.Vector3DF {
+	v := base.IndentityVectorF()
+	n := 0.0
+	for _, atom := range monomer.Atoms {
+		v.AddF(&atom.Coords)
+		n += 1.0
+	}
+	v.MultiplyByConstantF(1.0 / n)
+	return v
 }
