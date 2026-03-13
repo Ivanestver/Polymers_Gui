@@ -27,34 +27,47 @@ var printer output_format.IPrint
 
 func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	var spaceDimention global_data.SpaceDimention
+	spaceDim := struct{ X, Y, Z float64 }{}
 	if len(*commands) == 0 {
 		printer.PrintInfo("Please, type the space dimention: ")
-		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+		printer.Readln(&spaceDim.X, &spaceDim.Y, &spaceDim.Z)
+		spaceDimention[base.X_AXIS].Lower = 0.0
+		spaceDimention[base.Y_AXIS].Lower = 0.0
+		spaceDimention[base.Z_AXIS].Lower = 0.0
+		spaceDimention[base.X_AXIS].Higher = spaceDim.X
+		spaceDimention[base.Y_AXIS].Higher = spaceDim.Y
+		spaceDimention[base.Z_AXIS].Higher = spaceDim.Z
 		return spaceDimention
 	}
 	line := (*commands)[0]
 	parts := strings.Split(line, " ")
 	if len(parts) != 4 || parts[0] != "space" {
 		printer.PrintInfo("No space dimention definition found. Please, type the space dimention: ")
-		printer.Readln(&spaceDimention.X, &spaceDimention.Y, &spaceDimention.Z)
+		printer.Readln(&spaceDim.X, &spaceDim.Y, &spaceDim.Z)
 	} else {
 		*commands = (*commands)[1:]
 		if x, err := strconv.ParseFloat(parts[1], 64); err == nil {
-			spaceDimention.X = x
+			spaceDim.X = x
 		} else {
 			printer.PrintlnError(err.Error())
 		}
 		if y, err := strconv.ParseFloat(parts[2], 64); err == nil {
-			spaceDimention.Y = y
+			spaceDim.Y = y
 		} else {
 			printer.PrintlnError(err.Error())
 		}
 		if z, err := strconv.ParseFloat(parts[3], 64); err == nil {
-			spaceDimention.Z = z
+			spaceDim.Z = z
 		} else {
 			printer.PrintlnError(err.Error())
 		}
 	}
+	spaceDimention[base.X_AXIS].Lower = 0.0
+	spaceDimention[base.Y_AXIS].Lower = 0.0
+	spaceDimention[base.Z_AXIS].Lower = 0.0
+	spaceDimention[base.X_AXIS].Higher = spaceDim.X
+	spaceDimention[base.Y_AXIS].Higher = spaceDim.Y
+	spaceDimention[base.Z_AXIS].Higher = spaceDim.Z
 	printer.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 	return spaceDimention
 }

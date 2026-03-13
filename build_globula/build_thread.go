@@ -147,14 +147,11 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 
 func (alg *BuildThreadAlg) defineStartMonomers() []base.Vector3DF {
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
-	if spaceDimention.Z < alg.inputData.ThreadLength {
+	if spaceDimention[base.Z_AXIS].Higher-spaceDimention[base.Z_AXIS].Lower < alg.inputData.ThreadLength {
 		return nil
 	}
-	center := base.Vector3DF{
-		X: float64(int(spaceDimention.X / 2)),
-		Y: float64(int(spaceDimention.Y / 2)),
-		Z: 0,
-	}
+	center := spaceDimention.GetCenter()
+	center.Z = 0.0
 	startPositions := make([]base.Vector3DF, 0)
 	toVisit := make([]base.Vector3DF, 0)
 	toVisit = append(toVisit, center)

@@ -7,6 +7,7 @@ import (
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/global_data"
 	"polymers/output_format"
 	"polymers/views"
 	"strconv"
@@ -412,6 +413,16 @@ func makeFileContent(polymers []*_Polymer) string {
 	builder.WriteString(fmt.Sprintf("%d %d 0 0 0\n", getAtomsCount(polymers), getBondsCount(polymers)))
 	builder.WriteString("SMALL\n")
 	builder.WriteString("USER_CHARGES\n")
+	builder.WriteString("\n")
+	builder.WriteString("\n")
+
+	builder.WriteString("@<TRIPOS>CRYSIN\n")
+	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	builder.WriteString(fmt.Sprintf("%f %f %f 90.000 90.000 90.000 1 1",
+		spaceDimention[base.X_AXIS].Higher-spaceDimention[base.X_AXIS].Lower,
+		spaceDimention[base.Y_AXIS].Higher-spaceDimention[base.Y_AXIS].Lower,
+		spaceDimention[base.Z_AXIS].Higher-spaceDimention[base.Z_AXIS].Lower,
+	))
 	builder.WriteString("\n")
 	builder.WriteString("\n")
 

@@ -1,6 +1,9 @@
 package datatypes
 
-import "polymers/base"
+import (
+	"polymers/base"
+	"polymers/global_data"
+)
 
 type FieldType = int
 
@@ -19,9 +22,14 @@ type IField interface {
 func CreateField(fieldType FieldType, args ...any) IField {
 	switch fieldType {
 	case FIELD_TYPE_REAL:
-		return NewRealField()
+		return NewRealField(args[0].([3][2]float64))
 	case FIELD_TYPE_LATTICE:
-		return NewField(args[0].(uint64))
+		return NewField(getMaxDimention())
 	}
 	return nil
+}
+
+func getMaxDimention() uint64 {
+	globalData := global_data.GetGlobalData()
+	return uint64(max(globalData.SpaceDimention[base.X_AXIS].Higher, globalData.SpaceDimention[base.Y_AXIS].Higher, globalData.SpaceDimention[base.Z_AXIS].Higher))
 }

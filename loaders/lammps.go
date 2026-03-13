@@ -4,7 +4,6 @@ import (
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
-	"polymers/global_data"
 	"polymers/views"
 
 	lammps_parser "github.com/Ivanestver/lammps-file-parser/deserialize"
@@ -47,7 +46,7 @@ func (loader *_LammpsLoader) Load(filename string, fieldType datatypes.FieldType
 }
 
 func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
-	field := makeField(fieldType)
+	field := makeField(fieldType, jsonStruct.SpaceDimention)
 	polymers := makePolymers(jsonStruct, field, fieldType)
 	literals := make(map[datatypes.MonomerType]string)
 	for _, atom := range jsonStruct.AtomTypes {
@@ -57,14 +56,9 @@ func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.
 	return globula, nil
 }
 
-func makeField(fieldType datatypes.FieldType) datatypes.IField {
+func makeField(fieldType datatypes.FieldType, spaceDimention [3][2]float64) datatypes.IField {
 	//return datatypes.NewField(getMaxDimention())
-	return datatypes.CreateField(fieldType, getMaxDimention())
-}
-
-func getMaxDimention() uint64 {
-	globalData := global_data.GetGlobalData()
-	return uint64(max(globalData.SpaceDimention.X, globalData.SpaceDimention.Y, globalData.SpaceDimention.Z))
+	return datatypes.CreateField(fieldType, spaceDimention)
 }
 
 func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IField, fieldType datatypes.FieldType) []datatypes.IPolymer {

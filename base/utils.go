@@ -169,3 +169,7 @@ func Sum[T Summable](container []T) T {
 	}
 	return sum
 }
+
+func CompareFloat(left, right float64) bool {
+	return math.Abs(left-right) <= 0.001
+}

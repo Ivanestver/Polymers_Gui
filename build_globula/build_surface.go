@@ -59,9 +59,9 @@ func (alg *SurfaceCalcAlg) Calc() []*datatypes.Polymer {
 	}}
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
 	global_data.ConfigureGlobalData(global_data.SpaceDimention{
-		X: float64(alg.inputData.Xlength),
-		Y: float64(alg.inputData.Ylength),
-		Z: float64(alg.inputData.Zlength),
+		{Lower: 0.0, Higher: float64(alg.inputData.Xlength)},
+		{Lower: 0.0, Higher: float64(alg.inputData.Ylength)},
+		{Lower: 0.0, Higher: float64(alg.inputData.Zlength)},
 	})
 	polymers := threadAlg.Calc()
 	global_data.ConfigureGlobalData(spaceDimention)

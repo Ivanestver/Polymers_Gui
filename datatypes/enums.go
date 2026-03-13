@@ -1,20 +1,15 @@
 package datatypes
 
-import "errors"
+import (
+	"errors"
+	"polymers/base"
+)
 
-type Axis = uint8
 type MoveDirection = int8
 type Side int16
 type MonomerType int8
 type ConnectionType int8
 type GlobulaViewType int
-
-const (
-	X_AXIS     Axis = 0
-	Y_AXIS     Axis = 1
-	Z_AXIS     Axis = 2
-	AXIS_COUNT Axis = 3
-)
 
 const (
 	DIRECTION_BACKWARD MoveDirection = -1
@@ -24,12 +19,12 @@ const (
 
 const (
 	SIDE_Undefined         = -10
-	SIDE_Forward           = Side(int8(X_AXIS+1) * DIRECTION_FORWARD)
-	SIDE_Backward          = Side(int8(X_AXIS+1) * DIRECTION_BACKWARD)
-	SIDE_Left              = Side(int8(Y_AXIS+1) * DIRECTION_FORWARD)
-	SIDE_Right             = Side(int8(Y_AXIS+1) * DIRECTION_BACKWARD)
-	SIDE_Up                = Side(int8(Z_AXIS+1) * DIRECTION_FORWARD)
-	SIDE_Down              = Side(int8(Z_AXIS+1) * DIRECTION_BACKWARD)
+	SIDE_Forward           = Side(int8(base.X_AXIS+1) * DIRECTION_FORWARD)
+	SIDE_Backward          = Side(int8(base.X_AXIS+1) * DIRECTION_BACKWARD)
+	SIDE_Left              = Side(int8(base.Y_AXIS+1) * DIRECTION_FORWARD)
+	SIDE_Right             = Side(int8(base.Y_AXIS+1) * DIRECTION_BACKWARD)
+	SIDE_Up                = Side(int8(base.Z_AXIS+1) * DIRECTION_FORWARD)
+	SIDE_Down              = Side(int8(base.Z_AXIS+1) * DIRECTION_BACKWARD)
 	SIDE_UpLeftForward     = 1000
 	SIDE_UpForward         = SIDE_UpLeftForward + 1
 	SIDE_UpRightForward    = SIDE_UpForward + 1
@@ -98,7 +93,7 @@ func GetAllSides() []Side {
 	return append(GetMovementSides(), GetAdditionalSides()...)
 }
 
-func GetSide(axis Axis, moveDirection MoveDirection) Side {
+func GetSide(axis base.Axis, moveDirection MoveDirection) Side {
 	return Side((axis + 1) * uint8(moveDirection))
 }
 
@@ -161,11 +156,11 @@ func GetReversedSide(side Side) Side {
 	}
 }
 
-func GetAxisColor(axis Axis) MonomerType {
-	return map[Axis]MonomerType{
-		X_AXIS: MONOMER_TYPE_VYNIL,
-		Y_AXIS: MONOMER_TYPE_O_CONTAINING,
-		Z_AXIS: MONOMER_TYPE_FWISE,
+func GetAxisColor(axis base.Axis) MonomerType {
+	return map[base.Axis]MonomerType{
+		base.X_AXIS: MONOMER_TYPE_VYNIL,
+		base.Y_AXIS: MONOMER_TYPE_O_CONTAINING,
+		base.Z_AXIS: MONOMER_TYPE_FWISE,
 	}[axis]
 }
 

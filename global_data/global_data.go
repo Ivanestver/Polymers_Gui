@@ -1,13 +1,34 @@
 package global_data
 
-import "polymers/base"
+import (
+	"polymers/base"
+)
 
-type SpaceDimention base.Vector3DF
+type RealFieldRestriction struct{ Lower, Higher float64 }
 
-func (space *SpaceDimention) PointInSpace(point *base.Vector3DF) bool {
-	return 0 <= point.X && point.X < space.X &&
-		0 <= point.Y && point.Y < space.Y &&
-		0 <= point.Z && point.Z < space.Z
+type SpaceDimention [base.AXIS_COUNT]RealFieldRestriction
+
+// func (spaceDimention *SpaceDimention) PointInSpace(point *base.Vector3DF) bool {
+// 	return 0 <= point.X && point.X < spaceDimention.X &&
+// 		0 <= point.Y && point.Y < spaceDimention.Y &&
+// 		0 <= point.Z && point.Z < spaceDimention.Z
+// }
+
+func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool {
+	return (spaceDimention[base.X_AXIS].Lower < coords.X || base.CompareFloat(spaceDimention[base.X_AXIS].Lower, coords.X)) &&
+		(coords.X < spaceDimention[base.X_AXIS].Higher || base.CompareFloat(spaceDimention[base.X_AXIS].Higher, coords.X)) &&
+		(spaceDimention[base.Y_AXIS].Lower < coords.Y || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
+		(coords.Y < spaceDimention[base.Y_AXIS].Higher || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
+		(spaceDimention[base.Z_AXIS].Lower < coords.Z || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z)) &&
+		(coords.Z < spaceDimention[base.Z_AXIS].Higher || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z))
+}
+
+func (spaceDimention *SpaceDimention) GetCenter() base.Vector3DF {
+	return base.Vector3DF{
+		X: (spaceDimention[base.X_AXIS].Lower + spaceDimention[base.X_AXIS].Higher) / 2,
+		Y: (spaceDimention[base.Y_AXIS].Lower + spaceDimention[base.Y_AXIS].Higher) / 2,
+		Z: (spaceDimention[base.Z_AXIS].Lower + spaceDimention[base.Z_AXIS].Higher) / 2,
+	}
 }
 
 type GlobalData struct {

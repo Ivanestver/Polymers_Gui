@@ -15,7 +15,7 @@ type Field struct {
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
-	shape := [...]int64{int64(globalData.SpaceDimention.X), int64(globalData.SpaceDimention.Y), int64(globalData.SpaceDimention.Z)}
+	shape := [...]int64{int64(globalData.SpaceDimention[base.X_AXIS].Higher), int64(globalData.SpaceDimention[base.Y_AXIS].Higher), int64(globalData.SpaceDimention[base.Z_AXIS].Higher)}
 	var i int64
 	var j int64
 	var k int64
@@ -74,9 +74,9 @@ func (field *Field) IsFree(coords base.Vector3DF) bool {
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 	var globalData *global_data.GlobalData = global_data.GetGlobalData()
 	return base.Vector3D{
-		X: coords.X % int64(globalData.SpaceDimention.X),
-		Y: coords.Y % int64(globalData.SpaceDimention.Y),
-		Z: coords.Z % int64(globalData.SpaceDimention.Z),
+		X: coords.X % int64(globalData.SpaceDimention[base.X_AXIS].Higher),
+		Y: coords.Y % int64(globalData.SpaceDimention[base.Y_AXIS].Higher),
+		Z: coords.Z % int64(globalData.SpaceDimention[base.Z_AXIS].Higher),
 	}
 }
 
@@ -112,11 +112,7 @@ func (field *Field) GetAvailableCells(currPos base.Vector3DF) []*Monomer {
 
 func (field *Field) DefineStartMonomer() *Monomer {
 	globalData := global_data.GetGlobalData()
-	startPosition := base.Vector3DF{
-		X: float64(globalData.SpaceDimention.X) / 2,
-		Y: float64(globalData.SpaceDimention.Y) / 2,
-		Z: float64(globalData.SpaceDimention.Z) / 2,
-	}
+	startPosition := globalData.SpaceDimention.GetCenter()
 
 	for !field.IsFree(startPosition) {
 		available_cells := field.GetAvailableCells(startPosition)
@@ -125,7 +121,7 @@ func (field *Field) DefineStartMonomer() *Monomer {
 			return available_cells[rand.Intn(available_cells_cout)]
 		}
 
-		randomAxis := Axis(rand.Intn(int(AXIS_COUNT)))
+		randomAxis := base.Axis(rand.Intn(int(base.AXIS_COUNT)))
 		rint := rand.Intn(int(DIRECTION_COUNT))
 		randomDirection := DIRECTION_BACKWARD
 		if rint%2 != 0 {

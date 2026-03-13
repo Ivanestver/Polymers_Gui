@@ -165,21 +165,21 @@ func (globula *GlobulaView) MarshalJSON() ([]byte, error) {
 
 func (globula *GlobulaView) XClusters(avg float64) *ClusterView {
 	if globula.xClusters == nil {
-		globula.xClusters = NewClusterView(globula, avg, dt.X_AXIS)
+		globula.xClusters = NewClusterView(globula, avg, base.X_AXIS)
 	}
 	return globula.xClusters
 }
 
 func (globula *GlobulaView) YClusters(avg float64) *ClusterView {
 	if globula.yClusters == nil {
-		globula.yClusters = NewClusterView(globula, avg, dt.Y_AXIS)
+		globula.yClusters = NewClusterView(globula, avg, base.Y_AXIS)
 	}
 	return globula.yClusters
 }
 
 func (globula *GlobulaView) ZClusters(avg float64) *ClusterView {
 	if globula.zClusters == nil {
-		globula.zClusters = NewClusterView(globula, avg, dt.Z_AXIS)
+		globula.zClusters = NewClusterView(globula, avg, base.Z_AXIS)
 	}
 	return globula.zClusters
 }
@@ -328,13 +328,13 @@ func (globula *GlobulaView) getClustersInThread(firstMonomer *dt.Monomer, cluste
 			clusterUnit := NewClusterUnit([]*dt.Monomer{
 				startingMonomer, mon2, mon3, mon4,
 				mon11, mon21, mon31, mon41,
-			}, dt.SIDE_Up, dt.Z_AXIS)
+			}, dt.SIDE_Up, base.Z_AXIS)
 			clusterUnit.MakeFullyConnected()
 			cluster.units = append(cluster.units, clusterUnit)
 			clusters = append(clusters, cluster)
 		}
 	}
-	return NewClusterViewRaw(clusters, dt.Z_AXIS)
+	return NewClusterViewRaw(clusters, base.Z_AXIS)
 }
 
 // var turn int = 0

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math"
 	"polymers/base"
-	"polymers/global_data"
 	"strconv"
 )
 
@@ -137,23 +136,6 @@ func (polymer *Polymer) MakeStepBack() bool {
 	}
 	polymer.polymer = polymer.polymer[:polymer.Len()-1]
 	return true
-}
-
-func (polymer *Polymer) GetMinMaxWidthHeight() (float64, float64, float64, float64) {
-	globalData := global_data.GetGlobalData()
-	minWidth := float64(globalData.SpaceDimention.X)
-	maxWidth := 0.0
-	minHeight := float64(globalData.SpaceDimention.X)
-	maxHeight := 0.0
-
-	for _, mon := range polymer.polymer {
-		minWidth = math.Min(minWidth, float64(mon.coords.X))
-		maxWidth = math.Max(maxWidth, float64(mon.coords.Y))
-		minHeight = math.Min(minHeight, float64(mon.coords.X))
-		maxHeight = math.Max(maxHeight, float64(mon.coords.Y))
-	}
-
-	return minWidth, maxWidth, minHeight, maxHeight
 }
 
 func (polymer *Polymer) MarshalJSON() ([]byte, error) {

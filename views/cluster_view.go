@@ -10,10 +10,10 @@ const c_CLUSTER_UNIT_SIZE int = 8
 type ClusterUnit struct {
 	monomers      [c_CLUSTER_UNIT_SIZE]*dt.Monomer
 	mainDirection dt.Side
-	axis          dt.Axis
+	axis          base.Axis
 }
 
-func NewClusterUnit(monomers []*dt.Monomer, mainDirection dt.Side, axis dt.Axis) *ClusterUnit {
+func NewClusterUnit(monomers []*dt.Monomer, mainDirection dt.Side, axis base.Axis) *ClusterUnit {
 	if len(monomers) != c_CLUSTER_UNIT_SIZE {
 		return nil
 	}
@@ -94,10 +94,10 @@ func clusterUnitsAreEqual(unit1, unit2 *ClusterUnit) bool {
 type Cluster struct {
 	units         []*ClusterUnit
 	mainDirection dt.Side
-	axis          dt.Axis
+	axis          base.Axis
 }
 
-func NewCluster(unit []*ClusterUnit, mainDirection dt.Side, axis dt.Axis) *Cluster {
+func NewCluster(unit []*ClusterUnit, mainDirection dt.Side, axis base.Axis) *Cluster {
 	newCluster := new(Cluster)
 	newCluster.units = unit
 	newCluster.mainDirection = mainDirection
@@ -113,7 +113,7 @@ func (cluster *Cluster) MainDirection() dt.Side {
 	return cluster.mainDirection
 }
 
-func (cluster *Cluster) Axis() dt.Axis {
+func (cluster *Cluster) Axis() base.Axis {
 	return cluster.axis
 }
 
@@ -264,11 +264,11 @@ func IntersectClusters_StickToDirection(cluster1, cluster2 *Cluster) []*dt.Monom
 
 type ClusterView struct {
 	avg      float64
-	axis     dt.Axis
+	axis     base.Axis
 	clusters []*Cluster
 }
 
-func NewClusterView(globula *GlobulaView, avg float64, axis dt.Axis) *ClusterView {
+func NewClusterView(globula *GlobulaView, avg float64, axis base.Axis) *ClusterView {
 	newClusterView := new(ClusterView)
 	newClusterView.avg = avg
 	newClusterView.axis = axis
@@ -276,7 +276,7 @@ func NewClusterView(globula *GlobulaView, avg float64, axis dt.Axis) *ClusterVie
 	return newClusterView
 }
 
-func NewClusterViewRaw(clusters []*Cluster, axis dt.Axis) *ClusterView {
+func NewClusterViewRaw(clusters []*Cluster, axis base.Axis) *ClusterView {
 	newClusterView := new(ClusterView)
 	newClusterView.avg = 0.0
 	newClusterView.axis = axis
@@ -354,7 +354,7 @@ func doTraverse(mainDirection dt.Side, directions []dt.Side, currMon *dt.Monomer
 		*potCluster = nil
 	}
 }
-func fillClusters(directions []dt.Side, mainDirection dt.Side, axis dt.Axis, monomer *dt.Monomer, clusters *[]*Cluster) {
+func fillClusters(directions []dt.Side, mainDirection dt.Side, axis base.Axis, monomer *dt.Monomer, clusters *[]*Cluster) {
 	potCluster := make([]*dt.Monomer, 2)
 	potCluster[0] = monomer
 	sibling, _ := monomer.GetSibling(mainDirection)
@@ -367,7 +367,7 @@ func fillClusters(directions []dt.Side, mainDirection dt.Side, axis dt.Axis, mon
 	}
 }
 
-func findClusters(currentGlobula *GlobulaView, axis dt.Axis, avg float64) []*Cluster {
+func findClusters(currentGlobula *GlobulaView, axis base.Axis, avg float64) []*Cluster {
 	clusters := make([]*Cluster, 0)
 	for _, pol := range currentGlobula.polymers {
 		ForEachMonomer(pol, func(monomer *dt.Monomer) bool {
@@ -379,17 +379,17 @@ func findClusters(currentGlobula *GlobulaView, axis dt.Axis, avg float64) []*Clu
 				}
 
 				old_size := len(clusters)
-				if axis == dt.X_AXIS && (mainDirection == dt.SIDE_Forward || mainDirection == dt.SIDE_Backward) {
+				if axis == base.X_AXIS && (mainDirection == dt.SIDE_Forward || mainDirection == dt.SIDE_Backward) {
 					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Down, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Up, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Down, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Up, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
-				} else if axis == dt.Y_AXIS && (mainDirection == dt.SIDE_Left || mainDirection == dt.SIDE_Right) {
+				} else if axis == base.Y_AXIS && (mainDirection == dt.SIDE_Left || mainDirection == dt.SIDE_Right) {
 					fillClusters([]dt.Side{dt.SIDE_Backward, dt.SIDE_Down, dt.SIDE_Forward}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Backward, dt.SIDE_Up, dt.SIDE_Forward}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Forward, dt.SIDE_Down, dt.SIDE_Backward}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Forward, dt.SIDE_Up, dt.SIDE_Backward}, mainDirection, axis, monomer, &clusters)
-				} else if axis == dt.Z_AXIS && (mainDirection == dt.SIDE_Up || mainDirection == dt.SIDE_Down) {
+				} else if axis == base.Z_AXIS && (mainDirection == dt.SIDE_Up || mainDirection == dt.SIDE_Down) {
 					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Forward, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Backward, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
 					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Forward, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
@@ -442,8 +442,8 @@ func join_joined_clusters(current_node int, d *map[int][]int) []int {
 	return joined_clusters_for_current_node
 }
 
-func gather_clusters(clusters []*Cluster, avg float64, avg_axis dt.Axis, start_from int) []*Cluster {
-	if avg_axis == dt.AXIS_COUNT {
+func gather_clusters(clusters []*Cluster, avg float64, avg_axis base.Axis, start_from int) []*Cluster {
+	if avg_axis == base.AXIS_COUNT {
 		return clusters
 	}
 
