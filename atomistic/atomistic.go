@@ -394,7 +394,7 @@ func reNumberAtoms(polymers []*_Polymer) {
 }
 
 func savePolymer(polymers []*_Polymer, config *_Config) {
-	bytesData := []byte(makeFileContent(polymers))
+	bytesData := []byte(makeFileContent(polymers, config))
 	var filename string
 	if len(config.SaveFile) > 0 {
 		filename = config.SaveFile + ".mol2"
@@ -406,7 +406,7 @@ func savePolymer(polymers []*_Polymer, config *_Config) {
 	}
 }
 
-func makeFileContent(polymers []*_Polymer) string {
+func makeFileContent(polymers []*_Polymer, config *_Config) string {
 	var builder strings.Builder
 	builder.WriteString("@<TRIPOS>MOLECULE\n")
 	builder.WriteString("Test\n")
@@ -419,9 +419,9 @@ func makeFileContent(polymers []*_Polymer) string {
 	builder.WriteString("@<TRIPOS>CRYSIN\n")
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
 	builder.WriteString(fmt.Sprintf("%f %f %f 90.000 90.000 90.000 1 1",
-		spaceDimention[base.X_AXIS].Higher-spaceDimention[base.X_AXIS].Lower,
-		spaceDimention[base.Y_AXIS].Higher-spaceDimention[base.Y_AXIS].Lower,
-		spaceDimention[base.Z_AXIS].Higher-spaceDimention[base.Z_AXIS].Lower,
+		(spaceDimention[base.X_AXIS].Higher-spaceDimention[base.X_AXIS].Lower)*config.Scale,
+		(spaceDimention[base.Y_AXIS].Higher-spaceDimention[base.Y_AXIS].Lower)*config.Scale,
+		(spaceDimention[base.Z_AXIS].Higher-spaceDimention[base.Z_AXIS].Lower)*config.Scale,
 	))
 	builder.WriteString("\n")
 	builder.WriteString("\n")
