@@ -173,3 +173,12 @@ func Sum[T Summable](container []T) T {
 func CompareFloat(left, right float64) bool {
 	return math.Abs(left-right) <= 0.001
 }
+
+func PointInSpace(coords, lower, higher *Vector3DF) bool {
+	return (lower.X < coords.X || CompareFloat(lower.X, coords.X)) &&
+		(coords.X < higher.X || CompareFloat(higher.X, coords.X)) &&
+		(lower.Y < coords.Y || CompareFloat(lower.Y, coords.Y)) &&
+		(coords.Y < higher.Y || CompareFloat(coords.Y, higher.Y)) &&
+		(lower.Z < coords.Z || CompareFloat(lower.Z, coords.Z)) &&
+		(coords.Z < higher.Z || CompareFloat(coords.Z, higher.Z))
+}

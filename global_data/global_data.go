@@ -15,12 +15,23 @@ type SpaceDimention [base.AXIS_COUNT]RealFieldRestriction
 // }
 
 func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool {
-	return (spaceDimention[base.X_AXIS].Lower < coords.X || base.CompareFloat(spaceDimention[base.X_AXIS].Lower, coords.X)) &&
-		(coords.X < spaceDimention[base.X_AXIS].Higher || base.CompareFloat(spaceDimention[base.X_AXIS].Higher, coords.X)) &&
-		(spaceDimention[base.Y_AXIS].Lower < coords.Y || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
-		(coords.Y < spaceDimention[base.Y_AXIS].Higher || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
-		(spaceDimention[base.Z_AXIS].Lower < coords.Z || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z)) &&
-		(coords.Z < spaceDimention[base.Z_AXIS].Higher || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z))
+	return base.PointInSpace(coords,
+		&base.Vector3DF{
+			X: spaceDimention[base.X_AXIS].Lower,
+			Y: spaceDimention[base.Y_AXIS].Lower,
+			Z: spaceDimention[base.Z_AXIS].Lower,
+		},
+		&base.Vector3DF{
+			X: spaceDimention[base.X_AXIS].Higher,
+			Y: spaceDimention[base.Y_AXIS].Higher,
+			Z: spaceDimention[base.Z_AXIS].Higher,
+		})
+	// return (spaceDimention[base.X_AXIS].Lower < coords.X || base.CompareFloat(spaceDimention[base.X_AXIS].Lower, coords.X)) &&
+	// 	(coords.X < spaceDimention[base.X_AXIS].Higher || base.CompareFloat(spaceDimention[base.X_AXIS].Higher, coords.X)) &&
+	// 	(spaceDimention[base.Y_AXIS].Lower < coords.Y || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
+	// 	(coords.Y < spaceDimention[base.Y_AXIS].Higher || base.CompareFloat(spaceDimention[base.Y_AXIS].Lower, coords.Y)) &&
+	// 	(spaceDimention[base.Z_AXIS].Lower < coords.Z || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z)) &&
+	// 	(coords.Z < spaceDimention[base.Z_AXIS].Higher || base.CompareFloat(spaceDimention[base.Z_AXIS].Lower, coords.Z))
 }
 
 func (spaceDimention *SpaceDimention) GetCenter() base.Vector3DF {
