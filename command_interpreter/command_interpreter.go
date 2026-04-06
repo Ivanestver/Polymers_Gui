@@ -2,6 +2,8 @@ package command_interpreter
 
 import (
 	"errors"
+	"fmt"
+	"polymers/base"
 	"polymers/build_globula"
 	"strconv"
 	"unicode"
@@ -28,7 +30,7 @@ const (
 	COMMAND_SCRIPT_STR            = "script"
 	COMMAND_COMMON_STATS_STR      = "common_stats"
 	COMMAND_FILE_STR              = "file"
-	COMMAND_DFS_STR               = "dfs"
+	COMMAND_CYCLES_STR            = "cycles"
 	COMMAND_ATOMISTIC_STR         = "atomistic"
 	COMMAND_LOADER_STR            = "load"
 	COMMAND_LATTICE_STR           = "lattice"
@@ -57,6 +59,7 @@ const (
 	COMMAND_COMMON_STATS
 	COMMAND_ATOMISTIC
 	COMMAND_LOADER
+	COMMAND_CYCLES
 )
 
 var currProgram string
@@ -171,6 +174,7 @@ func s() (Command, interface{}) {
 		COMMAND_COMMON_STATS_STR:      commonStats,
 		COMMAND_ATOMISTIC_STR:         atomistic,
 		COMMAND_LOADER_STR:            load,
+		COMMAND_CYCLES_STR:            cycles,
 	}[token]; ok {
 		return f()
 	} else {
@@ -546,4 +550,23 @@ func load() (Command, interface{}) {
 	}
 
 	return COMMAND_LOADER, m
+}
+
+func cycles() (Command, interface{}) {
+	m := make(map[string]base.Axis)
+	token, err := getNextToken()
+	if err != nil {
+		return COMMAND_CYCLES, m
+	}
+	switch token {
+	case "X":
+		m["axis"] = base.X_AXIS
+	case "Y":
+		m["axis"] = base.Y_AXIS
+	case "Z":
+		m["axis"] = base.Z_AXIS
+	default:
+		return COMMAND_UNDEFINED, fmt.Sprintf("axis can be only 'X', 'Y', 'Z', but given %s", token)
+	}
+	return COMMAND_CYCLES, m
 }
