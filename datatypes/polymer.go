@@ -46,7 +46,7 @@ func (polymer *Polymer) Number() int64 {
 	return polymer.polymerNumber
 }
 
-func (polymer *Polymer) Field() *Field {
+func (polymer *Polymer) GetField() IField {
 	return polymer.field
 }
 

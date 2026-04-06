@@ -12,6 +12,7 @@ type IPolymer interface {
 	AddMonomer(monomer *Monomer)
 	GetMonomerByIdx(idx int) *Monomer
 	GetFieldType() FieldType
+	GetField() IField
 }
 
 func NewIPolymer(fieldType FieldType, args ...any) IPolymer {

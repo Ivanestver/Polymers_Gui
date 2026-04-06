@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"polymers/base"
+	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/output_format"
 	"sort"
@@ -733,7 +734,8 @@ func doDST(polymerView *PolymerView) {
 }
 
 func (globula *GlobulaView) Waterize() {
-	globula.polymers[0].GetUnderlinedField().Waterize()
+	field := globula.polymers[0].GetUnderlinedField().(*datatypes.Field)
+	field.Waterize()
 	globula.globulaProperties[GLOBULA_WATERIZED] = true
 }
 

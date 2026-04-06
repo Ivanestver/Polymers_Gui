@@ -70,3 +70,7 @@ func (realPolymer *RealPolymer) GetMonomerByIdx(idx int) *Monomer {
 func (realPolymer *RealPolymer) GetFieldType() FieldType {
 	return FIELD_TYPE_REAL
 }
+
+func (realPolymer *RealPolymer) GetField() IField {
+	return realPolymer.field
+}

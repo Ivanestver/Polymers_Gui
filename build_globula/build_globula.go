@@ -171,7 +171,7 @@ func (alg *CalcAlg) getContinuations(kFree int, availableCells []*datatypes.Mono
 }
 
 func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *datatypes.Monomer) *datatypes.Polymer {
-	configCopy := datatypes.NewPolymer(currConfig.Field(), -1)
+	configCopy := datatypes.NewPolymer(currConfig.GetField().(*datatypes.Field), -1)
 	for i := 0; i < currConfig.Len(); i++ {
 		mon := currConfig.GetMonomerByIdx(i)
 		newMon := mon.Copy()
