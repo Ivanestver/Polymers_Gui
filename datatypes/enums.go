@@ -94,7 +94,7 @@ func GetAllSides() []Side {
 }
 
 func GetSide(axis base.Axis, moveDirection MoveDirection) Side {
-	return Side((axis + 1) * uint8(moveDirection))
+	return Side(uint8(axis+1) * uint8(moveDirection))
 }
 
 func GetReversedSide(side Side) Side {
@@ -184,5 +184,36 @@ func (monType *MonomerType) ToLiteral() (string, error) {
 		return "S", nil
 	default:
 		return "", errors.New("there is no letter for this type")
+	}
+}
+
+func GetNormalByAxis(axis base.Axis) []Side {
+	switch axis {
+	case base.X_AXIS:
+		return []Side{
+			SIDE_Forward,
+			SIDE_Left,
+			SIDE_Right,
+			SIDE_Up,
+			SIDE_Down,
+		}
+	case base.Y_AXIS:
+		return []Side{
+			SIDE_Forward,
+			SIDE_Backward,
+			SIDE_Left,
+			SIDE_Up,
+			SIDE_Down,
+		}
+	case base.Z_AXIS:
+		return []Side{
+			SIDE_Forward,
+			SIDE_Backward,
+			SIDE_Left,
+			SIDE_Right,
+			SIDE_Up,
+		}
+	default:
+		return []Side{}
 	}
 }
