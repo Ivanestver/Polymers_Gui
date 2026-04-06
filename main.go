@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"flag"
-	"math/rand"
 	"os"
 	"polymers/atomistic"
 	"polymers/base"
@@ -21,7 +20,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var globula *views.GlobulaView
@@ -29,7 +27,10 @@ var printer output_format.IPrint
 
 func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	var spaceDimention global_data.SpaceDimention
-	spaceDim := struct{ X, Y, Z float64 }{}
+	spaceDim := struct{ X, Y, Z, Xl, Yl, Zl float64 }{}
+	spaceDim.Xl = 0.0
+	spaceDim.Xl = 0.0
+	spaceDim.Xl = 0.0
 	if len(*commands) == 0 {
 		printer.PrintInfo("Please, type the space dimention: ")
 		printer.Readln(&spaceDim.X, &spaceDim.Y, &spaceDim.Z)
@@ -43,7 +44,7 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	}
 	line := (*commands)[0]
 	parts := strings.Split(line, " ")
-	if len(parts) != 4 || parts[0] != "space" {
+	if (len(parts) != 4 && len(parts) != 7) || parts[0] != "space" {
 		printer.PrintInfo("No space dimention definition found. Please, type the space dimention: ")
 		printer.Readln(&spaceDim.X, &spaceDim.Y, &spaceDim.Z)
 	} else {
@@ -63,10 +64,27 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 		} else {
 			printer.PrintlnError(err.Error())
 		}
+		if len(parts) == 7 {
+			if x, err := strconv.ParseFloat(parts[4], 64); err == nil {
+				spaceDim.Xl = x
+			} else {
+				printer.PrintlnError(err.Error())
+			}
+			if y, err := strconv.ParseFloat(parts[5], 64); err == nil {
+				spaceDim.Yl = y
+			} else {
+				printer.PrintlnError(err.Error())
+			}
+			if z, err := strconv.ParseFloat(parts[6], 64); err == nil {
+				spaceDim.Zl = z
+			} else {
+				printer.PrintlnError(err.Error())
+			}
+		}
 	}
-	spaceDimention[base.X_AXIS].Lower = 0.0
-	spaceDimention[base.Y_AXIS].Lower = 0.0
-	spaceDimention[base.Z_AXIS].Lower = 0.0
+	spaceDimention[base.X_AXIS].Lower = spaceDim.Xl
+	spaceDimention[base.Y_AXIS].Lower = spaceDim.Yl
+	spaceDimention[base.Z_AXIS].Lower = spaceDim.Zl
 	spaceDimention[base.X_AXIS].Higher = spaceDim.X
 	spaceDimention[base.Y_AXIS].Higher = spaceDim.Y
 	spaceDimention[base.Z_AXIS].Higher = spaceDim.Z
@@ -75,7 +93,6 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
 	output_format.SetPrint(&output_format.ColoredConsolePrint{})
 	printer = output_format.GetPrint()
 	printer.PrintlnInfo("Welcome to the Polymer Builder 2.0")
