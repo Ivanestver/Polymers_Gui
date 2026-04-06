@@ -59,3 +59,16 @@ func (realField *RealField) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
 		return m1
 	}
 }
+
+func (realField *RealField) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {
+	isIn := func(point base.Vector3DF) bool {
+		return base.PointInSpace(&point, &lower, &higher)
+	}
+	monomers := make([]*Monomer, 0)
+	for point, mon := range realField.monomers {
+		if isIn(point) {
+			monomers = append(monomers, mon)
+		}
+	}
+	return monomers
+}

@@ -9,46 +9,54 @@ import (
 
 type Field struct {
 	sphereRadius uint64
-	field        [][][]*Monomer
+	field        map[base.Vector3DF]*Monomer
 }
 
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
-	var globalData *global_data.GlobalData = global_data.GetGlobalData()
-	shape := [...]int64{int64(globalData.SpaceDimention[base.X_AXIS].Higher), int64(globalData.SpaceDimention[base.Y_AXIS].Higher), int64(globalData.SpaceDimention[base.Z_AXIS].Higher)}
+	newField.field = make(map[base.Vector3DF]*Monomer)
+	globalData := global_data.GetGlobalData()
+	lower := [...]int64{int64(globalData.SpaceDimention[base.X_AXIS].Lower), int64(globalData.SpaceDimention[base.Y_AXIS].Lower), int64(globalData.SpaceDimention[base.Z_AXIS].Lower)}
+	higher := [...]int64{int64(globalData.SpaceDimention[base.X_AXIS].Higher), int64(globalData.SpaceDimention[base.Y_AXIS].Higher), int64(globalData.SpaceDimention[base.Z_AXIS].Higher)}
 	var i int64
 	var j int64
 	var k int64
-	for i = 0; i < shape[0]; i++ {
-		newField.field = append(newField.field, [][]*Monomer{})
-		for j = 0; j < shape[1]; j++ {
-			newField.field[i] = append(newField.field[i], []*Monomer{})
-			for k = 0; k < shape[2]; k++ {
-				newField.field[i][j] = append(newField.field[i][j], NewMonomer(base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}, MONOMER_TYPE_UNDEFINED))
+	for i = lower[0]; i <= higher[0]; i++ {
+		for j = lower[1]; j <= higher[1]; j++ {
+			for k = lower[2]; k <= higher[2]; k++ {
+				coords := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}
+				newField.field[coords] = NewMonomer(coords, MONOMER_TYPE_UNDEFINED)
 			}
 		}
 	}
-	for i = 0; i < shape[0]; i++ {
-		for j = 0; j < shape[1]; j++ {
-			for k = 0; k < shape[2]; k++ {
-				monomer := newField.field[i][j][k]
-				if i < shape[0]-1 {
-					MakeConnection(monomer, newField.field[i+1][j][k], CONNECTION_TYPE_UNDEFINED)
+	for i = lower[0]; i <= higher[0]; i++ {
+		for j = lower[1]; j <= higher[1]; j++ {
+			for k = lower[2]; k <= higher[2]; k++ {
+				coords := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}
+				monomer := newField.field[coords]
+				if i < higher[0] {
+					next := base.Vector3DF{X: float64(i + 1), Y: float64(j), Z: float64(k)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
-				if i > 0 {
-					MakeConnection(monomer, newField.field[i-1][j][k], CONNECTION_TYPE_UNDEFINED)
+				if i > lower[0] {
+					next := base.Vector3DF{X: float64(i - 1), Y: float64(j), Z: float64(k)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
-				if j < shape[1]-1 {
-					MakeConnection(monomer, newField.field[i][j+1][k], CONNECTION_TYPE_UNDEFINED)
+				if j < higher[1] {
+					next := base.Vector3DF{X: float64(i), Y: float64(j + 1), Z: float64(k)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
-				if j > 0 {
-					MakeConnection(monomer, newField.field[i][j-1][k], CONNECTION_TYPE_UNDEFINED)
+				if j > lower[1] {
+					next := base.Vector3DF{X: float64(i), Y: float64(j - 1), Z: float64(k)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
-				if k < shape[2]-1 {
-					MakeConnection(monomer, newField.field[i][j][k+1], CONNECTION_TYPE_UNDEFINED)
+				if k < higher[2] {
+					next := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k + 1)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
-				if k > 0 {
-					MakeConnection(monomer, newField.field[i][j][k-1], CONNECTION_TYPE_UNDEFINED)
+				if k > lower[2] {
+					next := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k - 1)}
+					MakeConnection(monomer, newField.field[next], CONNECTION_TYPE_UNDEFINED)
 				}
 			}
 		}
@@ -67,12 +75,12 @@ func (field *Field) MakeFree(monomer *Monomer) {
 }
 
 func (field *Field) IsFree(coords base.Vector3DF) bool {
-	var monomer *Monomer = field.field[int(coords.X)][int(coords.Y)][int(coords.Z)]
+	var monomer = field.field[coords]
 	return monomer.IsTypeOf(MONOMER_TYPE_UNDEFINED)
 }
 
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
-	var globalData *global_data.GlobalData = global_data.GetGlobalData()
+	var globalData = global_data.GetGlobalData()
 	return base.Vector3D{
 		X: coords.X % int64(globalData.SpaceDimention[base.X_AXIS].Higher),
 		Y: coords.Y % int64(globalData.SpaceDimention[base.Y_AXIS].Higher),
@@ -81,20 +89,29 @@ func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 }
 
 func (field *Field) IsBusy() bool {
-	for _, v_x := range field.field {
-		for _, v_y := range v_x {
-			for _, val := range v_y {
-				if val.IsTypeOf(MONOMER_TYPE_UNDEFINED) {
-					return false
-				}
-			}
+	for _, mon := range field.field {
+		if mon.IsTypeOf(MONOMER_TYPE_UNDEFINED) {
+			return false
 		}
 	}
 	return true
 }
 
 func (field *Field) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
-	return field.field[int64(coords.X)][int64(coords.Y)][int64(coords.Z)]
+	return field.field[coords]
+}
+
+func (field *Field) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {
+	isIn := func(point base.Vector3DF) bool {
+		return base.PointInSpace(&point, &lower, &higher)
+	}
+	monomers := make([]*Monomer, 0)
+	for point, mon := range field.field {
+		if isIn(point) {
+			monomers = append(monomers, mon)
+		}
+	}
+	return monomers
 }
 
 func (field *Field) GetAvailableCells(currPos base.Vector3DF) []*Monomer {
@@ -138,19 +155,13 @@ func (field *Field) DefineStartMonomer() *Monomer {
 }
 
 func (field *Field) MarshalJSON() ([]byte, error) {
-	newField := make([][][]MonomerJSON, len(field.field))
-	for i, square := range field.field {
-		newField[i] = make([][]MonomerJSON, len(field.field[i]))
-		for j, row := range square {
-			newField[i][j] = make([]MonomerJSON, len(field.field[i][j]))
-			for k, item := range row {
-				newField[i][j][k] = item.ToJson()
-			}
-		}
+	newField := make([]MonomerJSON, 0)
+	for _, mon := range field.field {
+		newField = append(newField, mon.ToJson())
 	}
 	return json.Marshal(&struct {
 		SphereRadius uint64
-		Field        [][][]MonomerJSON
+		Field        []MonomerJSON
 	}{
 		SphereRadius: field.sphereRadius,
 		Field:        newField,
@@ -159,25 +170,16 @@ func (field *Field) MarshalJSON() ([]byte, error) {
 
 func (field *Field) DeepCopy() *Field {
 	newField := NewField(field.sphereRadius)
-	for x, monX := range field.field {
-		for y, monY := range monX {
-			for z := range monY {
-				newField.field[x][y][z].DeepCopyFrom(field.field[x][y][z], newField)
-			}
-		}
+	for coords, mon := range field.field {
+		newField.field[coords].DeepCopyFrom(mon, newField)
 	}
 	return newField
 }
 
 func (field *Field) Waterize() {
-	for x, monX := range field.field {
-		for y, monY := range monX {
-			for z := range monY {
-				mon := field.field[x][y][z]
-				if mon.MonomerType == MONOMER_TYPE_UNDEFINED {
-					mon.MonomerType = MONOMER_TYPE_WATER
-				}
-			}
+	for _, mon := range field.field {
+		if mon.MonomerType == MONOMER_TYPE_UNDEFINED {
+			mon.MonomerType = MONOMER_TYPE_WATER
 		}
 	}
 }

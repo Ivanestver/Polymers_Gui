@@ -17,6 +17,7 @@ type IField interface {
 	MakeFree(monomer *Monomer)
 	IsFree(coords base.Vector3DF) bool
 	GetMonomerByCoords(coords base.Vector3DF) *Monomer
+	GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer
 }
 
 func CreateField(fieldType FieldType, args ...any) IField {
