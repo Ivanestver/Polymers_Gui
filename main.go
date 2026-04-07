@@ -90,7 +90,7 @@ func setUpSpaceDimention(commands *[]string) globaldata.SpaceDimention {
 	spaceDimention[base.AxisX].Higher = spaceDim.X
 	spaceDimention[base.AxisY].Higher = spaceDim.Y
 	spaceDimention[base.AxisZ].Higher = spaceDim.Z
-	printer.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
+	printer.PrintfInfo("The space dimention set by user is %v\n", spaceDimention)
 	return spaceDimention
 }
 

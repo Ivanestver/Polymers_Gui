@@ -42,9 +42,9 @@ func (analyzer *CyclesAnalyzer) analyzeCounts() {
 	}
 
 	// Print axises
-	analyzer.printer.PrintlnInfo("The number of cycles for each side:")
+	analyzer.printer.Println("The number of cycles for each axis:")
 	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
-		analyzer.printer.PrintflnInfo("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
+		analyzer.printer.Printfln("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
 	}
 }
 
