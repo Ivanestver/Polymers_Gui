@@ -160,9 +160,6 @@ func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.Space
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 	for _, axis := range analyzer.axises {
 		startingMonomers := analyzer.getStartingPointsForCycles(axis)
-		if len(startingMonomers) == 0 {
-			continue
-		}
 		moveDirection := getMoveDirection(axis)
 		if moveDirection == datatypes.SideUndefined {
 			analyzer.printer.PrintflnError("could not define the move direction of the axis %s", axis.ToString())
@@ -192,9 +189,9 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 			i++
 		}
 		slices.Sort(keys)
-		analyzer.printer.Printfln("For %s", axis.ToString())
-		for _, key := range keys {
-			analyzer.printer.Printfln("%f.2: %d", key, surfaceIntersections[key])
+		analyzer.printer.Printfln("For %s:", axis.ToString())
+		for i, key := range keys {
+			analyzer.printer.Printfln("\t%d: %d", i+1, surfaceIntersections[key])
 		}
 	}
 
