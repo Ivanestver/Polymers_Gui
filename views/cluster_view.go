@@ -5,20 +5,20 @@ import (
 	dt "polymers/datatypes"
 )
 
-const c_CLUSTER_UNIT_SIZE int = 8
+const _ClusterUnitSize int = 8
 
 type ClusterUnit struct {
-	monomers      [c_CLUSTER_UNIT_SIZE]*dt.Monomer
+	monomers      [_ClusterUnitSize]*dt.Monomer
 	mainDirection dt.Side
 	axis          base.Axis
 }
 
 func NewClusterUnit(monomers []*dt.Monomer, mainDirection dt.Side, axis base.Axis) *ClusterUnit {
-	if len(monomers) != c_CLUSTER_UNIT_SIZE {
+	if len(monomers) != _ClusterUnitSize {
 		return nil
 	}
 	newClusterUnit := new(ClusterUnit)
-	for i := 0; i < c_CLUSTER_UNIT_SIZE; i++ {
+	for i := 0; i < _ClusterUnitSize; i++ {
 		newClusterUnit.monomers[i] = monomers[i]
 	}
 	newClusterUnit.mainDirection = mainDirection
@@ -27,7 +27,7 @@ func NewClusterUnit(monomers []*dt.Monomer, mainDirection dt.Side, axis base.Axi
 }
 
 func (clusterUnit *ClusterUnit) Size() int {
-	return c_CLUSTER_UNIT_SIZE
+	return _ClusterUnitSize
 }
 
 func (clusterUnit *ClusterUnit) MakeFullyConnected() {
