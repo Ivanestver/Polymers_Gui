@@ -2,7 +2,7 @@ package datatypes
 
 import (
 	"polymers/base"
-	"polymers/global_data"
+	"polymers/globaldata"
 )
 
 type RealField struct {
@@ -11,7 +11,7 @@ type RealField struct {
 
 func NewRealField(restrictions [3][2]float64) *RealField {
 	realField := &RealField{}
-	global_data.ConfigureGlobalData(global_data.SpaceDimention{
+	globaldata.ConfigureGlobalData(globaldata.SpaceDimention{
 		{Lower: restrictions[0][0], Higher: restrictions[0][1]},
 		{Lower: restrictions[1][0], Higher: restrictions[1][1]},
 		{Lower: restrictions[2][0], Higher: restrictions[2][1]},
@@ -21,7 +21,7 @@ func NewRealField(restrictions [3][2]float64) *RealField {
 }
 
 func (realField *RealField) MakeFilled(monomer *Monomer) {
-	if global_data.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
+	if globaldata.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
 		if _, ok := realField.monomers[monomer.coords]; !ok {
 			realField.monomers[monomer.coords] = monomer
 		}
@@ -29,14 +29,14 @@ func (realField *RealField) MakeFilled(monomer *Monomer) {
 }
 
 func (realField *RealField) MakeFree(monomer *Monomer) {
-	if !global_data.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
+	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
 		return
 	}
 	realField.monomers[monomer.coords] = nil
 }
 
 func (realField *RealField) IsFree(coords base.Vector3DF) bool {
-	if !global_data.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
+	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
 		return false
 	}
 	if m, ok := realField.monomers[coords]; !ok {
@@ -48,7 +48,7 @@ func (realField *RealField) IsFree(coords base.Vector3DF) bool {
 }
 
 func (realField *RealField) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
-	if !global_data.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
+	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
 		return nil
 	}
 	if m, ok := realField.monomers[coords]; ok {

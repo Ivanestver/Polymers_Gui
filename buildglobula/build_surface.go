@@ -1,9 +1,9 @@
-package build_globula
+package buildglobula
 
 import (
 	"math"
 	"polymers/datatypes"
-	"polymers/global_data"
+	"polymers/globaldata"
 	"polymers/views"
 )
 
@@ -57,13 +57,13 @@ func (alg *SurfaceCalcAlg) Calc() []*datatypes.Polymer {
 		ThreadLength:     float64(alg.inputData.Zlength),
 		MaxPolymersCount: alg.inputData.Xlength * alg.inputData.Ylength,
 	}}
-	spaceDimention := global_data.GetGlobalData().SpaceDimention
-	global_data.ConfigureGlobalData(global_data.SpaceDimention{
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
+	globaldata.ConfigureGlobalData(globaldata.SpaceDimention{
 		{Lower: 0.0, Higher: float64(alg.inputData.Xlength)},
 		{Lower: 0.0, Higher: float64(alg.inputData.Ylength)},
 		{Lower: 0.0, Higher: float64(alg.inputData.Zlength)},
 	})
 	polymers := threadAlg.Calc()
-	global_data.ConfigureGlobalData(spaceDimention)
+	globaldata.ConfigureGlobalData(spaceDimention)
 	return polymers
 }

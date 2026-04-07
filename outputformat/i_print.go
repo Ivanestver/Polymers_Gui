@@ -1,4 +1,4 @@
-package output_format
+package outputformat
 
 type IPrint interface {
 	Print(str string)

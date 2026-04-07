@@ -1,4 +1,4 @@
-package output_format
+package outputformat
 
 import (
 	"github.com/gookit/color"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"polymers/base"
-	"polymers/global_data"
+	"polymers/globaldata"
 )
 
 type Field struct {
@@ -15,7 +15,7 @@ type Field struct {
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
 	newField.field = make(map[base.Vector3DF]*Monomer)
-	globalData := global_data.GetGlobalData()
+	globalData := globaldata.GetGlobalData()
 	lower := [...]int64{int64(globalData.SpaceDimention[base.AxisX].Lower), int64(globalData.SpaceDimention[base.AxisY].Lower), int64(globalData.SpaceDimention[base.AxisZ].Lower)}
 	higher := [...]int64{int64(globalData.SpaceDimention[base.AxisX].Higher), int64(globalData.SpaceDimention[base.AxisY].Higher), int64(globalData.SpaceDimention[base.AxisZ].Higher)}
 	var i int64
@@ -80,7 +80,7 @@ func (field *Field) IsFree(coords base.Vector3DF) bool {
 }
 
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
-	var globalData = global_data.GetGlobalData()
+	var globalData = globaldata.GetGlobalData()
 	return base.Vector3D{
 		X: coords.X % int64(globalData.SpaceDimention[base.AxisX].Higher),
 		Y: coords.Y % int64(globalData.SpaceDimention[base.AxisY].Higher),
@@ -128,7 +128,7 @@ func (field *Field) GetAvailableCells(currPos base.Vector3DF) []*Monomer {
 }
 
 func (field *Field) DefineStartMonomer() *Monomer {
-	globalData := global_data.GetGlobalData()
+	globalData := globaldata.GetGlobalData()
 	startPosition := globalData.SpaceDimention.GetCenter()
 
 	for !field.IsFree(startPosition) {

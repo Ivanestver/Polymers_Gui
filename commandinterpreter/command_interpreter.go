@@ -1,10 +1,10 @@
-package command_interpreter
+package commandinterpreter
 
 import (
 	"errors"
 	"fmt"
 	"polymers/base"
-	"polymers/build_globula"
+	"polymers/buildglobula"
 	"strconv"
 	"unicode"
 )
@@ -245,17 +245,17 @@ func build() (Command, interface{}) {
 	m["name"] = name
 
 	if objective == CommandGlobulaSTR {
-		m["alg"] = build_globula.GlobulaBuildAlg
+		m["alg"] = buildglobula.GlobulaBuildAlg
 		return CommandBuild, m
 	}
 
 	if objective == CommandThreadSTR {
-		m["alg"] = build_globula.ThreadBuildAlg
+		m["alg"] = buildglobula.ThreadBuildAlg
 		return CommandBuild, m
 	}
 
 	if objective == CommandSurfaceSTR {
-		m["alg"] = build_globula.SurfaceBuildAlg
+		m["alg"] = buildglobula.SurfaceBuildAlg
 		return CommandBuild, m
 	}
 

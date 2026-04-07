@@ -1,4 +1,4 @@
-package build_globula
+package buildglobula
 
 import (
 	"polymers/datatypes"

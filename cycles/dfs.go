@@ -4,14 +4,14 @@ import (
 	"math"
 	"polymers/base"
 	"polymers/datatypes"
-	"polymers/global_data"
-	"polymers/output_format"
+	"polymers/globaldata"
+	"polymers/outputformat"
 )
 
 type _DFSAlg struct {
 	sidesToMove []datatypes.Side
 	usedPoints  map[int64]struct{}
-	printer     output_format.IPrint
+	printer     outputformat.IPrint
 	axisAlong   base.Axis
 }
 
@@ -19,14 +19,14 @@ func makeDFSAlg(axisAlong base.Axis) _DFSAlg {
 	return _DFSAlg{
 		sidesToMove: datatypes.GetNormalByAxis(axisAlong),
 		usedPoints:  make(map[int64]struct{}),
-		printer:     output_format.GetPrint(),
+		printer:     outputformat.GetPrint(),
 		axisAlong:   axisAlong,
 	}
 }
 
 func (dfs *_DFSAlg) FindCycles(startPoint *datatypes.Monomer) [][]*datatypes.Monomer {
 	// Let's start with the X axis for test and debug purposes
-	printer := output_format.GetPrint()
+	printer := outputformat.GetPrint()
 	stack := base.Stack{}
 	stack.Push(startPoint)
 	paths := make([][]*datatypes.Monomer, 0)
@@ -87,7 +87,7 @@ func (dfs *_DFSAlg) updateStack(currMonomer *datatypes.Monomer, stack *base.Stac
 }
 
 func (dfs *_DFSAlg) isEdge(currMonomer *datatypes.Monomer) bool {
-	globalData := global_data.GetGlobalData()
+	globalData := globaldata.GetGlobalData()
 	edgeValue := globalData.SpaceDimention[dfs.axisAlong].Higher
 	return base.CompareFloat(edgeValue, currMonomer.Coords().X) ||
 		base.CompareFloat(edgeValue, currMonomer.Coords().Y) ||

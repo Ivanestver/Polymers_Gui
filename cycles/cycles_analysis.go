@@ -3,8 +3,8 @@ package cycles
 import (
 	"polymers/base"
 	"polymers/datatypes"
-	"polymers/global_data"
-	"polymers/output_format"
+	"polymers/globaldata"
+	"polymers/outputformat"
 	"polymers/views"
 	"slices"
 )
@@ -12,14 +12,14 @@ import (
 type CyclesAnalyzer struct {
 	globula *views.GlobulaView
 	axises  []base.Axis
-	printer output_format.IPrint
+	printer outputformat.IPrint
 }
 
 func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 	analyzer := CyclesAnalyzer{
 		globula: globula,
 		axises:  axises,
-		printer: output_format.GetPrint(),
+		printer: outputformat.GetPrint(),
 	}
 	analyzer.analyzeCounts()
 	analyzer.analyzeSurfaceIntersections()
@@ -54,7 +54,7 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 		field = pv.GetUnderlinedField()
 		return false
 	})
-	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	startingPoints := startingPointsDefiner(axisAlong, spaceDimention, field)
 	finishingPoints := finishingPointsDefiner(axisAlong, spaceDimention, field)
 
@@ -65,7 +65,7 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 	})
 }
 
-func startingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
+func startingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
 	switch axisAlong {
 	case base.AxisX:
 		return field.GetMonomersWithin(
@@ -111,7 +111,7 @@ func startingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.Space
 	}
 }
 
-func finishingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
+func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
 	switch axisAlong {
 	case base.AxisX:
 		return field.GetMonomersWithin(
@@ -214,7 +214,7 @@ func getMoveDirection(axis base.Axis) datatypes.Side {
 }
 
 func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, moveDirection datatypes.Side) (start, finiish, step float64) {
-	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	start = spaceDimention[axisAlong].Lower
 	finiish = spaceDimention[axisAlong].Higher
 	for _, startingPoint := range startingPoints {

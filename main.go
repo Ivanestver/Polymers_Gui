@@ -1,3 +1,6 @@
+/*
+Package main is the starting point
+*/
 package main
 
 import (
@@ -7,14 +10,14 @@ import (
 	"os"
 	"polymers/atomistic"
 	"polymers/base"
-	"polymers/build_globula"
-	interp "polymers/command_interpreter"
+	"polymers/buildglobula"
+	interp "polymers/commandinterpreter"
 	"polymers/cycles"
 	"polymers/datatypes"
-	"polymers/global_data"
+	"polymers/globaldata"
 	"polymers/loaders"
-	"polymers/output_format"
-	pattern_lib "polymers/pattern"
+	"polymers/outputformat"
+	"polymers/patternlib"
 	"polymers/savers"
 	"polymers/views"
 	"strconv"
@@ -22,10 +25,10 @@ import (
 )
 
 var globula *views.GlobulaView
-var printer output_format.IPrint
+var printer outputformat.IPrint
 
-func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
-	var spaceDimention global_data.SpaceDimention
+func setUpSpaceDimention(commands *[]string) globaldata.SpaceDimention {
+	var spaceDimention globaldata.SpaceDimention
 	spaceDim := struct{ X, Y, Z, Xl, Yl, Zl float64 }{}
 	spaceDim.Xl = 0.0
 	spaceDim.Xl = 0.0
@@ -92,8 +95,8 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 }
 
 func main() {
-	output_format.SetPrint(&output_format.ColoredConsolePrint{})
-	printer = output_format.GetPrint()
+	outputformat.SetPrint(&outputformat.ColoredConsolePrint{})
+	printer = outputformat.GetPrint()
 	printer.PrintlnInfo("Welcome to the Polymer Builder 2.0")
 	commands := make([]string, 0)
 	scriptPtr := flag.String("script", "", "define a script file")
@@ -104,7 +107,7 @@ func main() {
 	}
 	spaceDimention := setUpSpaceDimention(&commands)
 	printer.PrintlnInfo("Configuring the global data")
-	global_data.ConfigureGlobalData(spaceDimention)
+	globaldata.ConfigureGlobalData(spaceDimention)
 	printer.PrintlnInfo("Configuring the global data finished")
 	printer.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	cmdReader := bufio.NewReader(os.Stdin)
@@ -126,7 +129,7 @@ func main() {
 			interp.PrintHelp()
 		case interp.CommandBuild:
 			m := data.(map[string]interface{})
-			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
+			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.CommandShowGlobula:
 			if globula != nil {
 				PrintGlobulaInfo(globula)
@@ -294,14 +297,14 @@ func main() {
 	}
 }
 
-func buildGlobula(algType build_globula.AlgType, predefinedParams []string, particleName string) {
-	inputDataBuilder := build_globula.CreateInputDataBuilder(algType)
+func buildGlobula(algType buildglobula.AlgType, predefinedParams []string, particleName string) {
+	inputDataBuilder := buildglobula.CreateInputDataBuilder(algType)
 	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams, particleName)
 	if err != nil {
 		printer.PrintlnError(err.Error())
 		return
 	}
-	calcAlg := build_globula.CreateCalcAlg(inputData_, algType)
+	calcAlg := buildglobula.CreateCalcAlg(inputData_, algType)
 	finishedPolymers := calcAlg.Calc()
 	if finishedPolymers == nil {
 		printer.PrintlnError("The result of building is nil")
@@ -370,20 +373,20 @@ func getCommandsFromScript(filename string, mode string) []string {
 }
 
 func processPattern(data map[string]string) (*views.GlobulaView, error) {
-	pattern, ok := pattern_lib.GetPattern(data)
+	pattern, ok := patternlib.GetPattern(data)
 	if !ok {
 		return nil, errors.New("couldn't retrieve pattern")
 	}
 
-	if pattern_lib.AnyLetterIsUndefined(pattern, globula) {
+	if patternlib.AnyLetterIsUndefined(pattern, globula) {
 		printer.PrintlnError("Please, define the missing decryptions to continue")
 		return nil, errors.New("please, define the missing decryptions to continue")
 	}
 
 	if globula.Is(views.GlobulaGlobulaType) {
-		pattern_lib.ApplyAsGlobula(globula, pattern)
+		patternlib.ApplyAsGlobula(globula, pattern)
 	} else {
-		pattern_lib.ApplyAsThread(globula, pattern)
+		patternlib.ApplyAsThread(globula, pattern)
 	}
 
 	return globula, nil

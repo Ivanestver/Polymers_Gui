@@ -2,7 +2,7 @@ package datatypes
 
 import (
 	"polymers/base"
-	"polymers/global_data"
+	"polymers/globaldata"
 )
 
 type FieldType = int
@@ -31,6 +31,6 @@ func CreateField(fieldType FieldType, args ...any) IField {
 }
 
 func getMaxDimention() uint64 {
-	globalData := global_data.GetGlobalData()
+	globalData := globaldata.GetGlobalData()
 	return uint64(max(globalData.SpaceDimention[base.AxisX].Higher, globalData.SpaceDimention[base.AxisY].Higher, globalData.SpaceDimention[base.AxisZ].Higher))
 }

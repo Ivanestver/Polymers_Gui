@@ -1,17 +1,17 @@
-package pattern_lib
+package patternlib
 
 import (
 	"bufio"
 	"os"
 	"polymers/datatypes"
-	"polymers/output_format"
+	"polymers/outputformat"
 	"polymers/views"
 	"slices"
 )
 
 func GetPattern(data map[string]string) (string, bool) {
 	var pattern string
-	printer := output_format.GetPrint()
+	printer := outputformat.GetPrint()
 	fileName, ok := data["fileName"]
 	if ok {
 		file, err := os.Open(fileName)
@@ -41,7 +41,7 @@ func GetPattern(data map[string]string) (string, bool) {
 }
 
 func AnyLetterIsUndefined(pattern string, globula *views.GlobulaView) bool {
-	printer := output_format.GetPrint()
+	printer := outputformat.GetPrint()
 	for _, letter := range pattern {
 		l := string(letter)
 		if globula.GetMonomerTypeByLiteral(l) == datatypes.MonomerTypeUndefined {

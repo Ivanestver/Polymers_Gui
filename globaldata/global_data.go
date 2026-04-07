@@ -1,4 +1,4 @@
-package global_data
+package globaldata
 
 import (
 	"polymers/base"

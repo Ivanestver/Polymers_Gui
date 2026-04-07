@@ -10,7 +10,7 @@ import (
 	"polymers/base"
 	"polymers/datatypes"
 	dt "polymers/datatypes"
-	"polymers/output_format"
+	"polymers/outputformat"
 	"sort"
 	"strconv"
 	"strings"
@@ -577,7 +577,7 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	if ncut < OcontainingCount {
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
-	printer := output_format.GetPrint()
+	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	// if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
 	// 	dt.MONOMER_TYPE_O_CONTAINING,
@@ -815,11 +815,11 @@ func (globula *GlobulaView) showNumberOfChains() string {
 }
 
 func (globula *GlobulaView) showTheoreticalAgeStatistics() string {
-	output_format.GetPrint().Println("Please, specify the theoretical age ratio in percents")
+	outputformat.GetPrint().Println("Please, specify the theoretical age ratio in percents")
 	ageRatioPercent := 25
 	ageRatio := float64(ageRatioPercent) * 0.01
 	atomsCount := globula.GetAtomsCount()
-	output_format.GetPrint().Readln(&ageRatioPercent)
+	outputformat.GetPrint().Readln(&ageRatioPercent)
 	builder := strings.Builder{}
 
 	builder.WriteString("3. Ожидаемая степень старения: ")
@@ -926,7 +926,7 @@ func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error
 	if ncut < nOContaining {
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
-	printer := output_format.GetPrint()
+	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	globula.breakConnections(nOContaining, dt.MonomerTypeVynil)
 

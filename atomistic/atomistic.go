@@ -7,15 +7,15 @@ import (
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
-	"polymers/global_data"
-	"polymers/output_format"
+	"polymers/globaldata"
+	"polymers/outputformat"
 	"polymers/views"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-var printer output_format.IPrint
+var printer outputformat.IPrint
 
 type _Config struct {
 	Scale         float64
@@ -31,7 +31,7 @@ func _NewConfig() *_Config {
 }
 
 func MakeAtomistic(globula *views.GlobulaView, configFile string) {
-	printer = output_format.GetPrint()
+	printer = outputformat.GetPrint()
 	config, err := createConfig(configFile)
 	if err != nil {
 		printer.PrintflnError("When atomistic: %s", err.Error())
@@ -415,7 +415,7 @@ func makeFileContent(polymers []*_Polymer, config *_Config) string {
 	builder.WriteString("\n")
 
 	builder.WriteString("@<TRIPOS>CRYSIN\n")
-	spaceDimention := global_data.GetGlobalData().SpaceDimention
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	builder.WriteString(fmt.Sprintf("%f %f %f 90.000 90.000 90.000 1 1",
 		(spaceDimention[base.AxisX].Higher-spaceDimention[base.AxisX].Lower)*config.Scale,
 		(spaceDimention[base.AxisY].Higher-spaceDimention[base.AxisY].Lower)*config.Scale,
