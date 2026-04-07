@@ -10,56 +10,56 @@ import (
 )
 
 const (
-	COMMAND_HELP_STR              = "help"
-	COMMAND_BUILD_STR             = "build"
-	COMMAND_EXIT_STR              = "exit"
-	COMMAND_SHOW_STR              = "show"
-	COMMAND_GLOBULA_STR           = "globula"
-	COMMAND_SAVE_STR              = "save"
-	COMMAND_CLUSTERS_STR          = "clusters"
-	COMMAND_CLUSTERS_ALL_STR      = "all"
-	COMMAND_AGE_STR               = "age"
-	COMMAND_RESET_STR             = "reset"
-	COMMAND_FULL_STR              = "full"
-	COMMAND_HIGHLIGHT_BORDERS_STR = "highlight_borders"
-	COMMAND_THREAD_STR            = "thread"
-	COMMAND_SURFACE_STR           = "surface"
-	COMMAND_WATERIZE_STR          = "waterize"
-	COMMAND_TRUNK_STR             = "trunk"
-	COMMAND_PATTERN_STR           = "pattern"
-	COMMAND_SCRIPT_STR            = "script"
-	COMMAND_COMMON_STATS_STR      = "common_stats"
-	COMMAND_FILE_STR              = "file"
-	COMMAND_CYCLES_STR            = "cycles"
-	COMMAND_ATOMISTIC_STR         = "atomistic"
-	COMMAND_LOADER_STR            = "load"
-	COMMAND_LATTICE_STR           = "lattice"
-	COMMAND_REAL_STR              = "real"
+	CommandHelpSTR             = "help"
+	CommandBuildSTR            = "build"
+	CommandExitSTR             = "exit"
+	CommandShowSTR             = "show"
+	CommandGlobulaSTR          = "globula"
+	CommandSaveSTR             = "save"
+	CommandClustersSTR         = "clusters"
+	CommandClustersAllATR      = "all"
+	CommandAgeSTR              = "age"
+	CommandResetSTR            = "reset"
+	CommandFullSTR             = "full"
+	CommandHighlightBordersSTR = "highlight_borders"
+	CommandThreadSTR           = "thread"
+	CommandSurfaceSTR          = "surface"
+	CommandWaterizeSTR         = "waterize"
+	CommandTrunkSTR            = "trunk"
+	CommandPatternSTR          = "pattern"
+	CommandScriptSTR           = "script"
+	CommandCommonStatsSTR      = "common_stats"
+	CommandFileSTR             = "file"
+	CommandCyclesSTR           = "cycles"
+	CommandAtomisticSTR        = "atomistic"
+	CommandLoaderSTR           = "load"
+	CommandLatticeSTR          = "lattice"
+	CommandRealSTR             = "real"
 )
 
 type Command = int
 
 const (
-	COMMAND_UNDEFINED = -1
-	COMMAND_HELP      = iota
-	COMMAND_BUILD
-	COMMAND_SHOW_GLOBULA
-	COMMAND_SAVE_GLOBULA
-	COMMAND_HIGHLIGHT_CLUSTERS_ALL
-	COMMAND_AGE
-	COMMAND_RESET
-	COMMAND_RESET_FULL
-	COMMAND_EXIT
-	COMMAND_READ_DATA
-	COMMAND_HIGHLIGHT_BORDERS
-	COMMAND_WATERIZE
-	COMMAND_TRUNK
-	COMMAND_PATTERN
-	COMMAND_SCRIPT
-	COMMAND_COMMON_STATS
-	COMMAND_ATOMISTIC
-	COMMAND_LOADER
-	COMMAND_CYCLES
+	CommandUndefined = -1
+	CommandHelp      = iota
+	CommandBuild
+	CommandShowGlobula
+	CommandSaveGlobula
+	CommandHighlightClustersAll
+	CommandAge
+	CommandReset
+	CommandResetFull
+	CommandExit
+	CommandReadData
+	CommandHighlightBorders
+	CommandWaterize
+	CommandTrunk
+	CommandPattern
+	CommandScript
+	CommandCommonStats
+	CommandAtomistic
+	CommandLoader
+	CommandCycles
 )
 
 var currProgram string
@@ -86,7 +86,7 @@ func getNextToken() (string, error) {
 		return "", errors.New("incompleted command")
 	}
 	var token string
-	var char rune = rune(getCurrChar())
+	char := rune(getCurrChar())
 	for char == ' ' {
 		moveForward()
 		if finished() {
@@ -142,7 +142,7 @@ func getParameterAsString() (string, error) {
 }
 
 func getUndefinedCommand(token string) (Command, string) {
-	return COMMAND_UNDEFINED, "Undefined parameter '" + token + "'"
+	return CommandUndefined, "Undefined parameter '" + token + "'"
 }
 
 func Interpret(program string) (Command, interface{}) {
@@ -154,31 +154,31 @@ func Interpret(program string) (Command, interface{}) {
 func s() (Command, interface{}) {
 	token, error := getNextToken()
 	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
+		return CommandUndefined, error.Error()
 	}
 
 	if f, ok := map[string]func() (Command, interface{}){
-		COMMAND_HELP_STR:              func() (Command, interface{}) { return COMMAND_HELP, nil },
-		COMMAND_PATTERN_STR:           pattern,
-		COMMAND_BUILD_STR:             build,
-		COMMAND_SHOW_STR:              show,
-		COMMAND_SAVE_STR:              save,
-		COMMAND_CLUSTERS_STR:          clusters,
-		COMMAND_AGE_STR:               age,
-		COMMAND_HIGHLIGHT_BORDERS_STR: borders,
-		COMMAND_RESET_STR:             resetGlobula,
-		COMMAND_EXIT_STR:              func() (Command, interface{}) { return COMMAND_EXIT, nil },
-		COMMAND_WATERIZE_STR:          waterize,
-		COMMAND_TRUNK_STR:             trunk,
-		COMMAND_SCRIPT_STR:            script,
-		COMMAND_COMMON_STATS_STR:      commonStats,
-		COMMAND_ATOMISTIC_STR:         atomistic,
-		COMMAND_LOADER_STR:            load,
-		COMMAND_CYCLES_STR:            cycles,
+		CommandHelpSTR:             func() (Command, interface{}) { return CommandHelp, nil },
+		CommandPatternSTR:          pattern,
+		CommandBuildSTR:            build,
+		CommandShowSTR:             show,
+		CommandSaveSTR:             save,
+		CommandClustersSTR:         clusters,
+		CommandAgeSTR:              age,
+		CommandHighlightBordersSTR: borders,
+		CommandResetSTR:            resetGlobula,
+		CommandExitSTR:             func() (Command, interface{}) { return CommandExit, nil },
+		CommandWaterizeSTR:         waterize,
+		CommandTrunkSTR:            trunk,
+		CommandScriptSTR:           script,
+		CommandCommonStatsSTR:      commonStats,
+		CommandAtomisticSTR:        atomistic,
+		CommandLoaderSTR:           load,
+		CommandCyclesSTR:           cycles,
 	}[token]; ok {
 		return f()
 	} else {
-		return COMMAND_UNDEFINED, "Undefined command: " + token
+		return CommandUndefined, "Undefined command: " + token
 	}
 }
 
@@ -187,43 +187,43 @@ func pattern() (Command, interface{}) {
 
 	t, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, "Wrong source type"
+		return CommandUndefined, "Wrong source type"
 	}
 	switch t {
-	case COMMAND_FILE_STR:
+	case CommandFileSTR:
 		fileName, err := getParameterAsString()
 		if err != nil {
-			return COMMAND_UNDEFINED, "Wrong usage"
+			return CommandUndefined, "Wrong usage"
 		}
 		m["fileName"] = fileName
-	case COMMAND_PATTERN_STR:
+	case CommandPatternSTR:
 		patt, err := getParameterAsString()
 		if err != nil {
-			return COMMAND_UNDEFINED, "Wrong usage"
+			return CommandUndefined, "Wrong usage"
 		}
 		if patt, err = getPattern(patt); err == nil {
 			m["pattern"] = patt
 		} else {
-			return COMMAND_UNDEFINED, err.Error()
+			return CommandUndefined, err.Error()
 		}
 	default:
-		return COMMAND_UNDEFINED, "Wrong source type"
+		return CommandUndefined, "Wrong source type"
 	}
 
 	outputName, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
 	m["outputName"] = outputName
 
-	return COMMAND_PATTERN, m
+	return CommandPattern, m
 }
 
 func build() (Command, interface{}) {
 	objective, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
 	predefinedParams := make([]string, 0)
@@ -240,23 +240,23 @@ func build() (Command, interface{}) {
 
 	name, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, "Specify the name of a particle"
+		return CommandUndefined, "Specify the name of a particle"
 	}
 	m["name"] = name
 
-	if objective == COMMAND_GLOBULA_STR {
+	if objective == CommandGlobulaSTR {
 		m["alg"] = build_globula.GlobulaBuildAlg
-		return COMMAND_BUILD, m
+		return CommandBuild, m
 	}
 
-	if objective == COMMAND_THREAD_STR {
+	if objective == CommandThreadSTR {
 		m["alg"] = build_globula.ThreadBuildAlg
-		return COMMAND_BUILD, m
+		return CommandBuild, m
 	}
 
-	if objective == COMMAND_SURFACE_STR {
+	if objective == CommandSurfaceSTR {
 		m["alg"] = build_globula.SurfaceBuildAlg
-		return COMMAND_BUILD, m
+		return CommandBuild, m
 	}
 
 	return getUndefinedCommand(objective)
@@ -265,72 +265,72 @@ func build() (Command, interface{}) {
 func show() (Command, interface{}) {
 	token, error := getNextToken()
 	if error != nil {
-		return COMMAND_UNDEFINED, error.Error()
+		return CommandUndefined, error.Error()
 	}
 
-	if token == COMMAND_GLOBULA_STR {
+	if token == CommandGlobulaSTR {
 		return showGlobula()
 	}
 
-	return COMMAND_UNDEFINED, "Undefined parameter '" + token + "'"
+	return CommandUndefined, "Undefined parameter '" + token + "'"
 }
 
 func showGlobula() (Command, interface{}) {
-	return COMMAND_SHOW_GLOBULA, nil
+	return CommandShowGlobula, nil
 }
 
 func save() (Command, interface{}) {
 	filename, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
-	return COMMAND_SAVE_GLOBULA, filename
+	return CommandSaveGlobula, filename
 }
 
 func clusters() (Command, interface{}) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
-		return COMMAND_UNDEFINED, "Wrong usage"
+		return CommandUndefined, "Wrong usage"
 	}
 
 	tokenAll, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
-	if tokenAll == COMMAND_CLUSTERS_ALL_STR {
-		return COMMAND_HIGHLIGHT_CLUSTERS_ALL, globulaName
+	if tokenAll == CommandClustersAllATR {
+		return CommandHighlightClustersAll, globulaName
 	}
 
-	return COMMAND_UNDEFINED, "Wrong usage"
+	return CommandUndefined, "Wrong usage"
 }
 
 func age() (Command, interface{}) {
 	groupCount, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err
+		return CommandUndefined, err
 	}
 
 	moveForward()
 	if finished() {
-		return COMMAND_UNDEFINED, string("Wrong usage")
+		return CommandUndefined, string("Wrong usage")
 	}
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err
+		return CommandUndefined, err
 	}
 
 	if token != "true" && token != "false" {
-		return COMMAND_UNDEFINED, string("Error: make_crosslinks parameter must be either \"true\" or \"false\"")
+		return CommandUndefined, string("Error: make_crosslinks parameter must be either \"true\" or \"false\"")
 	}
 
 	token, err = getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err
+		return CommandUndefined, err
 	}
 	ageAlgType, err := strconv.Atoi(token)
 	if err != nil {
-		return COMMAND_UNDEFINED, err
+		return CommandUndefined, err
 	}
 
 	m := make(map[string]interface{})
@@ -338,23 +338,23 @@ func age() (Command, interface{}) {
 	if !finished() && (ageAlgType == 3 || ageAlgType == 4) {
 		ncut, err := getNextToken()
 		if err != nil {
-			return COMMAND_UNDEFINED, err
+			return CommandUndefined, err
 		}
 		m["ncut"] = ncut
 		if finished() {
-			return COMMAND_UNDEFINED, errors.New("Wrong usage of the age command")
+			return CommandUndefined, errors.New("wrong usage of the age command")
 		}
 		nOContaining, err := getNextToken()
 		if err != nil {
-			return COMMAND_UNDEFINED, err
+			return CommandUndefined, err
 		}
 		m["OContaining"] = nOContaining
 		if finished() {
-			return COMMAND_UNDEFINED, errors.New("Wrong usage of the age command")
+			return CommandUndefined, errors.New("wrong usage of the age command")
 		}
 		ncross, err := getNextToken()
 		if err != nil {
-			return COMMAND_UNDEFINED, err
+			return CommandUndefined, err
 		}
 		m["ncross"] = ncross
 	}
@@ -362,11 +362,11 @@ func age() (Command, interface{}) {
 	m["count"] = groupCount
 	m["make_crosslinks"] = (token == "true")
 	m["alg_type"] = ageAlgType
-	return COMMAND_AGE, m
+	return CommandAge, m
 }
 
 func borders() (Command, interface{}) {
-	return COMMAND_HIGHLIGHT_BORDERS, nil
+	return CommandHighlightBorders, nil
 }
 
 func resetGlobula() (Command, interface{}) {
@@ -374,53 +374,53 @@ func resetGlobula() (Command, interface{}) {
 	if finished() {
 		m := make(map[string]interface{})
 		m["full"] = false
-		return COMMAND_RESET, m
+		return CommandReset, m
 	}
 	moveForward()
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
-	if token == COMMAND_FULL_STR {
+	if token == CommandFullSTR {
 		m := make(map[string]interface{})
 		m["full"] = true
-		return COMMAND_RESET_FULL, m
+		return CommandResetFull, m
 	}
 
-	return COMMAND_UNDEFINED, string("Wrong usage")
+	return CommandUndefined, string("Wrong usage")
 }
 
 func waterize() (Command, interface{}) {
-	return COMMAND_WATERIZE, nil
+	return CommandWaterize, nil
 }
 
 func trunk() (Command, interface{}) {
 	m := make(map[string]interface{})
 	if finished() { // No size has been provided, therefore, use the shortest
-		return COMMAND_TRUNK, m
+		return CommandTrunk, m
 	}
 
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
 	newSize, err := strconv.Atoi(token)
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 
 	m["new_size"] = newSize
-	return COMMAND_TRUNK, m
+	return CommandTrunk, m
 }
 
 func script() (Command, interface{}) {
 	filename, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
-	return COMMAND_SCRIPT, filename
+	return CommandScript, filename
 }
 
 func commonStats() (Command, interface{}) {
@@ -428,11 +428,11 @@ func commonStats() (Command, interface{}) {
 
 	filename, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, string("Wrong usage")
+		return CommandUndefined, string("Wrong usage")
 	}
 
 	m["filename"] = filename
-	return COMMAND_COMMON_STATS, m
+	return CommandCommonStats, m
 }
 
 func getPattern(raw string) (string, error) {
@@ -445,7 +445,7 @@ func getPattern(raw string) (string, error) {
 			curr++
 		} else if c == '(' {
 			curr++
-			if err := getPattern_S2(raw, &curr, &dst); err != nil {
+			if err := getPatternS2(raw, &curr, &dst); err != nil {
 				return "", nil
 			}
 		} else {
@@ -455,7 +455,7 @@ func getPattern(raw string) (string, error) {
 	return dst, nil
 }
 
-func getPattern_S2(raw string, curr *int, dst *string) error {
+func getPatternS2(raw string, curr *int, dst *string) error {
 	if *curr >= len(raw) {
 		return errors.New("The pattern doesn't follow the rules: " + raw)
 	}
@@ -466,14 +466,14 @@ func getPattern_S2(raw string, curr *int, dst *string) error {
 			*curr++
 		} else if c == ')' && start < *curr {
 			*curr++
-			return getPattern_S3(raw, curr, start, dst)
+			return getPatternS3(raw, curr, start, dst)
 		} else {
 			return errors.New("The pattern doesn't follow the rules: " + raw)
 		}
 	}
 }
 
-func getPattern_S3(raw string, curr *int, start int, dst *string) error {
+func getPatternS3(raw string, curr *int, start int, dst *string) error {
 	if *curr >= len(raw) {
 		return errors.New("The pattern doesn't follow the rules: " + raw)
 	}
@@ -484,13 +484,13 @@ func getPattern_S3(raw string, curr *int, start int, dst *string) error {
 		return nil
 	} else if c == '*' {
 		*curr++
-		return getPattern_S4(raw, curr, start, dst)
+		return getPatternS4(raw, curr, start, dst)
 	} else {
 		return errors.New("The pattern doesn't follow the rules: " + raw)
 	}
 }
 
-func getPattern_S4(raw string, curr *int, start int, dst *string) error {
+func getPatternS4(raw string, curr *int, start int, dst *string) error {
 	startNum := *curr
 	for *curr < len(raw) {
 		c := raw[*curr]
@@ -519,16 +519,16 @@ func atomistic() (Command, interface{}) {
 
 	fileName, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, err.Error()
+		return CommandUndefined, err.Error()
 	}
 	m["config"] = fileName
-	return COMMAND_ATOMISTIC, m
+	return CommandAtomistic, m
 }
 
 func load() (Command, interface{}) {
 	filetype, err := getNextToken()
 	if err != nil {
-		return COMMAND_UNDEFINED, "no filetype specified"
+		return CommandUndefined, "no filetype specified"
 	}
 
 	m := make(map[string]string)
@@ -536,37 +536,37 @@ func load() (Command, interface{}) {
 
 	filename, err := getParameterAsString()
 	if err != nil {
-		return COMMAND_UNDEFINED, "no filename specified"
+		return CommandUndefined, "no filename specified"
 	}
 	m["filename"] = filename
-	m["field"] = COMMAND_REAL_STR
+	m["field"] = CommandRealSTR
 
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_LOADER, m
+		return CommandLoader, m
 	}
-	if token == COMMAND_LATTICE_STR {
-		m["field"] = COMMAND_LATTICE_STR
+	if token == CommandLatticeSTR {
+		m["field"] = CommandLatticeSTR
 	}
 
-	return COMMAND_LOADER, m
+	return CommandLoader, m
 }
 
 func cycles() (Command, interface{}) {
 	m := make(map[string]base.Axis)
 	token, err := getNextToken()
 	if err != nil {
-		return COMMAND_CYCLES, m
+		return CommandCycles, m
 	}
 	switch token {
 	case "X":
-		m["axis"] = base.X_AXIS
+		m["axis"] = base.AxisX
 	case "Y":
-		m["axis"] = base.Y_AXIS
+		m["axis"] = base.AxisY
 	case "Z":
-		m["axis"] = base.Z_AXIS
+		m["axis"] = base.AxisZ
 	default:
-		return COMMAND_UNDEFINED, fmt.Sprintf("axis can be only 'X', 'Y', 'Z', but given %s", token)
+		return CommandUndefined, fmt.Sprintf("axis can be only 'X', 'Y', 'Z', but given %s", token)
 	}
-	return COMMAND_CYCLES, m
+	return CommandCycles, m
 }

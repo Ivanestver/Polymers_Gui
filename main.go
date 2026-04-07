@@ -33,12 +33,12 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 	if len(*commands) == 0 {
 		printer.PrintInfo("Please, type the space dimention: ")
 		printer.Readln(&spaceDim.X, &spaceDim.Y, &spaceDim.Z)
-		spaceDimention[base.X_AXIS].Lower = 0.0
-		spaceDimention[base.Y_AXIS].Lower = 0.0
-		spaceDimention[base.Z_AXIS].Lower = 0.0
-		spaceDimention[base.X_AXIS].Higher = spaceDim.X
-		spaceDimention[base.Y_AXIS].Higher = spaceDim.Y
-		spaceDimention[base.Z_AXIS].Higher = spaceDim.Z
+		spaceDimention[base.AxisX].Lower = 0.0
+		spaceDimention[base.AxisY].Lower = 0.0
+		spaceDimention[base.AxisZ].Lower = 0.0
+		spaceDimention[base.AxisX].Higher = spaceDim.X
+		spaceDimention[base.AxisY].Higher = spaceDim.Y
+		spaceDimention[base.AxisZ].Higher = spaceDim.Z
 		return spaceDimention
 	}
 	line := (*commands)[0]
@@ -81,12 +81,12 @@ func setUpSpaceDimention(commands *[]string) global_data.SpaceDimention {
 			}
 		}
 	}
-	spaceDimention[base.X_AXIS].Lower = spaceDim.Xl
-	spaceDimention[base.Y_AXIS].Lower = spaceDim.Yl
-	spaceDimention[base.Z_AXIS].Lower = spaceDim.Zl
-	spaceDimention[base.X_AXIS].Higher = spaceDim.X
-	spaceDimention[base.Y_AXIS].Higher = spaceDim.Y
-	spaceDimention[base.Z_AXIS].Higher = spaceDim.Z
+	spaceDimention[base.AxisX].Lower = spaceDim.Xl
+	spaceDimention[base.AxisY].Lower = spaceDim.Yl
+	spaceDimention[base.AxisZ].Lower = spaceDim.Zl
+	spaceDimention[base.AxisX].Higher = spaceDim.X
+	spaceDimention[base.AxisY].Higher = spaceDim.Y
+	spaceDimention[base.AxisZ].Higher = spaceDim.Z
 	printer.PrintfInfo("The space dimention set by user is %d\n", spaceDimention)
 	return spaceDimention
 }
@@ -120,20 +120,20 @@ func main() {
 		}
 		command, data := interp.Interpret(line)
 		switch command {
-		case interp.COMMAND_UNDEFINED:
+		case interp.CommandUndefined:
 			printer.PrintlnError(data.(string))
-		case interp.COMMAND_HELP:
+		case interp.CommandHelp:
 			interp.PrintHelp()
-		case interp.COMMAND_BUILD:
+		case interp.CommandBuild:
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(build_globula.AlgType), m["params"].([]string), m["name"].(string))
-		case interp.COMMAND_SHOW_GLOBULA:
+		case interp.CommandShowGlobula:
 			if globula != nil {
 				PrintGlobulaInfo(globula)
 			} else {
 				printer.PrintlnError("There is no globula called")
 			}
-		case interp.COMMAND_SAVE_GLOBULA:
+		case interp.CommandSaveGlobula:
 			if globula == nil {
 				printer.PrintlnError("There is no globula called")
 				break
@@ -147,7 +147,7 @@ func main() {
 			}
 			defer f.Close()
 			f.Write([]byte(content))
-		case interp.COMMAND_HIGHLIGHT_CLUSTERS_ALL:
+		case interp.CommandHighlightClustersAll:
 			printer.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			if xClusters != nil {
@@ -160,7 +160,7 @@ func main() {
 				zClusters.Colorize(false)
 			}
 
-		case interp.COMMAND_AGE:
+		case interp.CommandAge:
 			data := data.(map[string]interface{})
 			groupsCountStr := data["count"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
@@ -202,19 +202,19 @@ func main() {
 				}
 			}
 
-		case interp.COMMAND_RESET:
+		case interp.CommandReset:
 			globula.Reset()
 
-		case interp.COMMAND_RESET_FULL:
+		case interp.CommandResetFull:
 			globula.FullReset()
 
-		case interp.COMMAND_HIGHLIGHT_BORDERS:
+		case interp.CommandHighlightBorders:
 			globula.HighlightBorders()
 
-		case interp.COMMAND_WATERIZE:
+		case interp.CommandWaterize:
 			globula.Waterize()
 
-		case interp.COMMAND_TRUNK:
+		case interp.CommandTrunk:
 			data := data.(map[string]interface{})
 			newSize, ok := data["new_size"]
 			if ok {
@@ -223,22 +223,22 @@ func main() {
 				globula.MakeHomogenousAsShortest()
 			}
 
-		case interp.COMMAND_PATTERN:
+		case interp.CommandPattern:
 			if _, err := processPattern(data.(map[string]string)); err != nil {
 				printer.PrintlnError(err.Error())
 			}
 
-		case interp.COMMAND_EXIT:
+		case interp.CommandExit:
 			isWorking = false
 
-		case interp.COMMAND_SCRIPT:
+		case interp.CommandScript:
 			filename, err := data.(string)
 			if !err {
 				printer.PrintlnError("Usage: script <filename>")
 			}
 			commands = getCommandsFromScript(filename, "")
 
-		case interp.COMMAND_COMMON_STATS:
+		case interp.CommandCommonStats:
 			data := data.(map[string]string)
 			text := globula.GetStatistics()
 			f, err := os.Create(data["filename"])
@@ -249,7 +249,7 @@ func main() {
 			defer f.Close()
 			f.Write([]byte(text))
 
-		case interp.COMMAND_ATOMISTIC:
+		case interp.CommandAtomistic:
 			data := data.(map[string]string)
 			if config, ok := data["config"]; ok && globula != nil {
 				atomistic.MakeAtomistic(globula, config)
@@ -257,14 +257,14 @@ func main() {
 				printer.PrintflnError("Build a globula first")
 			}
 
-		case interp.COMMAND_LOADER:
+		case interp.CommandLoader:
 			data := data.(map[string]string)
 			filetype := data["filetype"]
 			filename := data["filename"]
 			fieldTypeStr := data["field"]
 			fieldType, ok := map[string]datatypes.FieldType{
-				interp.COMMAND_REAL_STR:    datatypes.FIELD_TYPE_REAL,
-				interp.COMMAND_LATTICE_STR: datatypes.FIELD_TYPE_LATTICE,
+				interp.CommandRealSTR:    datatypes.FieldTypeReal,
+				interp.CommandLatticeSTR: datatypes.FieldTypeLattice,
 			}[fieldTypeStr]
 			if !ok {
 				printer.PrintflnError("No such a field type: %s", fieldType)
@@ -278,13 +278,13 @@ func main() {
 			} else {
 				printer.PrintflnError("When loading: %s", err.Error())
 			}
-		case interp.COMMAND_CYCLES:
+		case interp.CommandCycles:
 			data := data.(map[string]base.Axis)
 			var axises []base.Axis
 			if axis, ok := data["axis"]; ok {
 				axises = []base.Axis{axis}
 			} else {
-				axises = []base.Axis{base.X_AXIS, base.Y_AXIS, base.Z_AXIS}
+				axises = []base.Axis{base.AxisX, base.AxisY, base.AxisZ}
 			}
 			cycles.Analyze(globula, axises)
 
@@ -372,15 +372,15 @@ func getCommandsFromScript(filename string, mode string) []string {
 func processPattern(data map[string]string) (*views.GlobulaView, error) {
 	pattern, ok := pattern_lib.GetPattern(data)
 	if !ok {
-		return nil, errors.New("Couldn't retrieve pattern")
+		return nil, errors.New("couldn't retrieve pattern")
 	}
 
 	if pattern_lib.AnyLetterIsUndefined(pattern, globula) {
 		printer.PrintlnError("Please, define the missing decryptions to continue")
-		return nil, errors.New("Please, define the missing decryptions to continue")
+		return nil, errors.New("please, define the missing decryptions to continue")
 	}
 
-	if globula.Is(views.GLOBULA_GLOBULA_TYPE) {
+	if globula.Is(views.GlobulaGlobulaType) {
 		pattern_lib.ApplyAsGlobula(globula, pattern)
 	} else {
 		pattern_lib.ApplyAsThread(globula, pattern)

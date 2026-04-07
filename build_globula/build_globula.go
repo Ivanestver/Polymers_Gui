@@ -19,7 +19,7 @@ type CalcAlgInputData struct {
 }
 
 func (data CalcAlgInputData) GetGlobulaType() views.GlobulaProperty {
-	return views.GLOBULA_GLOBULA_TYPE
+	return views.GlobulaGlobulaType
 }
 
 func (data CalcAlgInputData) GetLiterals() map[datatypes.MonomerType]string {
@@ -102,10 +102,10 @@ func (alg *CalcAlg) Calc() []*datatypes.Polymer {
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 	}
 
-	return alg.calc_impl(polymers, field)
+	return alg.calcImpl(polymers, field)
 }
 
-func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Field) []*datatypes.Polymer {
+func (alg *CalcAlg) calcImpl(polymers []*datatypes.Polymer, field *datatypes.Field) []*datatypes.Polymer {
 	finishedPolymers := make([]*datatypes.Polymer, 0)
 	for _, p := range polymers {
 		startMonomer := field.DefineStartMonomer()
@@ -162,10 +162,10 @@ func (alg *CalcAlg) calc_impl(polymers []*datatypes.Polymer, field *datatypes.Fi
 }
 
 func (alg *CalcAlg) getContinuations(kFree int, availableCells []*datatypes.Monomer) []*datatypes.Monomer {
-	chosen_continuations_idxs := rand.Perm(kFree)
-	continuations := make([]*datatypes.Monomer, len(chosen_continuations_idxs))
-	for i := 0; i < len(chosen_continuations_idxs); i++ {
-		continuations[i] = availableCells[chosen_continuations_idxs[i]]
+	chosenContinuationsIdxs := rand.Perm(kFree)
+	continuations := make([]*datatypes.Monomer, len(chosenContinuationsIdxs))
+	for i := 0; i < len(chosenContinuationsIdxs); i++ {
+		continuations[i] = availableCells[chosenContinuationsIdxs[i]]
 	}
 	return continuations
 }
@@ -181,12 +181,12 @@ func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *d
 	return configCopy
 }
 
-func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, U_current float64) base.Vector3DF {
+func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, UCurrent float64) base.Vector3DF {
 	deltasOfPotentialConfigs := make([]float64, len(potentialConfigs))
 	for i := 0; i < len(potentialConfigs); i++ {
-		deltasOfPotentialConfigs[i] = U_current - datatypes.CalcEnergy(potentialConfigs[i])
+		deltasOfPotentialConfigs[i] = UCurrent - datatypes.CalcEnergy(potentialConfigs[i])
 	}
-	maxDelta := base.Max_float(deltasOfPotentialConfigs)
+	maxDelta := base.MaxFloat(deltasOfPotentialConfigs)
 	if math.IsNaN(maxDelta) {
 		return base.InvalidVectorF()
 	}

@@ -54,7 +54,7 @@ func (realField *RealField) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
 	if m, ok := realField.monomers[coords]; ok {
 		return m
 	} else {
-		m1 := NewMonomer(coords, MONOMER_TYPE_USUAL)
+		m1 := NewMonomer(coords, MonomerTypeUsual)
 		realField.monomers[coords] = m1
 		return m1
 	}

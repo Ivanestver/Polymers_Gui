@@ -23,7 +23,7 @@ func Contains[T comparable](container []T, value T) bool {
 	return false
 }
 
-func Contains_if[T comparable](container []T, value T, pred func(it T, value T) bool) bool {
+func ContainsIf[T comparable](container []T, value T, pred func(it T, value T) bool) bool {
 	for _, v := range container {
 		if pred(v, value) {
 			return true
@@ -52,12 +52,12 @@ func Any[T comparable](container []T, pred func(T) bool) bool {
 	return false
 }
 
-func Min_int[T int](container []T) *T {
+func MinInt[T int](container []T) *T {
 	if len(container) == 0 {
 		return nil
 	}
 
-	var minValue *T = &container[0]
+	var minValue = &container[0]
 	for i := 1; i < len(container); i++ {
 		if *minValue > container[i] {
 			minValue = &container[i]
@@ -66,12 +66,12 @@ func Min_int[T int](container []T) *T {
 	return minValue
 }
 
-func Min_float[T float64](container []T) *T {
+func MinFloat[T float64](container []T) *T {
 	if len(container) == 0 {
 		return nil
 	}
 
-	var minValue *T = &container[0]
+	var minValue = &container[0]
 	for i := 1; i < len(container); i++ {
 		if *minValue > container[i] {
 			minValue = &container[i]
@@ -85,7 +85,7 @@ func Min[T cmp.Ordered](container []T) *T {
 		return nil
 	}
 
-	var minValue *T = &container[0]
+	var minValue = &container[0]
 	for i := 1; i < len(container); i++ {
 		m := min(*minValue, container[i])
 		if m != *minValue {
@@ -95,12 +95,12 @@ func Min[T cmp.Ordered](container []T) *T {
 	return minValue
 }
 
-func Max_int[T int](container []T) *T {
+func MaxInt[T int](container []T) *T {
 	if len(container) == 0 {
 		return nil
 	}
 
-	var maxValue *T = &container[0]
+	var maxValue = &container[0]
 	for i := 1; i < len(container); i++ {
 		if *maxValue < container[i] {
 			maxValue = &container[i]
@@ -109,12 +109,12 @@ func Max_int[T int](container []T) *T {
 	return maxValue
 }
 
-func Max_float[T float64](container []T) T {
+func MaxFloat[T float64](container []T) T {
 	if len(container) == 0 {
 		return T(math.NaN())
 	}
 
-	var maxValue T = container[0]
+	var maxValue = container[0]
 	for i := 1; i < len(container); i++ {
 		if maxValue < container[i] {
 			maxValue = container[i]
@@ -128,7 +128,7 @@ func Max[T cmp.Ordered](container []T) *T {
 		return nil
 	}
 
-	var maxValue *T = &container[0]
+	var maxValue = &container[0]
 	for i := 1; i < len(container); i++ {
 		m := max(*maxValue, container[i])
 		if m != *maxValue {
@@ -148,7 +148,7 @@ func Index[T comparable](container []T, value T) int {
 	return -1
 }
 
-func Index_if[T any](container []T, pred func(t T) bool) int {
+func IndexIf[T any](container []T, pred func(t T) bool) int {
 	for idx, item := range container {
 		if pred(item) {
 			return idx

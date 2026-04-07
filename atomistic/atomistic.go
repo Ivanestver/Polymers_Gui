@@ -124,7 +124,7 @@ func writeSave(config *_Config, parts []string, line string) {
 func getPolymer(globula *views.GlobulaView) []*_Polymer {
 	polymers := make([]*_Polymer, globula.Len())
 	i := 0
-	views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
+	views.ForEachPolymerIf(globula, func(pv *views.PolymerView) bool {
 		polymers[i] = NewPolymer()
 		views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
 			coords := m.Coords()
@@ -342,8 +342,7 @@ func placeMolecules(polymers []*_Polymer, config *_Config) {
 				printer.PrintflnError("No prototype for the label '%s'", label)
 				continue
 			}
-			var molecule *_Monomer
-			molecule = prototype.GetMonomer(prevMonomerState).Copy()
+			molecule := prototype.GetMonomer(prevMonomerState).Copy()
 			prevMonomerState = (prevMonomerState + 1) % COUNT
 			molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 			polymer.Monomers[i] = molecule
@@ -362,8 +361,7 @@ func placeLastMonomer(polymer *_Polymer, config *_Config) {
 		printer.PrintflnError("placeLastMonomer: No prototype for the label '%s'", label)
 		return
 	}
-	var molecule *_Monomer
-	molecule = (*prototype)[len(*prototype)-1].Copy()
+	molecule := (*prototype)[len(*prototype)-1].Copy()
 	molecule.MoveTo(&polymer.Monomers[i].Atoms[0].Coords)
 	polymer.Monomers[i] = molecule
 }
@@ -419,9 +417,9 @@ func makeFileContent(polymers []*_Polymer, config *_Config) string {
 	builder.WriteString("@<TRIPOS>CRYSIN\n")
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
 	builder.WriteString(fmt.Sprintf("%f %f %f 90.000 90.000 90.000 1 1",
-		(spaceDimention[base.X_AXIS].Higher-spaceDimention[base.X_AXIS].Lower)*config.Scale,
-		(spaceDimention[base.Y_AXIS].Higher-spaceDimention[base.Y_AXIS].Lower)*config.Scale,
-		(spaceDimention[base.Z_AXIS].Higher-spaceDimention[base.Z_AXIS].Lower)*config.Scale,
+		(spaceDimention[base.AxisX].Higher-spaceDimention[base.AxisX].Lower)*config.Scale,
+		(spaceDimention[base.AxisY].Higher-spaceDimention[base.AxisY].Lower)*config.Scale,
+		(spaceDimention[base.AxisZ].Higher-spaceDimention[base.AxisZ].Lower)*config.Scale,
 	))
 	builder.WriteString("\n")
 	builder.WriteString("\n")

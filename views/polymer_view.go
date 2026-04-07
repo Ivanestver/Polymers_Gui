@@ -17,8 +17,8 @@ func NewPolymerView(polymer datatypes.IPolymer) *PolymerView {
 
 	prev := newPolymerView.polymer.GetMonomerByIdx(0)
 	curr := newPolymerView.polymer.GetMonomerByIdx(1)
-	for curr != nil && curr.IsTypeOf(datatypes.MONOMER_TYPE_UNDEFINED) && polymer.GetFieldType() != datatypes.FIELD_TYPE_REAL {
-		datatypes.MakeConnection(prev, curr, datatypes.CONNECTION_TYPE_ONE)
+	for curr != nil && curr.IsTypeOf(datatypes.MonomerTypeUndefined) && polymer.GetFieldType() != datatypes.FieldTypeReal {
+		datatypes.MakeConnection(prev, curr, datatypes.ConnectionTypeOne)
 		prev = curr
 		curr = curr.NextMonomer
 	}
@@ -68,7 +68,7 @@ func (polymerView *PolymerView) DeepCopy(field *datatypes.Field) *PolymerView {
 }
 
 func (polymerView *PolymerView) GetUnderlinedField() datatypes.IField {
-	if polymerView.polymer.GetFieldType() == datatypes.FIELD_TYPE_LATTICE {
+	if polymerView.polymer.GetFieldType() == datatypes.FieldTypeLattice {
 		return polymerView.polymer.(*datatypes.Polymer).GetField()
 	} else {
 		return polymerView.polymer.(*datatypes.RealPolymer).GetField()

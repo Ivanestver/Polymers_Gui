@@ -44,7 +44,7 @@ func AnyLetterIsUndefined(pattern string, globula *views.GlobulaView) bool {
 	printer := output_format.GetPrint()
 	for _, letter := range pattern {
 		l := string(letter)
-		if globula.GetMonomerTypeByLiteral(l) == datatypes.MONOMER_TYPE_UNDEFINED {
+		if globula.GetMonomerTypeByLiteral(l) == datatypes.MonomerTypeUndefined {
 			printer.PrintlnError(l + " does not have its decryption")
 			return true
 		}

@@ -22,15 +22,15 @@ func addNewLine(source *string) {
 
 func bondTypeMass(connType dt.ConnectionType) float64 {
 	switch connType {
-	case dt.CONNECTION_TYPE_ONE:
+	case dt.ConnectionTypeOne:
 		return 1
-	case dt.CONNECTION_TYPE_CROSSLINKS:
+	case dt.ConnectionTypeCrosslinks:
 		return 1
-	case dt.CONNECTION_TYPE_CROSS_LINEAR:
+	case dt.ConnectionTypeCrossLinear:
 		return 1
-	case dt.CONNECTION_TYPE_CROSS_SURFACE:
+	case dt.ConnectionTypeCrossSurface:
 		return math.Sqrt(2)
-	case dt.CONNECTION_TYPE_CROSS_SPACIAL:
+	case dt.ConnectionTypeCrossSpacial:
 		return math.Sqrt(3)
 	default:
 		return -1
@@ -70,9 +70,9 @@ func turnGlobulaIntoLammpsStruct(globula *views.GlobulaView) (*lammps_structs.La
 
 func writeSpaceDimention(lammpsStruct *lammps_structs.LammpsStruct) {
 	spaceDimention := global_data.GetGlobalData().SpaceDimention
-	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_X] = [2]float64{spaceDimention[base.X_AXIS].Lower, spaceDimention[base.X_AXIS].Higher}
-	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Y] = [2]float64{spaceDimention[base.Y_AXIS].Lower, spaceDimention[base.Y_AXIS].Higher}
-	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Z] = [2]float64{spaceDimention[base.Z_AXIS].Lower, spaceDimention[base.Z_AXIS].Higher}
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_X] = [2]float64{spaceDimention[base.AxisX].Lower, spaceDimention[base.AxisX].Higher}
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Y] = [2]float64{spaceDimention[base.AxisY].Lower, spaceDimention[base.AxisY].Higher}
+	lammpsStruct.SpaceDimention[lammps_structs.DIMENTION_TYPE_Z] = [2]float64{spaceDimention[base.AxisZ].Lower, spaceDimention[base.AxisZ].Higher}
 }
 
 func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
@@ -82,7 +82,7 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	// Write atoms and gather atom types info
 	views.ForEachPolymer(globula, func(polymer *views.PolymerView) {
 		views.ForEachMonomer(polymer, func(monomer *dt.Monomer) bool {
-			if monomer.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
+			if monomer.MonomerType == dt.MonomerTypeUndefined {
 				panic("Monomer cannot be undefined inside a polymer")
 			}
 			updateAtomsInfo(monomer, polymerID)
@@ -175,11 +175,11 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, globula *views.GlobulaView, bondID *int) func(*dt.Monomer, *dt.Monomer) {
 	return func(mon1, mon2 *dt.Monomer) {
 		side := mon1.GetSideOfSibling(mon2)
-		if side == dt.SIDE_Undefined {
+		if side == dt.SideUndefined {
 			return
 		}
 		connectionType := mon1.GetTypeOfConnectionWithSide(side)
-		if connectionType == dt.CONNECTION_TYPE_UNDEFINED { // Just in case
+		if connectionType == dt.ConnectionTypeUndefined { // Just in case
 			return
 		}
 

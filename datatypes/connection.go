@@ -32,8 +32,8 @@ func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 		return errors.New("one of monomers is nil")
 	}
 	side := GetSideByMonomers(mon1, mon2)
-	if side == SIDE_Undefined {
-		return errors.New("Cannot connect non-contiguous monomers")
+	if side == SideUndefined {
+		return errors.New("cannot connect non-contiguous monomers")
 	}
 	conn := mon1.sides[side]
 	if conn == nil {
@@ -52,9 +52,9 @@ func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 
 func MakeConnectionUnsafe(mon1, mon2 *Monomer, side Side, connectionType ConnectionType) error {
 	if mon1 == nil || mon2 == nil {
-		return errors.New("Either of monomers is nil")
+		return errors.New("either of monomers is nil")
 	}
-	if side == SIDE_Undefined {
+	if side == SideUndefined {
 		return errors.New("Side is undefined")
 	}
 	newConn := NewConnection([2]*Monomer{mon1, mon2}, connectionType)
@@ -69,23 +69,23 @@ func BreakConnection(mon1, mon2 *Monomer, side Side) error {
 		return errors.New("one of monomers is nil")
 	}
 
-	reversed_side := GetReversedSide(side)
-	curr_conn, ok := mon1.sides[side]
+	reversedSide := GetReversedSide(side)
+	currConn, ok := mon1.sides[side]
 	if !ok {
 		return errors.New("could not receive the connection")
 	}
-	other_conn, ok := mon2.sides[reversed_side]
+	otherConn, ok := mon2.sides[reversedSide]
 	if !ok {
 		return errors.New("could not receive the connection on the other side")
 	}
-	if curr_conn != other_conn {
+	if currConn != otherConn {
 		return errors.New("two connection occupy the same place")
 	}
 	if MonomersAreEqual(mon1.NextMonomer, mon2) ||
 		MonomersAreEqual(mon1.PrevMonomer, mon2) {
-		curr_conn.ConnType = CONNECTION_TYPE_ONE
+		currConn.ConnType = ConnectionTypeOne
 	} else {
-		curr_conn.ConnType = CONNECTION_TYPE_UNDEFINED
+		currConn.ConnType = ConnectionTypeUndefined
 	}
 
 	return nil
@@ -96,10 +96,10 @@ func BreakConnection1(mon1, mon2 *Monomer) error {
 		return errors.New("one of monomers is nil")
 	}
 	side := mon1.GetSideOfSibling(mon2)
-	if side == SIDE_Undefined {
-		return errors.New("The monomers are not sibiings")
+	if side == SideUndefined {
+		return errors.New("the monomers are not sibiings")
 	}
-	mon1.sides[side].ConnType = CONNECTION_TYPE_UNDEFINED
+	mon1.sides[side].ConnType = ConnectionTypeUndefined
 	return nil
 }
 
@@ -108,19 +108,19 @@ func TierConnection(mon1, mon2 *Monomer, side Side) error {
 		return errors.New("one of monomers is nil")
 	}
 
-	reversed_side := GetReversedSide(side)
-	curr_conn, ok := mon1.sides[side]
+	reversedSide := GetReversedSide(side)
+	currConn, ok := mon1.sides[side]
 	if !ok {
 		return errors.New("could not receive the connection")
 	}
-	other_conn, ok := mon2.sides[reversed_side]
+	otherConn, ok := mon2.sides[reversedSide]
 	if !ok {
 		return errors.New("could not receive the connection on the other side")
 	}
-	if curr_conn != other_conn {
+	if currConn != otherConn {
 		return errors.New("two connection occupy the same place")
 	}
-	curr_conn.ConnType = CONNECTION_TYPE_UNDEFINED
+	currConn.ConnType = ConnectionTypeUndefined
 
 	return nil
 }
@@ -130,16 +130,16 @@ func GetConnectionType(sideOne, sideTwo *Monomer) ConnectionType {
 	if base.Contains(GetMovementSides(), side) {
 		if (sideOne.NextMonomer != nil && sideOne.NextMonomer == sideTwo) ||
 			(sideOne.PrevMonomer != nil && sideOne.PrevMonomer == sideTwo) {
-			return CONNECTION_TYPE_ONE
+			return ConnectionTypeOne
 		} else {
-			return CONNECTION_TYPE_CROSS_LINEAR
+			return ConnectionTypeCrossLinear
 		}
 	} else if base.Contains(GetSurfaceDiagonalSides(), side) {
-		return CONNECTION_TYPE_CROSS_SURFACE
+		return ConnectionTypeCrossSurface
 	} else if base.Contains(GetCubeDiagonalSides(), side) {
-		return CONNECTION_TYPE_CROSS_SPACIAL
+		return ConnectionTypeCrossSpacial
 	} else {
-		return CONNECTION_TYPE_UNDEFINED
+		return ConnectionTypeUndefined
 	}
 }
 
@@ -148,7 +148,7 @@ type ConnectionJSON struct {
 	ConnType ConnectionType
 }
 
-func (conn *Connection) ToJson() ConnectionJSON {
+func (conn *Connection) ToJSON() ConnectionJSON {
 	var jsonObj ConnectionJSON
 	jsonObj.ConnType = conn.ConnType
 	jsonObj.monomers[0] = conn.monomers[0].Coords()

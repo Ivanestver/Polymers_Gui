@@ -70,13 +70,13 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 
 func GetLiteralsTable() map[datatypes.MonomerType]string {
 	m := make(map[datatypes.MonomerType]string)
-	m[datatypes.MONOMER_TYPE_UNDEFINED] = ""
-	m[datatypes.MONOMER_TYPE_USUAL] = "O"
-	m[datatypes.MONOMER_TYPE_O_CONTAINING] = "N"
-	m[datatypes.MONOMER_TYPE_VYNIL] = "C"
-	m[datatypes.MONOMER_TYPE_FWISE] = "F"
-	m[datatypes.MONOMER_TYPE_CLWISE] = "Cl"
-	m[datatypes.MONOMER_TYPE_CROSSLINKED] = "H"
-	m[datatypes.MONOMER_TYPE_WATER] = "I"
+	m[datatypes.MonomerTypeUndefined] = ""
+	m[datatypes.MonomerTypeUsual] = "O"
+	m[datatypes.MonomerTypeOContaining] = "N"
+	m[datatypes.MonomerTypeVynil] = "C"
+	m[datatypes.MonomerTypeFwise] = "F"
+	m[datatypes.MonomerTypeClwise] = "Cl"
+	m[datatypes.MonomerTypeCrosslinked] = "H"
+	m[datatypes.MonomerTypeWater] = "I"
 	return m
 }

@@ -25,36 +25,36 @@ func NewMonomer(coords base.Vector3DF, monomerType MonomerType) *Monomer {
 	return newMonomer
 }
 
-func (mon *Monomer) IsTypeOf(monType MonomerType) bool {
-	return mon.MonomerType == monType
+func (monomer *Monomer) IsTypeOf(monType MonomerType) bool {
+	return monomer.MonomerType == monType
 }
 
-func (mon *Monomer) IsNotTypeOf(monType MonomerType) bool {
-	return mon.MonomerType != monType
+func (monomer *Monomer) IsNotTypeOf(monType MonomerType) bool {
+	return monomer.MonomerType != monType
 }
 
-func (mon *Monomer) GetSibling(side Side) (*Monomer, error) {
-	conn := mon.sides[side]
+func (monomer *Monomer) GetSibling(side Side) (*Monomer, error) {
+	conn := monomer.sides[side]
 	if conn != nil {
-		return conn.GetOtherSide(mon)
+		return conn.GetOtherSide(monomer)
 	} else {
 		return nil, errors.New("no sibling")
 	}
 }
 
-func (mon *Monomer) GetSideOfSibling(otherMon *Monomer) Side {
-	for side, conn := range mon.sides {
+func (monomer *Monomer) GetSideOfSibling(otherMon *Monomer) Side {
+	for side, conn := range monomer.sides {
 		if conn == nil {
 			continue
 		}
 
-		sibling, _ := conn.GetOtherSide(mon)
+		sibling, _ := conn.GetOtherSide(monomer)
 		if MonomersAreEqual(otherMon, sibling) {
 			return side
 		}
 	}
 
-	return SIDE_Undefined
+	return SideUndefined
 }
 
 func (monomer *Monomer) GetTypeOfConnectionWithSide(side Side) ConnectionType {
@@ -62,12 +62,12 @@ func (monomer *Monomer) GetTypeOfConnectionWithSide(side Side) ConnectionType {
 	if conn != nil && ok {
 		return conn.ConnType
 	} else {
-		return CONNECTION_TYPE_UNDEFINED
+		return ConnectionTypeUndefined
 	}
 }
 
-func (mon *Monomer) Coords() base.Vector3DF {
-	return mon.coords
+func (monomer *Monomer) Coords() base.Vector3DF {
+	return monomer.coords
 }
 
 func (monomer *Monomer) Copy() *Monomer {
@@ -140,7 +140,7 @@ func MonomersAreEqual(left, right *Monomer) bool {
 
 func GetSideByMonomers(from, to *Monomer) Side {
 	if from == nil || to == nil {
-		return SIDE_Undefined
+		return SideUndefined
 	}
 
 	result := base.Vector3DF{
@@ -151,84 +151,84 @@ func GetSideByMonomers(from, to *Monomer) Side {
 	if result.X == 0 {
 		if result.Y == 0 {
 			if result.Z == 0 {
-				return SIDE_Undefined
+				return SideUndefined
 			} else if result.Z > 0 {
-				return SIDE_Up
+				return SideUp
 			} else {
-				return SIDE_Down
+				return SideDown
 			}
 		} else if result.Y > 0 {
 			if result.Z == 0 {
-				return SIDE_Left
+				return SideLeft
 			} else if result.Z > 0 {
-				return SIDE_LeftUp
+				return SideLeftUp
 			} else {
-				return SIDE_LeftDown
+				return SideLeftDown
 			}
 		} else if result.Y < 0 {
 			if result.Z == 0 {
-				return SIDE_Right
+				return SideRight
 			} else if result.Z > 0 {
-				return SIDE_RightUp
+				return SideRightUp
 			} else {
-				return SIDE_RightDown
+				return SideRightDown
 			}
 		}
 	} else if result.X > 0 {
 		if result.Y == 0 {
 			if result.Z == 0 {
-				return SIDE_Forward
+				return SideForward
 			} else if result.Z > 0 {
-				return SIDE_UpForward
+				return SideUpForward
 			} else {
-				return SIDE_DownForward
+				return SideDownForward
 			}
 		} else if result.Y > 0 {
 			if result.Z == 0 {
-				return SIDE_LeftForward
+				return SideLeftForward
 			} else if result.Z > 0 {
-				return SIDE_UpLeftForward
+				return SideUpLeftForward
 			} else {
-				return SIDE_DownLeftForward
+				return SideDownLeftForward
 			}
 		} else if result.Y < 0 {
 			if result.Z == 0 {
-				return SIDE_RightForward
+				return SideRightForward
 			} else if result.Z > 0 {
-				return SIDE_UpRightForward
+				return SideUpRightForward
 			} else {
-				return SIDE_DownRightForward
+				return SideDownRightForward
 			}
 		}
 	} else { // result.X < 0
 		if result.Y == 0 {
 			if result.Z == 0 {
-				return SIDE_Backward
+				return SideBackward
 			} else if result.Z > 0 {
-				return SIDE_UpBackward
+				return SideUpBackward
 			} else {
-				return SIDE_DownBackward
+				return SideDownBackward
 			}
 		} else if result.Y > 0 {
 			if result.Z == 0 {
-				return SIDE_LeftBackward
+				return SideLeftBackward
 			} else if result.Z > 0 {
-				return SIDE_UpLeftBackward
+				return SideUpLeftBackward
 			} else {
-				return SIDE_DownLeftBackward
+				return SideDownLeftBackward
 			}
 		} else if result.Y < 0 {
 			if result.Z == 0 {
-				return SIDE_RightBackward
+				return SideRightBackward
 			} else if result.Z > 0 {
-				return SIDE_UpRightBackward
+				return SideUpRightBackward
 			} else {
-				return SIDE_DownRightBackward
+				return SideDownRightBackward
 			}
 		}
 	}
 
-	return SIDE_Undefined
+	return SideUndefined
 }
 
 type MonomerJSON struct {
@@ -240,7 +240,7 @@ type MonomerJSON struct {
 	Number      int64
 }
 
-func (monomer *Monomer) ToJson() MonomerJSON {
+func (monomer *Monomer) ToJSON() MonomerJSON {
 	var obj MonomerJSON
 	obj.Coords = monomer.coords
 	obj.MonomerType = monomer.MonomerType
@@ -252,7 +252,7 @@ func (monomer *Monomer) ToJson() MonomerJSON {
 	}
 	obj.Sides = make(map[Side]ConnectionJSON)
 	for key, value := range monomer.sides {
-		obj.Sides[key] = value.ToJson()
+		obj.Sides[key] = value.ToJSON()
 	}
 	obj.Number = monomer.Number
 	return obj

@@ -83,7 +83,7 @@ func (vector *Vector3DF) Normalized() Vector3DF {
 	return MultiplyByConstantF(vector, 1.0/vector.Len())
 }
 
-func Vector3D_To_Vector3DF(vector3D *Vector3D) Vector3DF {
+func Vector3DToVector3DF(vector3D *Vector3D) Vector3DF {
 	return Vector3DF{
 		X: float64(vector3D.X),
 		Y: float64(vector3D.Y),
@@ -183,8 +183,8 @@ func RotateVector(originVector Vector3DF, angle float64, rotationVector Vector3D
 	sinAngle := math.Sin(angle / 2)
 	r := rotationVector.Normalized()
 	q := MakeQuaternionFromVector(cosAngle, MultiplyByConstantF(&r, sinAngle))
-	q_conjugate := q.Conjugate()
+	qConjugate := q.Conjugate()
 	v := MakeQuaternionFromVector(0, originVector)
-	rotatedVector := MultiplyQuaternions(MultiplyQuaternions(q, v), q_conjugate)
+	rotatedVector := MultiplyQuaternions(MultiplyQuaternions(q, v), qConjugate)
 	return rotatedVector.V
 }

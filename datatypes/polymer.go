@@ -14,7 +14,7 @@ type Polymer struct {
 }
 
 func NewPolymer(field *Field, polymerNumber int64) *Polymer {
-	var newPolymer *Polymer = new(Polymer)
+	newPolymer := new(Polymer)
 	newPolymer.field = field
 	newPolymer.polymerNumber = polymerNumber
 	return newPolymer
@@ -22,7 +22,7 @@ func NewPolymer(field *Field, polymerNumber int64) *Polymer {
 
 func (polymer *Polymer) AddMonomer(monomer *Monomer) {
 	if len(polymer.polymer) != 0 {
-		var lastMonomer *Monomer = polymer.polymer[len(polymer.polymer)-1]
+		lastMonomer := polymer.polymer[len(polymer.polymer)-1]
 		lastMonomer.NextMonomer = monomer
 		monomer.PrevMonomer = lastMonomer
 	}
@@ -84,16 +84,16 @@ func (polymer *Polymer) GetMonomerByIdx(idx int) *Monomer {
 
 func CalcEnergy(polymer IPolymer) float64 {
 	u := 0.0
-	last_point := polymer.LastMonomer()
-	var prelast_point *Monomer
+	lastPoint := polymer.LastMonomer()
+	var prelastPoint *Monomer
 	if polymer.Len() > 1 {
-		prelast_point = polymer.GetMonomerByIdx(polymer.Len() - 2)
+		prelastPoint = polymer.GetMonomerByIdx(polymer.Len() - 2)
 	} else {
-		prelast_point = last_point
+		prelastPoint = lastPoint
 	}
 	for _, side := range GetMovementSides() {
-		sibling, err := last_point.GetSibling(side)
-		if err == nil && sibling.IsNotTypeOf(MONOMER_TYPE_UNDEFINED) && !MonomersAreEqual(sibling, prelast_point) {
+		sibling, err := lastPoint.GetSibling(side)
+		if err == nil && sibling.IsNotTypeOf(MonomerTypeUndefined) && !MonomersAreEqual(sibling, prelastPoint) {
 			u += -1.0
 		}
 	}
@@ -109,8 +109,8 @@ func (polymer *Polymer) CalcLagevenEnergy() float64 {
 				continue
 			}
 
-			r_ij := 1 / distance_of_monomers(polymer.polymer[i], polymer.polymer[j])
-			u += 4 * 0.01 * (math.Pow(r_ij, 12) - math.Pow(r_ij, 6))
+			rij := 1 / distanceOfMonomers(polymer.polymer[i], polymer.polymer[j])
+			u += 4 * 0.01 * (math.Pow(rij, 12) - math.Pow(rij, 6))
 		}
 	}
 	return u
@@ -155,5 +155,5 @@ func (polymer *Polymer) MarshalJSON() ([]byte, error) {
 }
 
 func (polymer *Polymer) GetFieldType() FieldType {
-	return FIELD_TYPE_LATTICE
+	return FieldTypeLattice
 }

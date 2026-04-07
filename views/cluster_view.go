@@ -39,7 +39,7 @@ func (clusterUnit *ClusterUnit) MakeFullyConnected() {
 			}
 			sideMon := clusterUnit.monomers[j]
 			side := dt.GetSideByMonomers(currMon, sideMon)
-			if side != dt.SIDE_Undefined {
+			if side != dt.SideUndefined {
 				dt.MakeConnection(currMon, sideMon, dt.GetConnectionType(currMon, sideMon))
 			}
 		}
@@ -193,7 +193,7 @@ func JoinClusters(cluster1, cluster2 *Cluster) *Cluster {
 		return nil
 	}
 
-	intersection := IntersectClusters_StickToDirection(cluster1, cluster2)
+	intersection := IntersectClustersStickToDirection(cluster1, cluster2)
 
 	// If there's nothing to connect, these are probably different clusters
 	if len(intersection) < 2 {
@@ -233,33 +233,33 @@ func intersectClusterUnits(unit1, unit2 *ClusterUnit) []*dt.Monomer {
 	return intersection
 }
 
-func IntersectClusters_Soft(cluster1, cluster2 *Cluster) []*dt.Monomer {
-	intersectedClusterUnits_map := make(map[*dt.Monomer]bool, 0)
+func IntersectClustersSoft(cluster1, cluster2 *Cluster) []*dt.Monomer {
+	intersectedClusterUnitsMap := make(map[*dt.Monomer]bool, 0)
 	for i := 0; i < cluster1.Size(); i++ {
 		for j := 0; j < cluster2.Size(); j++ {
 			inters := intersectClusterUnits(cluster1.units[i], cluster2.units[j])
 			if len(inters) > 0 {
 				for _, mon := range inters {
-					intersectedClusterUnits_map[mon] = true
+					intersectedClusterUnitsMap[mon] = true
 				}
 			}
 		}
 	}
 	intersection := make([]*dt.Monomer, 0)
-	for key := range intersectedClusterUnits_map {
+	for key := range intersectedClusterUnitsMap {
 		intersection = append(intersection, key)
 	}
 	return intersection
 }
 
-func IntersectClusters_StickToDirection(cluster1, cluster2 *Cluster) []*dt.Monomer {
+func IntersectClustersStickToDirection(cluster1, cluster2 *Cluster) []*dt.Monomer {
 	if cluster1.mainDirection != cluster2.mainDirection &&
 		cluster1.mainDirection != dt.GetReversedSide(cluster2.mainDirection) &&
 		cluster1.axis != cluster2.axis {
 		return nil
 	}
 
-	return IntersectClusters_Soft(cluster1, cluster2)
+	return IntersectClustersSoft(cluster1, cluster2)
 }
 
 type ClusterView struct {
@@ -287,7 +287,7 @@ func NewClusterViewRaw(clusters []*Cluster, axis base.Axis) *ClusterView {
 func (clusterView *ClusterView) Colorize(reset bool) {
 	for _, cluster := range clusterView.clusters {
 		if reset {
-			cluster.SetTypeOfMonomers(dt.MONOMER_TYPE_USUAL)
+			cluster.SetTypeOfMonomers(dt.MonomerTypeUsual)
 		} else {
 			cluster.SetTypeOfMonomers(dt.GetAxisColor(clusterView.axis))
 		}
@@ -313,10 +313,10 @@ func ForEachCluster(view *ClusterView, pred func(*Cluster)) {
 	}
 }
 
-func get_direction(monomer *dt.Monomer) dt.Side {
+func getDirection(monomer *dt.Monomer) dt.Side {
 	nextMonomer := monomer.NextMonomer
 	if nextMonomer == nil {
-		return dt.SIDE_Undefined
+		return dt.SideUndefined
 	}
 
 	return monomer.GetSideOfSibling(nextMonomer)
@@ -328,7 +328,7 @@ func doTraverse(mainDirection dt.Side, directions []dt.Side, currMon *dt.Monomer
 	}
 
 	nextMonomer, err := currMon.GetSibling(directions[0])
-	if err != nil || nextMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+	if err != nil || nextMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
 		*potCluster = nil
 		return
 	}
@@ -361,9 +361,9 @@ func fillClusters(directions []dt.Side, mainDirection dt.Side, axis base.Axis, m
 	potCluster[1] = sibling
 	doTraverse(mainDirection, directions, monomer, &potCluster)
 	if len(potCluster) == 8 {
-		new_cluster := NewCluster([]*ClusterUnit{NewClusterUnit(potCluster, mainDirection, axis)}, mainDirection, axis)
+		newCluster := NewCluster([]*ClusterUnit{NewClusterUnit(potCluster, mainDirection, axis)}, mainDirection, axis)
 		//new_cluster.MakeFullyConnected()
-		*clusters = append(*clusters, new_cluster)
+		*clusters = append(*clusters, newCluster)
 	}
 }
 
@@ -373,33 +373,33 @@ func findClusters(currentGlobula *GlobulaView, axis base.Axis, avg float64) []*C
 		ForEachMonomer(pol, func(monomer *dt.Monomer) bool {
 			for i := 0; i < pol.Len(); i++ {
 				monomer := pol.polymer.GetMonomerByIdx(i)
-				mainDirection := get_direction(monomer)
-				if mainDirection == dt.SIDE_Undefined || monomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				mainDirection := getDirection(monomer)
+				if mainDirection == dt.SideUndefined || monomer.IsTypeOf(dt.MonomerTypeUndefined) {
 					continue
 				}
 
-				old_size := len(clusters)
-				if axis == base.X_AXIS && (mainDirection == dt.SIDE_Forward || mainDirection == dt.SIDE_Backward) {
-					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Down, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Up, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Down, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Up, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
-				} else if axis == base.Y_AXIS && (mainDirection == dt.SIDE_Left || mainDirection == dt.SIDE_Right) {
-					fillClusters([]dt.Side{dt.SIDE_Backward, dt.SIDE_Down, dt.SIDE_Forward}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Backward, dt.SIDE_Up, dt.SIDE_Forward}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Forward, dt.SIDE_Down, dt.SIDE_Backward}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Forward, dt.SIDE_Up, dt.SIDE_Backward}, mainDirection, axis, monomer, &clusters)
-				} else if axis == base.Z_AXIS && (mainDirection == dt.SIDE_Up || mainDirection == dt.SIDE_Down) {
-					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Forward, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Left, dt.SIDE_Backward, dt.SIDE_Right}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Forward, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
-					fillClusters([]dt.Side{dt.SIDE_Right, dt.SIDE_Backward, dt.SIDE_Left}, mainDirection, axis, monomer, &clusters)
+				oldSize := len(clusters)
+				if axis == base.AxisX && (mainDirection == dt.SideForward || mainDirection == dt.SideBackward) {
+					fillClusters([]dt.Side{dt.SideLeft, dt.SideDown, dt.SideRight}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideLeft, dt.SideUp, dt.SideRight}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideRight, dt.SideDown, dt.SideLeft}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideRight, dt.SideUp, dt.SideLeft}, mainDirection, axis, monomer, &clusters)
+				} else if axis == base.AxisY && (mainDirection == dt.SideLeft || mainDirection == dt.SideRight) {
+					fillClusters([]dt.Side{dt.SideBackward, dt.SideDown, dt.SideForward}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideBackward, dt.SideUp, dt.SideForward}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideForward, dt.SideDown, dt.SideBackward}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideForward, dt.SideUp, dt.SideBackward}, mainDirection, axis, monomer, &clusters)
+				} else if axis == base.AxisZ && (mainDirection == dt.SideUp || mainDirection == dt.SideDown) {
+					fillClusters([]dt.Side{dt.SideLeft, dt.SideForward, dt.SideRight}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideLeft, dt.SideBackward, dt.SideRight}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideRight, dt.SideForward, dt.SideLeft}, mainDirection, axis, monomer, &clusters)
+					fillClusters([]dt.Side{dt.SideRight, dt.SideBackward, dt.SideLeft}, mainDirection, axis, monomer, &clusters)
 				} else {
 					continue
 				}
 
-				if old_size != len(clusters) {
-					clusters = gather_clusters(clusters, avg, axis, -1)
+				if oldSize != len(clusters) {
+					clusters = gatherClusters(clusters, avg, axis, -1)
 				}
 			}
 			return true
@@ -409,55 +409,55 @@ func findClusters(currentGlobula *GlobulaView, axis base.Axis, avg float64) []*C
 	// it is possible that some clusters can be joined.
 	// Since here we don't have a lot of them, this step shouldn't be
 	// too time-consuming
-	return gather_clusters(clusters, avg, axis, -1)
+	return gatherClusters(clusters, avg, axis, -1)
 }
 
 // Now join the extracted clusters recursively
 // that means that if we, e.g, joined clusters 1 and 2 into a 1-2 cluster
 // and cluster 2 and 3 into a 2-3 cluster, therefore, the joined ones have a common set of monomers
 // which are in the cluster 2 and can be joined as well into a 1-2-3 cluster
-func join_joined_clusters(current_node int, d *map[int][]int) []int {
-	joined_clusters_for_current_node := make([]int, 0)
+func joinJoinedClusters(currentNode int, d *map[int][]int) []int {
+	joinedClustersForCurrentNode := make([]int, 0)
 	// If nothing to join, come back
-	if v, ok := (*d)[current_node]; !ok || len(v) == 0 {
-		return joined_clusters_for_current_node
+	if v, ok := (*d)[currentNode]; !ok || len(v) == 0 {
+		return joinedClustersForCurrentNode
 	}
 
-	v := (*d)[current_node]
+	v := (*d)[currentNode]
 	for _, value := range v {
 		// Add the current cluster as the connection
-		joined_clusters_for_current_node = append(joined_clusters_for_current_node, value)
+		joinedClustersForCurrentNode = append(joinedClustersForCurrentNode, value)
 		// Recursively find others ready to be joined
-		received := join_joined_clusters(value, d)
-		for _, rec_value := range received {
-			if !base.Contains(joined_clusters_for_current_node, rec_value) {
-				joined_clusters_for_current_node = append(joined_clusters_for_current_node, rec_value)
+		received := joinJoinedClusters(value, d)
+		for _, recValue := range received {
+			if !base.Contains(joinedClustersForCurrentNode, recValue) {
+				joinedClustersForCurrentNode = append(joinedClustersForCurrentNode, recValue)
 			}
 		}
 	}
 
 	// All clusters for this cluster are to become a part of another list,
 	// therefore, clear the current to avoid issues
-	(*d)[current_node] = make([]int, 0)
-	return joined_clusters_for_current_node
+	(*d)[currentNode] = make([]int, 0)
+	return joinedClustersForCurrentNode
 }
 
-func gather_clusters(clusters []*Cluster, avg float64, avg_axis base.Axis, start_from int) []*Cluster {
-	if avg_axis == base.AXIS_COUNT {
+func gatherClusters(clusters []*Cluster, avg float64, avgAxis base.Axis, startFrom int) []*Cluster {
+	if avgAxis == base.AxisCount {
 		return clusters
 	}
 
 	for {
-		clusters_new := make([]*Cluster, 0)
+		clustersNew := make([]*Cluster, 0)
 		// Build a dict where for each i we map a list of js that can be joined with i
 		d := make(map[int][]int)
 		// If start_from is None, then we need to compare all the cluster between each other
 		// to do the deep check of clusters possible to join
-		if start_from < 0 {
+		if startFrom < 0 {
 			for i := 0; i < len(clusters)-1; i++ {
 				for j := i + 1; j < len(clusters); j++ {
-					joined_cluster := JoinClusters(clusters[i], clusters[j])
-					if joined_cluster != nil {
+					joinedCluster := JoinClusters(clusters[i], clusters[j])
+					if joinedCluster != nil {
 						if _, ok := d[i]; !ok {
 							d[i] = make([]int, 0)
 						}
@@ -470,10 +470,10 @@ func gather_clusters(clusters []*Cluster, avg float64, avg_axis base.Axis, start
 			// The algorithm of highlighing clusters determine that all the new clusters are added
 			// into the end of the clusters list, therefore, it is assumed it isn't able to join clusters
 			// before start_from. So we need to check only the new ones
-			for i := start_from; i < len(clusters)-1; i++ {
-				for j := start_from; j < len(clusters); j++ {
-					joined_cluster := JoinClusters(clusters[i], clusters[j])
-					if joined_cluster != nil {
+			for i := startFrom; i < len(clusters)-1; i++ {
+				for j := startFrom; j < len(clusters); j++ {
+					joinedCluster := JoinClusters(clusters[i], clusters[j])
+					if joinedCluster != nil {
 						if _, ok := d[i]; !ok {
 							d[i] = make([]int, 0)
 						}
@@ -491,56 +491,56 @@ func gather_clusters(clusters []*Cluster, avg float64, avg_axis base.Axis, start
 
 		// Join the clusters. In fact, find the numbers belonging to the same cluster
 		for key := range d {
-			ret := join_joined_clusters(key, &d)
+			ret := joinJoinedClusters(key, &d)
 			d[key] = ret
 		}
 
 		// Do actual join
-		joined_clusters_indexes := make(map[int]bool)
+		joinedClustersIndexes := make(map[int]bool)
 		for key := range d {
-			joined_clusters_indexes[key] = true
+			joinedClustersIndexes[key] = true
 			for _, val := range d[key] {
-				joined_clusters_indexes[val] = true
+				joinedClustersIndexes[val] = true
 			}
 
 			if len(d[key]) == 0 {
 				continue
 			}
 
-			curr_cluster := clusters[key]
+			currCluster := clusters[key]
 			for _, value := range d[key] {
-				c := JoinClusters(curr_cluster, clusters[value])
+				c := JoinClusters(currCluster, clusters[value])
 				if c == nil {
 					continue
 				}
-				curr_cluster = c
+				currCluster = c
 			}
-			clusters_new = append(clusters_new, curr_cluster)
+			clustersNew = append(clustersNew, currCluster)
 		}
 
 		// Those clusters not been touched must be moved as well
-		indexes_not_joined := make([]int, 0)
+		indexesNotJoined := make([]int, 0)
 		for i := 0; i < len(clusters); i++ {
-			if _, ok := joined_clusters_indexes[i]; !ok {
-				indexes_not_joined = append(indexes_not_joined, i)
+			if _, ok := joinedClustersIndexes[i]; !ok {
+				indexesNotJoined = append(indexesNotJoined, i)
 			}
 		}
 
-		temp := make([]*Cluster, len(indexes_not_joined))
-		for i := 0; i < len(indexes_not_joined); i++ {
-			temp[i] = clusters[indexes_not_joined[i]]
+		temp := make([]*Cluster, len(indexesNotJoined))
+		for i := 0; i < len(indexesNotJoined); i++ {
+			temp[i] = clusters[indexesNotJoined[i]]
 		}
-		temp = append(temp, clusters_new...)
+		temp = append(temp, clustersNew...)
 
 		clusters = temp
 	}
 
-	filtered_clusters := make([]*Cluster, 0)
+	filteredClusters := make([]*Cluster, 0)
 	for _, cluster := range clusters {
 		if cluster.GetAvgLengthByAxis() >= avg {
-			filtered_clusters = append(filtered_clusters, cluster)
+			filteredClusters = append(filteredClusters, cluster)
 		}
 	}
 	// return those which satisfy the condition
-	return filtered_clusters
+	return filteredClusters
 }

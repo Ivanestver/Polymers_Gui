@@ -12,7 +12,7 @@ type SurfaceAlgInputData struct {
 }
 
 func (inputData *SurfaceAlgInputData) GetGlobulaType() views.GlobulaProperty {
-	return views.GLOBULA_SURFACE_TYPE
+	return views.GlobulaSurfaceType
 }
 
 func (inputData *SurfaceAlgInputData) GetLiterals() map[datatypes.MonomerType]string {

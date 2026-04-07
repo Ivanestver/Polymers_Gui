@@ -6,7 +6,7 @@ import (
 
 type RealFieldRestriction struct{ Lower, Higher float64 }
 
-type SpaceDimention [base.AXIS_COUNT]RealFieldRestriction
+type SpaceDimention [base.AxisCount]RealFieldRestriction
 
 // func (spaceDimention *SpaceDimention) PointInSpace(point *base.Vector3DF) bool {
 // 	return 0 <= point.X && point.X < spaceDimention.X &&
@@ -17,14 +17,14 @@ type SpaceDimention [base.AXIS_COUNT]RealFieldRestriction
 func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool {
 	return base.PointInSpace(coords,
 		&base.Vector3DF{
-			X: spaceDimention[base.X_AXIS].Lower,
-			Y: spaceDimention[base.Y_AXIS].Lower,
-			Z: spaceDimention[base.Z_AXIS].Lower,
+			X: spaceDimention[base.AxisX].Lower,
+			Y: spaceDimention[base.AxisY].Lower,
+			Z: spaceDimention[base.AxisZ].Lower,
 		},
 		&base.Vector3DF{
-			X: spaceDimention[base.X_AXIS].Higher,
-			Y: spaceDimention[base.Y_AXIS].Higher,
-			Z: spaceDimention[base.Z_AXIS].Higher,
+			X: spaceDimention[base.AxisX].Higher,
+			Y: spaceDimention[base.AxisY].Higher,
+			Z: spaceDimention[base.AxisZ].Higher,
 		})
 	// return (spaceDimention[base.X_AXIS].Lower < coords.X || base.CompareFloat(spaceDimention[base.X_AXIS].Lower, coords.X)) &&
 	// 	(coords.X < spaceDimention[base.X_AXIS].Higher || base.CompareFloat(spaceDimention[base.X_AXIS].Higher, coords.X)) &&
@@ -36,9 +36,9 @@ func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool 
 
 func (spaceDimention *SpaceDimention) GetCenter() base.Vector3DF {
 	return base.Vector3DF{
-		X: (spaceDimention[base.X_AXIS].Lower + spaceDimention[base.X_AXIS].Higher) / 2,
-		Y: (spaceDimention[base.Y_AXIS].Lower + spaceDimention[base.Y_AXIS].Higher) / 2,
-		Z: (spaceDimention[base.Z_AXIS].Lower + spaceDimention[base.Z_AXIS].Higher) / 2,
+		X: (spaceDimention[base.AxisX].Lower + spaceDimention[base.AxisX].Higher) / 2,
+		Y: (spaceDimention[base.AxisY].Lower + spaceDimention[base.AxisY].Higher) / 2,
+		Z: (spaceDimention[base.AxisZ].Lower + spaceDimention[base.AxisZ].Higher) / 2,
 	}
 }
 

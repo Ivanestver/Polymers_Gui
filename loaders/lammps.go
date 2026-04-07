@@ -42,17 +42,17 @@ func (loader *_LammpsLoader) Load(filename string, fieldType datatypes.FieldType
 	if err != nil {
 		return nil, err
 	}
-	return parseFromJson(jsonStruct, fieldType)
+	return parseFromJSON(jsonStruct, fieldType)
 }
 
-func parseFromJson(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
+func parseFromJSON(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
 	field := makeField(fieldType, jsonStruct.SpaceDimention)
 	polymers := makePolymers(jsonStruct, field, fieldType)
 	literals := make(map[datatypes.MonomerType]string)
 	for _, atom := range jsonStruct.AtomTypes {
 		literals[datatypes.MonomerType(atom.AtomType-1)] = atom.AtomLabel
 	}
-	globula := views.NewGlobulaView(polymers, views.GLOBULA_THREAD_TYPE, literals)
+	globula := views.NewGlobulaView(polymers, views.GlobulaThreadType, literals)
 	return globula, nil
 }
 

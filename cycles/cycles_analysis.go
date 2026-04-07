@@ -43,14 +43,14 @@ func (analyzer *CyclesAnalyzer) analyzeCounts() {
 
 	// Print axises
 	analyzer.printer.PrintlnInfo("The number of cycles for each side:")
-	for _, axis := range []base.Axis{base.X_AXIS, base.Y_AXIS, base.Z_AXIS} {
+	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
 		analyzer.printer.PrintflnInfo("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
 	}
 }
 
 func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) []*datatypes.Monomer {
 	var field datatypes.IField
-	views.ForEachPolymer_If(analyzer.globula, func(pv *views.PolymerView) bool {
+	views.ForEachPolymerIf(analyzer.globula, func(pv *views.PolymerView) bool {
 		field = pv.GetUnderlinedField()
 		return false
 	})
@@ -59,7 +59,7 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 	finishingPoints := finishingPointsDefiner(axisAlong, spaceDimention, field)
 
 	return slices.DeleteFunc(startingPoints, func(p *datatypes.Monomer) bool {
-		return p.IsTypeOf(datatypes.MONOMER_TYPE_UNDEFINED) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
+		return p.IsTypeOf(datatypes.MonomerTypeUndefined) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
 			return datatypes.MonomersAreEqual(p, m)
 		})
 	})
@@ -67,43 +67,43 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 
 func startingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
 	switch axisAlong {
-	case base.X_AXIS:
+	case base.AxisX:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
-	case base.Y_AXIS:
+	case base.AxisY:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
-	case base.Z_AXIS:
+	case base.AxisZ:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 		)
 	default:
@@ -113,43 +113,43 @@ func startingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.Space
 
 func finishingPointsDefiner(axisAlong base.Axis, spaceDimention global_data.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
 	switch axisAlong {
-	case base.X_AXIS:
+	case base.AxisX:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
-	case base.Y_AXIS:
+	case base.AxisY:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Lower,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
-	case base.Z_AXIS:
+	case base.AxisZ:
 		return field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Lower,
-				Y: spaceDimention[base.Y_AXIS].Lower,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Lower,
+				Y: spaceDimention[base.AxisY].Lower,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.X_AXIS].Higher,
-				Y: spaceDimention[base.Y_AXIS].Higher,
-				Z: spaceDimention[base.Z_AXIS].Higher,
+				X: spaceDimention[base.AxisX].Higher,
+				Y: spaceDimention[base.AxisY].Higher,
+				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
 	default:
@@ -164,7 +164,7 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 			continue
 		}
 		moveDirection := getMoveDirection(axis)
-		if moveDirection == datatypes.SIDE_Undefined {
+		if moveDirection == datatypes.SideUndefined {
 			analyzer.printer.PrintflnError("could not define the move direction of the axis %s", axis.ToString())
 			continue
 		}
@@ -202,14 +202,14 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 
 func getMoveDirection(axis base.Axis) datatypes.Side {
 	switch axis {
-	case base.X_AXIS:
-		return datatypes.SIDE_Forward
-	case base.Y_AXIS:
-		return datatypes.SIDE_Left
-	case base.Z_AXIS:
-		return datatypes.SIDE_Up
+	case base.AxisX:
+		return datatypes.SideForward
+	case base.AxisY:
+		return datatypes.SideLeft
+	case base.AxisZ:
+		return datatypes.SideUp
 	default:
-		return datatypes.SIDE_Undefined
+		return datatypes.SideUndefined
 	}
 }
 
@@ -223,11 +223,11 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 			continue
 		}
 		switch axisAlong {
-		case base.X_AXIS:
+		case base.AxisX:
 			step = nextPoint.Coords().X - startingPoint.Coords().X
-		case base.Y_AXIS:
+		case base.AxisY:
 			step = nextPoint.Coords().Y - startingPoint.Coords().Y
-		case base.Z_AXIS:
+		case base.AxisZ:
 			step = nextPoint.Coords().Z - startingPoint.Coords().Z
 		}
 	}
@@ -245,15 +245,15 @@ func getIntersectionsCount(axis base.Axis, coordOnAxis float64, prevPoints *[]*d
 			continue
 		}
 		switch axis {
-		case base.X_AXIS:
+		case base.AxisX:
 			if prevPoint.Coords().X < coordOnAxis && coordOnAxis < nextPoint.Coords().X {
 				intersectionsCount++
 			}
-		case base.Y_AXIS:
+		case base.AxisY:
 			if prevPoint.Coords().Y < coordOnAxis && coordOnAxis < nextPoint.Coords().Y {
 				intersectionsCount++
 			}
-		case base.Z_AXIS:
+		case base.AxisZ:
 			if prevPoint.Coords().Z < coordOnAxis && coordOnAxis < nextPoint.Coords().Z {
 				intersectionsCount++
 			}

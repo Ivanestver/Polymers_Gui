@@ -8,8 +8,8 @@ import (
 type FieldType = int
 
 const (
-	FIELD_TYPE_REAL FieldType = iota
-	FIELD_TYPE_LATTICE
+	FieldTypeReal FieldType = iota
+	FieldTypeLattice
 )
 
 type IField interface {
@@ -22,9 +22,9 @@ type IField interface {
 
 func CreateField(fieldType FieldType, args ...any) IField {
 	switch fieldType {
-	case FIELD_TYPE_REAL:
+	case FieldTypeReal:
 		return NewRealField(args[0].([3][2]float64))
-	case FIELD_TYPE_LATTICE:
+	case FieldTypeLattice:
 		return NewField(getMaxDimention())
 	}
 	return nil
@@ -32,5 +32,5 @@ func CreateField(fieldType FieldType, args ...any) IField {
 
 func getMaxDimention() uint64 {
 	globalData := global_data.GetGlobalData()
-	return uint64(max(globalData.SpaceDimention[base.X_AXIS].Higher, globalData.SpaceDimention[base.Y_AXIS].Higher, globalData.SpaceDimention[base.Z_AXIS].Higher))
+	return uint64(max(globalData.SpaceDimention[base.AxisX].Higher, globalData.SpaceDimention[base.AxisY].Higher, globalData.SpaceDimention[base.AxisZ].Higher))
 }

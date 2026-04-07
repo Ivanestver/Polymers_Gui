@@ -8,11 +8,11 @@ import (
 func TestQuaternionMultiplication(t *testing.T) {
 	q1 := MakeQuaternionFromFloat(1, 1, 0, 0)
 	q2 := MakeQuaternionFromFloat(0, 0, 1, 0)
-	q_expected := MakeQuaternionFromFloat(0, 0, 1, 1)
-	q_real := MultiplyQuaternions(q1, q2)
-	if q_expected.W != q_real.W ||
-		!VectorsAreEqualF(&q_expected.V, &q_real.V) {
-		t.Fatalf("Incorrect multiplication. Expected: %v, got: %v", q_expected, q_real)
+	qExpected := MakeQuaternionFromFloat(0, 0, 1, 1)
+	qReal := MultiplyQuaternions(q1, q2)
+	if qExpected.W != qReal.W ||
+		!VectorsAreEqualF(&qExpected.V, &qReal.V) {
+		t.Fatalf("Incorrect multiplication. Expected: %v, got: %v", qExpected, qReal)
 	}
 }
 

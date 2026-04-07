@@ -19,11 +19,11 @@ import (
 type GlobulaProperty int
 
 const (
-	GLOBULA_AGED GlobulaProperty = iota
-	GLOBULA_WATERIZED
-	GLOBULA_GLOBULA_TYPE
-	GLOBULA_THREAD_TYPE
-	GLOBULA_SURFACE_TYPE
+	GlobulaAged GlobulaProperty = iota
+	GlobulaWaterized
+	GlobulaGlobulaType
+	GlobulaThreadType
+	GlobulaSurfaceType
 )
 const crosslinksCount = 0.5
 
@@ -69,7 +69,7 @@ func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = dt.MONOMER_TYPE_USUAL; return true })
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = dt.MonomerTypeUsual; return true })
 	}
 	for gp := range globula.globulaProperties {
 		delete(globula.globulaProperties, gp)
@@ -96,18 +96,18 @@ func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) dt.MonomerTyp
 			return monType
 		}
 	}
-	return dt.MONOMER_TYPE_UNDEFINED
+	return dt.MonomerTypeUndefined
 }
 
 /*
-The idea is to break all the connections and recover the original globula
+FullReset The idea is to break all the connections and recover the original globula
 using the polumer's connections information
 */
 func (globula *GlobulaView) FullReset() {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			// Make monomer as usual
-			mon.MonomerType = dt.MONOMER_TYPE_USUAL
+			mon.MonomerType = dt.MonomerTypeUsual
 			// Break all the connections
 			for _, side := range dt.GetAllSides() {
 				sibling, err := mon.GetSibling(side)
@@ -117,7 +117,7 @@ func (globula *GlobulaView) FullReset() {
 				dt.BreakConnection(mon, sibling, side)
 			}
 			// Connection with the next monomer in the chain
-			dt.MakeConnection(mon, mon.NextMonomer, dt.CONNECTION_TYPE_ONE)
+			dt.MakeConnection(mon, mon.NextMonomer, dt.ConnectionTypeOne)
 			return true
 		})
 	}
@@ -145,7 +145,7 @@ func ForEachPolymer(globula *GlobulaView, pred func(*PolymerView)) {
 	}
 }
 
-func ForEachPolymer_If(globula *GlobulaView, pred func(*PolymerView) bool) {
+func ForEachPolymerIf(globula *GlobulaView, pred func(*PolymerView) bool) {
 	for _, pol := range globula.polymers {
 		if !pred(pol) {
 			break
@@ -166,27 +166,27 @@ func (globula *GlobulaView) MarshalJSON() ([]byte, error) {
 
 func (globula *GlobulaView) XClusters(avg float64) *ClusterView {
 	if globula.xClusters == nil {
-		globula.xClusters = NewClusterView(globula, avg, base.X_AXIS)
+		globula.xClusters = NewClusterView(globula, avg, base.AxisX)
 	}
 	return globula.xClusters
 }
 
 func (globula *GlobulaView) YClusters(avg float64) *ClusterView {
 	if globula.yClusters == nil {
-		globula.yClusters = NewClusterView(globula, avg, base.Y_AXIS)
+		globula.yClusters = NewClusterView(globula, avg, base.AxisY)
 	}
 	return globula.yClusters
 }
 
 func (globula *GlobulaView) ZClusters(avg float64) *ClusterView {
 	if globula.zClusters == nil {
-		globula.zClusters = NewClusterView(globula, avg, base.Z_AXIS)
+		globula.zClusters = NewClusterView(globula, avg, base.AxisZ)
 	}
 	return globula.zClusters
 }
 
 func (globula *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *ClusterView) {
-	if globula.Is(GLOBULA_GLOBULA_TYPE) {
+	if globula.Is(GlobulaGlobulaType) {
 		return globula.commonClustersGlobula()
 	} else {
 		return globula.commonClustersThread()
@@ -195,66 +195,66 @@ func (globula *GlobulaView) CommonClusters() (*ClusterView, *ClusterView, *Clust
 
 func (globula *GlobulaView) commonClustersGlobula() (*ClusterView, *ClusterView, *ClusterView) {
 	if !globula.commonClusterDone {
-		clusters_X := globula.XClusters(0.0)
-		clusters_Y := globula.YClusters(0.0)
-		clusters_Z := globula.ZClusters(0.0)
+		clustersX := globula.XClusters(0.0)
+		clustersY := globula.YClusters(0.0)
+		clustersZ := globula.ZClusters(0.0)
 
-		ForEachCluster(clusters_X, func(cluster_X *Cluster) {
-			ForEachCluster(clusters_Y, func(cluster_Y *Cluster) {
-				common_monomers := IntersectClusters_Soft(cluster_X, cluster_Y)
-				for _, common_monomer := range common_monomers {
-					ForEachCluster(clusters_X, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+		ForEachCluster(clustersX, func(cluster_X *Cluster) {
+			ForEachCluster(clustersY, func(cluster_Y *Cluster) {
+				commonMonomers := IntersectClustersSoft(cluster_X, cluster_Y)
+				for _, commonMonomer := range commonMonomers {
+					ForEachCluster(clustersX, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
-					ForEachCluster(clusters_Y, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+					ForEachCluster(clustersY, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
 				}
 			})
 		})
 
-		ForEachCluster(clusters_Y, func(cluster_Y *Cluster) {
-			ForEachCluster(clusters_Z, func(cluster_Z *Cluster) {
-				common_monomers := IntersectClusters_Soft(cluster_Y, cluster_Z)
-				for _, common_monomer := range common_monomers {
-					ForEachCluster(clusters_Y, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+		ForEachCluster(clustersY, func(cluster_Y *Cluster) {
+			ForEachCluster(clustersZ, func(cluster_Z *Cluster) {
+				commonMonomers := IntersectClustersSoft(cluster_Y, cluster_Z)
+				for _, commonMonomer := range commonMonomers {
+					ForEachCluster(clustersY, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
-					ForEachCluster(clusters_Z, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+					ForEachCluster(clustersZ, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
 				}
 			})
 		})
 
-		ForEachCluster(clusters_X, func(cluster_X *Cluster) {
-			ForEachCluster(clusters_Z, func(cluster_Z *Cluster) {
-				common_monomers := IntersectClusters_Soft(cluster_X, cluster_Z)
-				for _, common_monomer := range common_monomers {
-					ForEachCluster(clusters_X, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+		ForEachCluster(clustersX, func(cluster_X *Cluster) {
+			ForEachCluster(clustersZ, func(cluster_Z *Cluster) {
+				commonMonomers := IntersectClustersSoft(cluster_X, cluster_Z)
+				for _, commonMonomer := range commonMonomers {
+					ForEachCluster(clustersX, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
-					ForEachCluster(clusters_Z, func(cluster *Cluster) {
-						cluster.RemoveMonomer(common_monomer)
+					ForEachCluster(clustersZ, func(cluster *Cluster) {
+						cluster.RemoveMonomer(commonMonomer)
 					})
 				}
 			})
 		})
 		// In case we have empty cluster, we need to remove them
-		clusters_X.Trunkate()
-		clusters_Y.Trunkate()
-		clusters_Z.Trunkate()
+		clustersX.Trunkate()
+		clustersY.Trunkate()
+		clustersZ.Trunkate()
 
 		// Everything is done. We're ready to fully-connect them
-		for _, cluster := range []*ClusterView{clusters_X, clusters_Y, clusters_Z} {
+		for _, cluster := range []*ClusterView{clustersX, clustersY, clustersZ} {
 			ForEachCluster(cluster, func(c *Cluster) {
 				c.MakeFullyConnected()
 			})
 		}
 		// Now let's colorize them
-		clusters_X.Colorize(false)
-		clusters_Y.Colorize(false)
-		clusters_Z.Colorize(false)
+		clustersX.Colorize(false)
+		clustersY.Colorize(false)
+		clustersZ.Colorize(false)
 
 		globula.commonClusterDone = true
 	}
@@ -274,13 +274,13 @@ func (globula *GlobulaView) commonClustersThread() (*ClusterView, *ClusterView, 
 func (globula *GlobulaView) getFirstMonomer() *dt.Monomer {
 	polymer := globula.polymers[0]
 	current := polymer.polymer.GetMonomerByIdx(polymer.polymer.Len() / 2)
-	return getBorderMonomer(current, dt.SIDE_Forward)
+	return getBorderMonomer(current, dt.SideForward)
 }
 
 func getBorderMonomer(startingMonomer *dt.Monomer, side dt.Side) *dt.Monomer {
 	current := startingMonomer
 	sibling, err := current.GetSibling(side)
-	for err == nil && sibling.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
+	for err == nil && sibling.MonomerType != dt.MonomerTypeUndefined {
 		current = sibling
 		sibling, err = current.GetSibling(side)
 	}
@@ -292,50 +292,50 @@ func (globula *GlobulaView) getClustersInThread(firstMonomer *dt.Monomer, cluste
 	startingMonomers := make([]*dt.Monomer, 0)
 	for i := 0; i < clusterLength; i++ {
 		if i != 0 {
-			firstMonomer, _ = firstMonomer.GetSibling(dt.SIDE_Up)
-			if firstMonomer == nil || firstMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+			firstMonomer, _ = firstMonomer.GetSibling(dt.SideUp)
+			if firstMonomer == nil || firstMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
 				break
 			}
 		}
-		var startingMonomer *dt.Monomer = getBorderMonomer(firstMonomer, dt.SIDE_Left)
+		startingMonomer := getBorderMonomer(firstMonomer, dt.SideLeft)
 		for {
 			cluster := new(Cluster)
 			if base.Contains(startingMonomers, startingMonomer) {
-				startingMonomer, _ = startingMonomer.GetSibling(dt.SIDE_Right)
-				if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
-					startingMonomer, _ = getBorderMonomer(startingMonomer, dt.SIDE_Left).GetSibling(dt.SIDE_Backward)
-					if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+				startingMonomer, _ = startingMonomer.GetSibling(dt.SideRight)
+				if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
+					startingMonomer, _ = getBorderMonomer(startingMonomer, dt.SideLeft).GetSibling(dt.SideBackward)
+					if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
 						break
 					}
 				}
 			}
 			startingMonomers = append(startingMonomers, startingMonomer)
-			mon2, _ := startingMonomer.GetSibling(dt.SIDE_Right)
-			if mon2.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+			mon2, _ := startingMonomer.GetSibling(dt.SideRight)
+			if mon2.IsTypeOf(dt.MonomerTypeUndefined) {
 				continue
 			}
-			mon3, _ := mon2.GetSibling(dt.SIDE_Backward)
-			if mon3.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+			mon3, _ := mon2.GetSibling(dt.SideBackward)
+			if mon3.IsTypeOf(dt.MonomerTypeUndefined) {
 				continue
 			}
-			mon4, _ := mon3.GetSibling(dt.SIDE_Left)
-			if mon4.IsTypeOf(dt.MONOMER_TYPE_UNDEFINED) {
+			mon4, _ := mon3.GetSibling(dt.SideLeft)
+			if mon4.IsTypeOf(dt.MonomerTypeUndefined) {
 				continue
 			}
-			mon11, _ := startingMonomer.GetSibling(dt.SIDE_Up)
-			mon21, _ := mon2.GetSibling(dt.SIDE_Up)
-			mon31, _ := mon3.GetSibling(dt.SIDE_Up)
-			mon41, _ := mon4.GetSibling(dt.SIDE_Up)
+			mon11, _ := startingMonomer.GetSibling(dt.SideUp)
+			mon21, _ := mon2.GetSibling(dt.SideUp)
+			mon31, _ := mon3.GetSibling(dt.SideUp)
+			mon41, _ := mon4.GetSibling(dt.SideUp)
 			clusterUnit := NewClusterUnit([]*dt.Monomer{
 				startingMonomer, mon2, mon3, mon4,
 				mon11, mon21, mon31, mon41,
-			}, dt.SIDE_Up, base.Z_AXIS)
+			}, dt.SideUp, base.AxisZ)
 			clusterUnit.MakeFullyConnected()
 			cluster.units = append(cluster.units, clusterUnit)
 			clusters = append(clusters, cluster)
 		}
 	}
-	return NewClusterViewRaw(clusters, base.Z_AXIS)
+	return NewClusterViewRaw(clusters, base.AxisZ)
 }
 
 // var turn int = 0
@@ -386,10 +386,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MONOMER_TYPE_O_CONTAINING)
+	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MonomerTypeOContaining)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MONOMER_TYPE_VYNIL)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MonomerTypeVynil)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -398,15 +398,15 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 
 	// 4. Create connections
 	globula.createCrosslinks1(int(float64(groupsCount)*0.59), &Cs_)
-	globula.globulaProperties[GLOBULA_AGED] = true
+	globula.globulaProperties[GlobulaAged] = true
 }
 
 func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MONOMER_TYPE_VYNIL)
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MonomerTypeVynil)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MONOMER_TYPE_VYNIL)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MonomerTypeVynil)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -417,7 +417,7 @@ func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	if doCrosslinks {
 		globula.createCrosslinks2(int(float64(groupsCount) * crosslinksCount))
 	}
-	globula.globulaProperties[GLOBULA_AGED] = true
+	globula.globulaProperties[GlobulaAged] = true
 }
 
 func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
@@ -432,12 +432,12 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			triesNumber++
 			continue
 		}
 		nextMonomer := poly.polymer.GetMonomerByIdx(nextMonomerNumber)
-		if nextMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if nextMonomer.MonomerType != dt.MonomerTypeUsual {
 			triesNumber++
 			continue
 		}
@@ -445,17 +445,17 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
-			nextMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
-			if monomerTypeToGather == dt.MONOMER_TYPE_O_CONTAINING {
+			chosenMonomer.MonomerType = dt.MonomerTypeOContaining
+			nextMonomer.MonomerType = dt.MonomerTypeVynil
+			if monomerTypeToGather == dt.MonomerTypeOContaining {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
-			nextMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
-			if monomerTypeToGather == dt.MONOMER_TYPE_VYNIL {
+			chosenMonomer.MonomerType = dt.MonomerTypeVynil
+			nextMonomer.MonomerType = dt.MonomerTypeOContaining
+			if monomerTypeToGather == dt.MonomerTypeVynil {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
@@ -498,8 +498,8 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-			chosenMonomer.MonomerType = dt.MONOMER_TYPE_VYNIL
+		if chosenMonomer.MonomerType == dt.MonomerTypeUsual {
+			chosenMonomer.MonomerType = dt.MonomerTypeVynil
 			i++
 			triesNumber = 0
 		} else {
@@ -514,7 +514,7 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		poly := globula.polymers[chosenPoly]
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			continue
 		}
 
@@ -522,10 +522,10 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		for i := 0; i < len(movementSides); i++ {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
-			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL {
-				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
-				chosenMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
-				nextMonomer.MonomerType = dt.MONOMER_TYPE_O_CONTAINING
+			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MonomerTypeUsual {
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
+				chosenMonomer.MonomerType = dt.MonomerTypeOContaining
+				nextMonomer.MonomerType = dt.MonomerTypeOContaining
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
@@ -545,7 +545,7 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			timesRepeated++
 			continue
 		}
@@ -556,12 +556,12 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil &&
 				nextMonomer != nil &&
-				nextMonomer.MonomerType == dt.MONOMER_TYPE_USUAL &&
+				nextMonomer.MonomerType == dt.MonomerTypeUsual &&
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
-				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
-				chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
-				nextMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
+				chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
+				nextMonomer.MonomerType = dt.MonomerTypeCrosslinked
 				currentCount += 1
 				timesRepeated = 0
 				break
@@ -586,7 +586,7 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	// } else if err != nil {
 	// 	return err
 	// }
-	globula.breakConnections(OcontainingCount, dt.MONOMER_TYPE_VYNIL)
+	globula.breakConnections(OcontainingCount, dt.MonomerTypeVynil)
 
 	// Then, distribute what's left
 	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
@@ -617,8 +617,8 @@ func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, ty
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL ||
-			nextChosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual ||
+			nextChosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			trialsCount++
 			continue
 		}
@@ -644,14 +644,14 @@ func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL ||
-			nextChosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual ||
+			nextChosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			trialsCount++
 			continue
 		}
-		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
-		chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
-		nextChosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.ConnectionTypeCrosslinks)
+		chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
+		nextChosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
 		ncross--
 		trialsCount = 0
 	}
@@ -670,7 +670,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 		chosenPolymer := globula.polymers[chosenPolymerNumber]
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len())
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MONOMER_TYPE_USUAL {
+		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
 			trialsCount++
 			continue
 		}
@@ -681,7 +681,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 			getBorderMonomer := func(side dt.Side, startMonomer *dt.Monomer) *dt.Monomer {
 				curr := startMonomer
 				prev, _ := curr.GetSibling(side)
-				for prev != nil && prev.MonomerType != dt.MONOMER_TYPE_UNDEFINED {
+				for prev != nil && prev.MonomerType != dt.MonomerTypeUndefined {
 					t := prev
 					prev, _ = curr.GetSibling(side)
 					curr = t
@@ -693,25 +693,25 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 				continue
 			}
 			if nextMonomer == nil ||
-				nextMonomer.MonomerType == dt.MONOMER_TYPE_UNDEFINED {
+				nextMonomer.MonomerType == dt.MonomerTypeUndefined {
 				switch chosenSide {
-				case dt.SIDE_Forward:
-					nextMonomer = getBorderMonomer(dt.SIDE_Backward, chosenMonomer)
-				case dt.SIDE_Backward:
-					nextMonomer = getBorderMonomer(dt.SIDE_Forward, chosenMonomer)
-				case dt.SIDE_Up:
-					nextMonomer = getBorderMonomer(dt.SIDE_Down, chosenMonomer)
-				case dt.SIDE_Down:
-					nextMonomer = getBorderMonomer(dt.SIDE_Up, chosenMonomer)
+				case dt.SideForward:
+					nextMonomer = getBorderMonomer(dt.SideBackward, chosenMonomer)
+				case dt.SideBackward:
+					nextMonomer = getBorderMonomer(dt.SideForward, chosenMonomer)
+				case dt.SideUp:
+					nextMonomer = getBorderMonomer(dt.SideDown, chosenMonomer)
+				case dt.SideDown:
+					nextMonomer = getBorderMonomer(dt.SideUp, chosenMonomer)
 				default:
 					continue
 				}
-				dt.MakeConnectionUnsafe(chosenMonomer, nextMonomer, chosenSide, dt.CONNECTION_TYPE_CROSSLINKS)
+				dt.MakeConnectionUnsafe(chosenMonomer, nextMonomer, chosenSide, dt.ConnectionTypeCrosslinks)
 			} else {
-				dt.MakeConnection(chosenMonomer, nextMonomer, dt.CONNECTION_TYPE_CROSSLINKS)
+				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
 			}
-			chosenMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
-			nextMonomer.MonomerType = dt.MONOMER_TYPE_CROSSLINKED
+			chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
+			nextMonomer.MonomerType = dt.MonomerTypeCrosslinked
 			trialsCount = 0
 			break
 		}
@@ -736,12 +736,12 @@ func doDST(polymerView *PolymerView) {
 func (globula *GlobulaView) Waterize() {
 	field := globula.polymers[0].GetUnderlinedField().(*datatypes.Field)
 	field.Waterize()
-	globula.globulaProperties[GLOBULA_WATERIZED] = true
+	globula.globulaProperties[GlobulaWaterized] = true
 }
 
 func (globula *GlobulaView) MakeHomogenousAsShortest() error {
 	if globula.Len() == 0 {
-		return errors.New("The globula is empty")
+		return errors.New("the globula is empty")
 	}
 	// find the length of the shortest chain
 	shortestChainLength := globula.polymers[0].Len()
@@ -790,35 +790,35 @@ func (globula *GlobulaView) GetStatistics() string {
 	return builder.String()
 }
 
-func (visualizer *GlobulaView) showNumberOfParticles() string {
+func (globula *GlobulaView) showNumberOfParticles() string {
 	builder := strings.Builder{}
 	builder.WriteString("1. Число частиц: ")
-	builder.WriteString(strconv.Itoa(visualizer.GetAtomsCount()))
+	builder.WriteString(strconv.Itoa(globula.GetAtomsCount()))
 	builder.WriteString("\n")
 	return builder.String()
 }
 
-func (visualizer *GlobulaView) GetAtomsCount() int {
+func (globula *GlobulaView) GetAtomsCount() int {
 	atomsCount := 0
-	for _, pol := range visualizer.polymers {
+	for _, pol := range globula.polymers {
 		atomsCount += pol.Len()
 	}
 	return atomsCount
 }
 
-func (visualizer *GlobulaView) showNumberOfChains() string {
+func (globula *GlobulaView) showNumberOfChains() string {
 	builder := strings.Builder{}
 	builder.WriteString("2. Исходное число цепей ")
-	builder.WriteString(strconv.Itoa(visualizer.Len()))
+	builder.WriteString(strconv.Itoa(globula.Len()))
 	builder.WriteString("\n")
 	return builder.String()
 }
 
-func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
+func (globula *GlobulaView) showTheoreticalAgeStatistics() string {
 	output_format.GetPrint().Println("Please, specify the theoretical age ratio in percents")
 	ageRatioPercent := 25
-	var ageRatio float64 = float64(ageRatioPercent) * 0.01
-	atomsCount := visualizer.GetAtomsCount()
+	ageRatio := float64(ageRatioPercent) * 0.01
+	atomsCount := globula.GetAtomsCount()
 	output_format.GetPrint().Readln(&ageRatioPercent)
 	builder := strings.Builder{}
 
@@ -857,28 +857,28 @@ func (visualizer *GlobulaView) showTheoreticalAgeStatistics() string {
 	return builder.String()
 }
 
-func (visualizer *GlobulaView) showActualAgeStatistics() string {
+func (globula *GlobulaView) showActualAgeStatistics() string {
 	NCount := 0
 	CCount := 0
 	cutsCount := 0
 	crossCount := make(map[int64]int)
-	for _, pol := range visualizer.polymers {
+	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			if mon.NextMonomer != nil &&
-				((mon.MonomerType == dt.MONOMER_TYPE_VYNIL || mon.MonomerType == dt.MONOMER_TYPE_O_CONTAINING) &&
-					(mon.NextMonomer.MonomerType == dt.MONOMER_TYPE_VYNIL ||
-						mon.NextMonomer.MonomerType == dt.MONOMER_TYPE_O_CONTAINING)) {
+				((mon.MonomerType == dt.MonomerTypeVynil || mon.MonomerType == dt.MonomerTypeOContaining) &&
+					(mon.NextMonomer.MonomerType == dt.MonomerTypeVynil ||
+						mon.NextMonomer.MonomerType == dt.MonomerTypeOContaining)) {
 				cutsCount++
 			}
-			if mon.MonomerType == dt.MONOMER_TYPE_VYNIL {
+			if mon.MonomerType == dt.MonomerTypeVynil {
 				CCount++
-			} else if mon.MonomerType == dt.MONOMER_TYPE_O_CONTAINING {
+			} else if mon.MonomerType == dt.MonomerTypeOContaining {
 				NCount++
-			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == dt.MONOMER_TYPE_CROSSLINKED {
+			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == dt.MonomerTypeCrosslinked {
 				crossCount[mon.Number] = 1
 				for _, side := range dt.GetMovementSides() {
 					connectionType := mon.GetTypeOfConnectionWithSide(side)
-					if connectionType == dt.CONNECTION_TYPE_CROSSLINKS {
+					if connectionType == dt.ConnectionTypeCrosslinks {
 						crossMon, _ := mon.GetSibling(side)
 						crossCount[crossMon.Number] = 1
 					}
@@ -909,16 +909,16 @@ func (visualizer *GlobulaView) showActualAgeStatistics() string {
 	builder.WriteString(strconv.Itoa(len(crossCount)))
 	builder.WriteString("\n")
 	builder.WriteString("   Фактическая степень старения: ")
-	builder.WriteString(strconv.FormatFloat(ageGroupsCount/float64(visualizer.GetAtomsCount())*100.0, 'f', 2, 64))
+	builder.WriteString(strconv.FormatFloat(ageGroupsCount/float64(globula.GetAtomsCount())*100.0, 'f', 2, 64))
 	builder.WriteString("%\n")
 	return builder.String()
 }
 
-func (visualizer *GlobulaView) showMeanLengthOfChains() string {
+func (globula *GlobulaView) showMeanLengthOfChains() string {
 	builder := strings.Builder{}
 	builder.WriteString("8. Средняя длина цепи: ")
-	atomsCount := visualizer.GetAtomsCount()
-	builder.WriteString(strconv.FormatFloat(float64(atomsCount)/float64(visualizer.Len()), 'f', 2, 64))
+	atomsCount := globula.GetAtomsCount()
+	builder.WriteString(strconv.FormatFloat(float64(atomsCount)/float64(globula.Len()), 'f', 2, 64))
 	return builder.String()
 }
 
@@ -928,7 +928,7 @@ func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error
 	}
 	printer := output_format.GetPrint()
 	// First, distribute O containing monomers
-	globula.breakConnections(nOContaining, dt.MONOMER_TYPE_VYNIL)
+	globula.breakConnections(nOContaining, dt.MonomerTypeVynil)
 
 	// Then, distribute what's left
 	globula.turnRandomBinsIntoC(ncut - nOContaining)
