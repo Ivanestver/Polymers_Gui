@@ -15,7 +15,7 @@ type _DFSAlg struct {
 	axisAlong   base.Axis
 }
 
-func MakeDptAlg(axisAlong base.Axis) _DFSAlg {
+func makeDFSAlg(axisAlong base.Axis) _DFSAlg {
 	return _DFSAlg{
 		sidesToMove: datatypes.GetNormalByAxis(axisAlong),
 		usedPoints:  make(map[int64]struct{}),

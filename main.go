@@ -17,7 +17,6 @@ import (
 	pattern_lib "polymers/pattern"
 	"polymers/savers"
 	"polymers/views"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -281,32 +280,13 @@ func main() {
 			}
 		case interp.COMMAND_CYCLES:
 			data := data.(map[string]base.Axis)
-			cyclesMap := make(map[base.Axis][][]*datatypes.Monomer)
 			var axises []base.Axis
 			if axis, ok := data["axis"]; ok {
 				axises = []base.Axis{axis}
 			} else {
 				axises = []base.Axis{base.X_AXIS, base.Y_AXIS, base.Z_AXIS}
 			}
-			for _, axis := range axises {
-				dfs := cycles.MakeDptAlg(axis)
-				startingPoints := getStartingPointsForCycles(axis)
-				if startingPoints == nil && len(startingPoints) == 0 {
-					printer.PrintlnError("no starting points have been defined")
-					continue
-				}
-				cycles := make([][]*datatypes.Monomer, 0)
-				for _, startingPoint := range startingPoints {
-					cycles = append(cycles, dfs.FindCycles(startingPoint)...)
-				}
-				cyclesMap[axis] = cycles
-			}
-
-			// Print axises
-			printer.PrintlnInfo("The number of cycles for each side:")
-			for _, axis := range []base.Axis{base.X_AXIS, base.Y_AXIS, base.Z_AXIS} {
-				printer.PrintflnInfo("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
-			}
+			cycles.Analyze(globula, axises)
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
@@ -407,111 +387,4 @@ func processPattern(data map[string]string) (*views.GlobulaView, error) {
 	}
 
 	return globula, nil
-}
-
-func getStartingPointsForCycles(axisAlong base.Axis) []*datatypes.Monomer {
-	var field datatypes.IField
-	views.ForEachPolymer_If(globula, func(pv *views.PolymerView) bool {
-		field = pv.GetUnderlinedField()
-		return false
-	})
-	spaceDimention := global_data.GetGlobalData().SpaceDimention
-	startingPointsDefiner := func() []*datatypes.Monomer {
-		switch axisAlong {
-		case base.X_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-			)
-		case base.Y_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-			)
-		case base.Z_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-			)
-		default:
-			return nil
-		}
-	}
-	finishingPointsDefiner := func() []*datatypes.Monomer {
-		switch axisAlong {
-		case base.X_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-			)
-		case base.Y_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Lower,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-			)
-		case base.Z_AXIS:
-			return field.GetMonomersWithin(
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Lower,
-					Y: spaceDimention[base.Y_AXIS].Lower,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-				base.Vector3DF{
-					X: spaceDimention[base.X_AXIS].Higher,
-					Y: spaceDimention[base.Y_AXIS].Higher,
-					Z: spaceDimention[base.Z_AXIS].Higher,
-				},
-			)
-		default:
-			return nil
-		}
-	}
-	startingPoints := startingPointsDefiner()
-	finishingPoints := finishingPointsDefiner()
-
-	return slices.DeleteFunc(startingPoints, func(p *datatypes.Monomer) bool {
-		return p.IsTypeOf(datatypes.MONOMER_TYPE_UNDEFINED) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
-			return datatypes.MonomersAreEqual(p, m)
-		})
-	})
 }
