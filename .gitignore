@@ -14,4 +14,4 @@ polymers_tool
 *.mol
 *.bat
 *.class2
-samples/
+*.log
