@@ -4,7 +4,6 @@ import (
 	"math"
 	"polymers/base"
 	"polymers/datatypes"
-	"polymers/globaldata"
 	"polymers/outputformat"
 )
 
@@ -13,14 +12,18 @@ type _DFSAlg struct {
 	usedPoints  map[int64]struct{}
 	printer     outputformat.IPrint
 	axisAlong   base.Axis
+	leftBorder  float64
+	rightBorder float64
 }
 
-func makeDFSAlg(axisAlong base.Axis) _DFSAlg {
+func makeDFSAlg(axisAlong base.Axis, leftBorder, rightBorder float64) _DFSAlg {
 	return _DFSAlg{
 		sidesToMove: datatypes.GetNormalByAxis(axisAlong),
 		usedPoints:  make(map[int64]struct{}),
 		printer:     outputformat.GetPrint(),
 		axisAlong:   axisAlong,
+		leftBorder:  leftBorder,
+		rightBorder: rightBorder,
 	}
 }
 
@@ -87,11 +90,13 @@ func (dfs *_DFSAlg) updateStack(currMonomer *datatypes.Monomer, stack *base.Stac
 }
 
 func (dfs *_DFSAlg) isEdge(currMonomer *datatypes.Monomer) bool {
-	globalData := globaldata.GetGlobalData()
-	edgeValue := globalData.SpaceDimention[dfs.axisAlong].Higher
-	return base.CompareFloat(edgeValue, currMonomer.Coords().X) ||
-		base.CompareFloat(edgeValue, currMonomer.Coords().Y) ||
-		base.CompareFloat(edgeValue, currMonomer.Coords().Z)
+	ret := false
+	for _, edgeValue := range []float64{dfs.rightBorder} {
+		ret = ret || base.CompareFloat(edgeValue, currMonomer.Coords().X) ||
+			base.CompareFloat(edgeValue, currMonomer.Coords().Y) ||
+			base.CompareFloat(edgeValue, currMonomer.Coords().Z)
+	}
+	return ret
 }
 
 func addNewPath(paths *[][]*datatypes.Monomer, candidate []*datatypes.Monomer) {
