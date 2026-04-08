@@ -4,7 +4,7 @@
 *.json
 *.html
 *.txt
-*.spt
+*.spt*
 *.zip
 *.png
 *.mol2*
@@ -15,3 +15,5 @@ polymers_tool
 *.bat
 *.class2
 *.log
+*.dpd
+*.pdb
