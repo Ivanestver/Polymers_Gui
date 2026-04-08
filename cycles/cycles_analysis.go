@@ -28,13 +28,13 @@ func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 func (analyzer *CyclesAnalyzer) analyzeCounts() {
 	cyclesMap := make(map[base.Axis][][]*datatypes.Monomer)
 	for _, axis := range analyzer.axises {
-		dfs := makeDFSAlg(axis)
-		startingPoints := analyzer.getStartingPointsForCycles(axis)
+		startingPoints, leftBorder, rightBorder := analyzer.getStartingPointsForCycles(axis)
 		if startingPoints == nil && len(startingPoints) == 0 {
 			analyzer.printer.PrintlnError("no starting points have been defined")
 			continue
 		}
 		cycles := make([][]*datatypes.Monomer, 0)
+		dfs := makeDFSAlg(axis, leftBorder, rightBorder)
 		for _, startingPoint := range startingPoints {
 			cycles = append(cycles, dfs.FindCycles(startingPoint)...)
 		}
@@ -48,27 +48,29 @@ func (analyzer *CyclesAnalyzer) analyzeCounts() {
 	}
 }
 
-func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) []*datatypes.Monomer {
+func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) ([]*datatypes.Monomer, float64, float64) {
 	var field datatypes.IField
 	views.ForEachPolymerIf(analyzer.globula, func(pv *views.PolymerView) bool {
 		field = pv.GetUnderlinedField()
 		return false
 	})
 	spaceDimention := globaldata.GetGlobalData().SpaceDimention
-	startingPoints := startingPointsDefiner(axisAlong, spaceDimention, field)
-	finishingPoints := finishingPointsDefiner(axisAlong, spaceDimention, field)
+	startingPoints, leftBorder := defineStartingPoints(axisAlong, spaceDimention, field)
+	finishingPoints, rightBorder := defineFinishingPoints(axisAlong, spaceDimention, field)
 
 	return slices.DeleteFunc(startingPoints, func(p *datatypes.Monomer) bool {
 		return p.IsTypeOf(datatypes.MonomerTypeUndefined) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
 			return datatypes.MonomersAreEqual(p, m)
 		})
-	})
+	}), leftBorder, rightBorder
 }
 
-func startingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
+func defineStartingPoints(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) ([]*datatypes.Monomer, float64) {
+	var points []*datatypes.Monomer
+	var moveDirection datatypes.Side
 	switch axisAlong {
 	case base.AxisX:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Lower,
 				Y: spaceDimention[base.AxisY].Lower,
@@ -80,8 +82,9 @@ func startingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceD
 				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
+		moveDirection = datatypes.SideForward
 	case base.AxisY:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Lower,
 				Y: spaceDimention[base.AxisY].Lower,
@@ -93,8 +96,9 @@ func startingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceD
 				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
+		moveDirection = datatypes.SideLeft
 	case base.AxisZ:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Lower,
 				Y: spaceDimention[base.AxisY].Lower,
@@ -106,15 +110,20 @@ func startingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceD
 				Z: spaceDimention[base.AxisZ].Lower,
 			},
 		)
+		moveDirection = datatypes.SideUp
 	default:
-		return nil
+		return nil, 0.0
 	}
+
+	return moveSurfaceAlong(&points, moveDirection, axisAlong)
 }
 
-func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) []*datatypes.Monomer {
+func defineFinishingPoints(axisAlong base.Axis, spaceDimention globaldata.SpaceDimention, field datatypes.IField) ([]*datatypes.Monomer, float64) {
+	var points []*datatypes.Monomer
+	var moveDirection datatypes.Side
 	switch axisAlong {
 	case base.AxisX:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Higher,
 				Y: spaceDimention[base.AxisY].Lower,
@@ -126,8 +135,9 @@ func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.Space
 				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
+		moveDirection = datatypes.SideBackward
 	case base.AxisY:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Lower,
 				Y: spaceDimention[base.AxisY].Higher,
@@ -139,8 +149,9 @@ func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.Space
 				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
+		moveDirection = datatypes.SideRight
 	case base.AxisZ:
-		return field.GetMonomersWithin(
+		points = field.GetMonomersWithin(
 			base.Vector3DF{
 				X: spaceDimention[base.AxisX].Lower,
 				Y: spaceDimention[base.AxisY].Lower,
@@ -152,21 +163,58 @@ func finishingPointsDefiner(axisAlong base.Axis, spaceDimention globaldata.Space
 				Z: spaceDimention[base.AxisZ].Higher,
 			},
 		)
+		moveDirection = datatypes.SideDown
 	default:
-		return nil
+		return nil, 0.0
 	}
+
+	return moveSurfaceAlong(&points, moveDirection, axisAlong)
+}
+
+func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side, axisAlong base.Axis) ([]*datatypes.Monomer, float64) {
+	var border *float64
+	resultingPoints := make([]*datatypes.Monomer, 0)
+	for len(*points) > 0 {
+		for i := len(*points) - 1; i >= 0; i-- {
+			point := (*points)[i]
+			if point.IsNotTypeOf(datatypes.MonomerTypeUndefined) {
+				resultingPoints = append(resultingPoints, point)
+				*points = append((*points)[:i], (*points)[i+1:]...)
+				if border == nil {
+					border = new(float64)
+					switch axisAlong {
+					case base.AxisX:
+						*border = point.Coords().X
+					case base.AxisY:
+						*border = point.Coords().Y
+					default:
+						*border = point.Coords().Z
+					}
+				}
+			} else {
+				nextPoint, err := point.GetSibling(moveDirection)
+				if err == nil {
+					(*points)[i] = nextPoint
+				} else {
+					*points = append((*points)[:i], (*points)[i+1:]...)
+				}
+			}
+		}
+	}
+	return resultingPoints, *border
 }
 
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 	for _, axis := range analyzer.axises {
-		startingMonomers := analyzer.getStartingPointsForCycles(axis)
+		startingMonomers, start, end := analyzer.getStartingPointsForCycles(axis)
 		moveDirection := getMoveDirection(axis)
 		if moveDirection == datatypes.SideUndefined {
 			analyzer.printer.PrintflnError("could not define the move direction of the axis %s", axis.ToString())
 			continue
 		}
 		surfaceIntersections := make(map[float64]int)
-		start, end, step := getDimentions(axis, startingMonomers, moveDirection)
+		step := getDimentions(axis, startingMonomers, moveDirection)
+		start += step / 2
 		for coordOnAxis := start; coordOnAxis < end; coordOnAxis += step {
 			// Calculate the intersections
 			surfaceIntersections[coordOnAxis] = getIntersectionsCount(axis, coordOnAxis, &startingMonomers, moveDirection)
@@ -210,10 +258,7 @@ func getMoveDirection(axis base.Axis) datatypes.Side {
 	}
 }
 
-func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, moveDirection datatypes.Side) (start, finiish, step float64) {
-	spaceDimention := globaldata.GetGlobalData().SpaceDimention
-	start = spaceDimention[axisAlong].Lower
-	finiish = spaceDimention[axisAlong].Higher
+func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, moveDirection datatypes.Side) (step float64) {
 	for _, startingPoint := range startingPoints {
 		nextPoint, err := startingPoint.GetSibling(moveDirection)
 		if err != nil {
@@ -227,8 +272,8 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 		case base.AxisZ:
 			step = nextPoint.Coords().Z - startingPoint.Coords().Z
 		}
+		break
 	}
-	start += step / 2
 	return
 }
 
