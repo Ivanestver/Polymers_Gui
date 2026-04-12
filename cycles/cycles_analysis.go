@@ -1,6 +1,8 @@
 package cycles
 
 import (
+	"fmt"
+	"os"
 	"polymers/base"
 	"polymers/datatypes"
 	"polymers/globaldata"
@@ -13,6 +15,7 @@ type CyclesAnalyzer struct {
 	globula *views.GlobulaView
 	axises  []base.Axis
 	printer outputformat.IPrint
+	file    *os.File
 }
 
 func Analyze(globula *views.GlobulaView, axises []base.Axis) {
@@ -21,8 +24,9 @@ func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 		axises:  axises,
 		printer: outputformat.GetPrint(),
 	}
-	analyzer.analyzeCounts()
+	analyzer.file, _ = os.Create("cycles.log")
 	analyzer.analyzeSurfaceIntersections()
+	analyzer.analyzeCounts()
 }
 
 func (analyzer *CyclesAnalyzer) analyzeCounts() {
@@ -42,9 +46,9 @@ func (analyzer *CyclesAnalyzer) analyzeCounts() {
 	}
 
 	// Print axises
-	analyzer.printer.Println("The number of cycles for each axis:")
+	analyzer.file.WriteString("Across cutting planes X,Y,Z :\n")
 	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
-		analyzer.printer.Printfln("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
+		analyzer.file.WriteString(fmt.Sprintf("\t%s: %d\n", axis.ToString(), len(cyclesMap[axis])))
 	}
 }
 
@@ -205,6 +209,7 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 }
 
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
+	analyzer.file.WriteString("LOAD BEARING BONDS CROSSING X,Y,Z CUTTING PLANES:\n")
 	for _, axis := range analyzer.axises {
 		startingMonomers, start, end := analyzer.getStartingPointsForCycles(axis)
 		moveDirection := getMoveDirection(axis)
@@ -237,12 +242,11 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 			i++
 		}
 		slices.Sort(keys)
-		analyzer.printer.Printfln("For %s:", axis.ToString())
+		analyzer.file.WriteString(fmt.Sprintf("For %s:\n", axis.ToString()))
 		for i, key := range keys {
-			analyzer.printer.Printfln("\t%d: %d", i+1, surfaceIntersections[key])
+			analyzer.file.WriteString(fmt.Sprintf("\t%d: %d\n", i+1, surfaceIntersections[key]))
 		}
 	}
-
 }
 
 func getMoveDirection(axis base.Axis) datatypes.Side {
