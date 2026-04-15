@@ -1,6 +1,8 @@
 package base
 
-import "math"
+import (
+	"math"
+)
 
 type Quaternion struct {
 	W float64
@@ -11,9 +13,9 @@ func MakeQuaternionFromFloat(w, x, y, z float64) Quaternion {
 	return Quaternion{
 		W: x,
 		V: Vector3DF{
-			X: x,
-			Y: y,
-			Z: z,
+			x,
+			y,
+			z,
 		},
 	}
 }
@@ -29,19 +31,19 @@ func (q *Quaternion) Conjugate() Quaternion {
 	return Quaternion{
 		W: q.W,
 		V: Vector3DF{
-			X: -q.V.X,
-			Y: -q.V.Y,
-			Z: -q.V.Z,
+			-q.V[AxisX],
+			-q.V[AxisY],
+			-q.V[AxisZ],
 		},
 	}
 }
 
 func (q *Quaternion) Len() float64 {
-	return math.Sqrt(
-		q.W*q.W +
-			q.V.X*q.V.X +
-			q.V.Y*q.V.Y +
-			q.V.Z*q.V.Z)
+	prod := 0.0
+	for i := range q.V {
+		prod += q.V[i] * q.V[i]
+	}
+	return math.Sqrt(q.W*q.W + prod)
 }
 
 func MultiplyQuaternions(q1, q2 Quaternion) Quaternion {

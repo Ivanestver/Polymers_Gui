@@ -76,42 +76,42 @@ func defineStartingPoints(axisAlong base.Axis, spaceDimention globaldata.SpaceDi
 	case base.AxisX:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Higher,
 			},
 		)
 		moveDirection = datatypes.SideForward
 	case base.AxisY:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Higher,
 			},
 		)
 		moveDirection = datatypes.SideLeft
 	case base.AxisZ:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Lower,
 			},
 		)
 		moveDirection = datatypes.SideUp
@@ -129,42 +129,42 @@ func defineFinishingPoints(axisAlong base.Axis, spaceDimention globaldata.SpaceD
 	case base.AxisX:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Higher,
 			},
 		)
 		moveDirection = datatypes.SideBackward
 	case base.AxisY:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Lower,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Lower,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Higher,
 			},
 		)
 		moveDirection = datatypes.SideRight
 	case base.AxisZ:
 		points = field.GetMonomersWithin(
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Lower,
-				Y: spaceDimention[base.AxisY].Lower,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Lower,
+				spaceDimention[base.AxisY].Lower,
+				spaceDimention[base.AxisZ].Higher,
 			},
 			base.Vector3DF{
-				X: spaceDimention[base.AxisX].Higher,
-				Y: spaceDimention[base.AxisY].Higher,
-				Z: spaceDimention[base.AxisZ].Higher,
+				spaceDimention[base.AxisX].Higher,
+				spaceDimention[base.AxisY].Higher,
+				spaceDimention[base.AxisZ].Higher,
 			},
 		)
 		moveDirection = datatypes.SideDown
@@ -186,14 +186,7 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 				*points = append((*points)[:i], (*points)[i+1:]...)
 				if border == nil {
 					border = new(float64)
-					switch axisAlong {
-					case base.AxisX:
-						*border = point.Coords().X
-					case base.AxisY:
-						*border = point.Coords().Y
-					default:
-						*border = point.Coords().Z
-					}
+					*border = point.Coords()[axisAlong]
 				}
 			} else {
 				nextPoint, err := point.GetSibling(moveDirection)
@@ -205,7 +198,11 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 			}
 		}
 	}
-	return resultingPoints, *border
+	if border == nil {
+		return nil, 0.0
+	} else {
+		return resultingPoints, *border
+	}
 }
 
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
@@ -268,14 +265,7 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 		if err != nil {
 			continue
 		}
-		switch axisAlong {
-		case base.AxisX:
-			step = nextPoint.Coords().X - startingPoint.Coords().X
-		case base.AxisY:
-			step = nextPoint.Coords().Y - startingPoint.Coords().Y
-		case base.AxisZ:
-			step = nextPoint.Coords().Z - startingPoint.Coords().Z
-		}
+		step = nextPoint.Coords()[axisAlong] - startingPoint.Coords()[axisAlong]
 		break
 	}
 	return
@@ -290,19 +280,8 @@ func getIntersectionsCount(axis base.Axis, coordOnAxis float64, prevPoints *[]*d
 			*prevPoints = append((*prevPoints)[:i], (*prevPoints)[i+1:]...)
 			continue
 		}
-		switch axis {
-		case base.AxisX:
-			if prevPoint.Coords().X < coordOnAxis && coordOnAxis < nextPoint.Coords().X {
-				intersectionsCount++
-			}
-		case base.AxisY:
-			if prevPoint.Coords().Y < coordOnAxis && coordOnAxis < nextPoint.Coords().Y {
-				intersectionsCount++
-			}
-		case base.AxisZ:
-			if prevPoint.Coords().Z < coordOnAxis && coordOnAxis < nextPoint.Coords().Z {
-				intersectionsCount++
-			}
+		if prevPoint.Coords()[axis] < coordOnAxis && coordOnAxis < nextPoint.Coords()[axis] {
+			intersectionsCount++
 		}
 	}
 	return intersectionsCount

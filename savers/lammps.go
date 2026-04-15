@@ -127,9 +127,9 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 			AtomType:   p.Item1,
 			Q:          0.0,
 			AtomCoords: lammps_structs.AtomCoords{
-				X: monomer.Coords().X,
-				Y: monomer.Coords().Y,
-				Z: monomer.Coords().Z,
+				X: monomer.Coords()[base.AxisX],
+				Y: monomer.Coords()[base.AxisY],
+				Z: monomer.Coords()[base.AxisZ],
 			},
 		})
 	}

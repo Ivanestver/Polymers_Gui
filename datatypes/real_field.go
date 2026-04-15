@@ -72,3 +72,27 @@ func (realField *RealField) GetMonomersWithin(lower, higher base.Vector3DF) []*M
 	}
 	return monomers
 }
+
+func (realField *RealField) GetMinMonomersByAxis(axis base.Axis) []*Monomer {
+	minMonomers := make([]*Monomer, 0)
+	for point, mon := range realField.monomers {
+		if len(minMonomers) == 0 || point[axis] < minMonomers[0].Coords()[axis] {
+			minMonomers = []*Monomer{mon}
+		} else {
+			minMonomers = append(minMonomers, mon)
+		}
+	}
+	return minMonomers
+}
+
+func (realField *RealField) GetMaxMonomersByAxis(axis base.Axis) []*Monomer {
+	minMonomers := make([]*Monomer, 0)
+	for point, mon := range realField.monomers {
+		if len(minMonomers) == 0 || point[axis] > minMonomers[0].Coords()[axis] {
+			minMonomers = []*Monomer{mon}
+		} else {
+			minMonomers = append(minMonomers, mon)
+		}
+	}
+	return minMonomers
+}

@@ -18,6 +18,8 @@ type IField interface {
 	IsFree(coords base.Vector3DF) bool
 	GetMonomerByCoords(coords base.Vector3DF) *Monomer
 	GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer
+	GetMinMonomersByAxis(axis base.Axis) []*Monomer
+	GetMaxMonomersByAxis(axis base.Axis) []*Monomer
 }
 
 func CreateField(fieldType FieldType, args ...any) IField {

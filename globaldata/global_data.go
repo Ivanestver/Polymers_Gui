@@ -17,14 +17,14 @@ type SpaceDimention [base.AxisCount]RealFieldRestriction
 func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool {
 	return base.PointInSpace(coords,
 		&base.Vector3DF{
-			X: spaceDimention[base.AxisX].Lower,
-			Y: spaceDimention[base.AxisY].Lower,
-			Z: spaceDimention[base.AxisZ].Lower,
+			spaceDimention[base.AxisX].Lower,
+			spaceDimention[base.AxisY].Lower,
+			spaceDimention[base.AxisZ].Lower,
 		},
 		&base.Vector3DF{
-			X: spaceDimention[base.AxisX].Higher,
-			Y: spaceDimention[base.AxisY].Higher,
-			Z: spaceDimention[base.AxisZ].Higher,
+			spaceDimention[base.AxisX].Higher,
+			spaceDimention[base.AxisY].Higher,
+			spaceDimention[base.AxisZ].Higher,
 		})
 	// return (spaceDimention[base.X_AXIS].Lower < coords.X || base.CompareFloat(spaceDimention[base.X_AXIS].Lower, coords.X)) &&
 	// 	(coords.X < spaceDimention[base.X_AXIS].Higher || base.CompareFloat(spaceDimention[base.X_AXIS].Higher, coords.X)) &&
@@ -36,9 +36,9 @@ func (spaceDimention *SpaceDimention) PointInSpace(coords *base.Vector3DF) bool 
 
 func (spaceDimention *SpaceDimention) GetCenter() base.Vector3DF {
 	return base.Vector3DF{
-		X: (spaceDimention[base.AxisX].Lower + spaceDimention[base.AxisX].Higher) / 2,
-		Y: (spaceDimention[base.AxisY].Lower + spaceDimention[base.AxisY].Higher) / 2,
-		Z: (spaceDimention[base.AxisZ].Lower + spaceDimention[base.AxisZ].Higher) / 2,
+		(spaceDimention[base.AxisX].Lower + spaceDimention[base.AxisX].Higher) / 2,
+		(spaceDimention[base.AxisY].Lower + spaceDimention[base.AxisY].Higher) / 2,
+		(spaceDimention[base.AxisZ].Lower + spaceDimention[base.AxisZ].Higher) / 2,
 	}
 }
 
@@ -56,12 +56,12 @@ type GlobalData struct {
 var globalData GlobalData
 
 func ConfigureGlobalData(spaceDimention SpaceDimention) {
-	globalData.UpVector = base.Vector3D{X: 0, Y: 1, Z: 0}
-	globalData.DownVector = base.Vector3D{X: 0, Y: -1, Z: 0}
-	globalData.LeftVector = base.Vector3D{X: 1, Y: 0, Z: 0}
-	globalData.RightVector = base.Vector3D{X: -1, Y: 0, Z: 0}
-	globalData.ForwardVector = base.Vector3D{X: 0, Y: 0, Z: 1}
-	globalData.BackwardVector = base.Vector3D{X: 0, Y: 0, Z: -1}
+	globalData.UpVector = base.Vector3D{0, 1, 0}
+	globalData.DownVector = base.Vector3D{0, -1, 0}
+	globalData.LeftVector = base.Vector3D{1, 0, 0}
+	globalData.RightVector = base.Vector3D{-1, 0, 0}
+	globalData.ForwardVector = base.Vector3D{0, 0, 1}
+	globalData.BackwardVector = base.Vector3D{0, 0, -1}
 
 	globalData.SpaceDimention = spaceDimention
 }

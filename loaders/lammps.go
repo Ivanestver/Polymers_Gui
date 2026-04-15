@@ -72,10 +72,13 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 			polymer = polymersMap[moleculeID]
 		}
 		a = field.GetMonomerByCoords(base.Vector3DF{
-			X: atom.X,
-			Y: atom.Y,
-			Z: atom.Z,
+			atom.X,
+			atom.Y,
+			atom.Z,
 		})
+		if a == nil {
+			panic("Monomer is nil")
+		}
 		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
 		polymer.AddMonomer(a)
 	}

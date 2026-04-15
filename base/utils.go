@@ -6,11 +6,19 @@ import (
 )
 
 func EcludianDistance(c1, c2 Vector3D) float64 {
-	return math.Sqrt(float64((c2.X-c1.X)*(c2.X-c1.X) + (c2.Y-c1.Y)*(c2.Y-c1.Y) + (c2.Z-c1.Z)*(c2.Z-c1.Z)))
+	prod := 0.0
+	for i := range c1 {
+		prod += float64((c2[i] - c1[i]) * (c2[i] - c1[i]))
+	}
+	return math.Sqrt(prod)
 }
 
 func EcludianDistanceF(c1, c2 Vector3DF) float64 {
-	return math.Sqrt((c2.X-c1.X)*(c2.X-c1.X) + (c2.Y-c1.Y)*(c2.Y-c1.Y) + (c2.Z-c1.Z)*(c2.Z-c1.Z))
+	prod := 0.0
+	for i := range c1 {
+		prod += float64((c2[i] - c1[i]) * (c2[i] - c1[i]))
+	}
+	return math.Sqrt(prod)
 }
 
 func Contains[T comparable](container []T, value T) bool {
@@ -175,10 +183,10 @@ func CompareFloat(left, right float64) bool {
 }
 
 func PointInSpace(coords, lower, higher *Vector3DF) bool {
-	return (lower.X < coords.X || CompareFloat(lower.X, coords.X)) &&
-		(coords.X < higher.X || CompareFloat(higher.X, coords.X)) &&
-		(lower.Y < coords.Y || CompareFloat(lower.Y, coords.Y)) &&
-		(coords.Y < higher.Y || CompareFloat(coords.Y, higher.Y)) &&
-		(lower.Z < coords.Z || CompareFloat(lower.Z, coords.Z)) &&
-		(coords.Z < higher.Z || CompareFloat(coords.Z, higher.Z))
+	isInSpace := true
+	for _, axis := range []Axis{AxisX, AxisY, AxisZ} {
+		isInSpace = isInSpace && (lower[axis] < coords[axis] || CompareFloat(lower[axis], coords[axis])) &&
+			(coords[axis] < higher[axis] || CompareFloat(higher[axis], coords[axis]))
+	}
+	return isInSpace
 }

@@ -264,9 +264,9 @@ func getCoords(fields []string) base.Vector3DF {
 	y, _ := strconv.ParseFloat(fields[3], 64)
 	z, _ := strconv.ParseFloat(fields[4], 64)
 	return base.Vector3DF{
-		X: x,
-		Y: y,
-		Z: z,
+		x,
+		y,
+		z,
 	}
 }
 
@@ -470,7 +470,7 @@ func getBondsCount(polymers []*_Polymer) int {
 }
 
 func turnAtomToString(atom *_Atom) string {
-	return fmt.Sprintf("%d %s %f %f %f %s 0 ***** 0\n", atom.Number, atom.Label, atom.Coords.X, atom.Coords.Y, atom.Coords.Z, atom.Label)
+	return fmt.Sprintf("%d %s %f %f %f %s 0 ***** 0\n", atom.Number, atom.Label, atom.Coords[base.AxisX], atom.Coords[base.AxisY], atom.Coords[base.AxisZ], atom.Label)
 }
 
 func saveBonds(bonds *map[_AtomNumber]map[_AtomNumber]_BondValence, builderBonds *strings.Builder, bondNumber *int) {
@@ -587,12 +587,35 @@ func rotateMonomers(polymers []*_Polymer) {
 				continue
 			}
 			Rcm := getRcm(mon)
-			destinationDirection := base.MakeVectorF((*base.Point3DF)(&RcmGlobal), (*base.Point3DF)(&Rcm))
-			rotationPivotDirection := base.MakeVectorF((*base.Point3DF)(&Rcm), (*base.Point3DF)(&mon.RotationPivot.Coords))
+			RcmPoint := base.Point3DF{X: Rcm[base.AxisX], Y: Rcm[base.AxisY], Z: Rcm[base.AxisZ]}
+			destinationDirection := base.MakeVectorF(
+				&base.Point3DF{
+					X: RcmGlobal[base.AxisX],
+					Y: RcmGlobal[base.AxisY],
+					Z: RcmGlobal[base.AxisZ],
+				},
+				&RcmPoint)
+
+			rotationPivotDirection := base.MakeVectorF(
+				&RcmPoint,
+				&base.Point3DF{
+					X: mon.RotationPivot.Coords[base.AxisX],
+					Y: mon.RotationPivot.Coords[base.AxisY],
+					Z: mon.RotationPivot.Coords[base.AxisZ],
+				},
+			)
+
 			angle := base.GetAngle(rotationPivotDirection, destinationDirection)
 			rotationVector := base.VectorProduct(rotationPivotDirection, destinationDirection)
 			for atomNumber := range mon.Atoms {
-				initialDirection := base.MakeVectorF((*base.Point3DF)(&Rcm), (*base.Point3DF)(&mon.Atoms[atomNumber].Coords))
+				initialDirection := base.MakeVectorF(
+					&RcmPoint,
+					&base.Point3DF{
+						X: mon.Atoms[atomNumber].Coords[base.AxisX],
+						Y: mon.Atoms[atomNumber].Coords[base.AxisY],
+						Z: mon.Atoms[atomNumber].Coords[base.AxisZ],
+					},
+				)
 				resultDirection := base.RotateVector(initialDirection, angle, rotationVector)
 				mon.Atoms[atomNumber].Coords = base.AddVecF(Rcm, resultDirection)
 			}

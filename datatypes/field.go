@@ -9,12 +9,12 @@ import (
 
 type Field struct {
 	sphereRadius uint64
-	field        map[base.Vector3DF]*Monomer
+	monomers     map[base.Vector3DF]*Monomer
 }
 
 func NewField(sphereRadius uint64) *Field {
 	newField := &Field{}
-	newField.field = make(map[base.Vector3DF]*Monomer)
+	newField.monomers = make(map[base.Vector3DF]*Monomer)
 	globalData := globaldata.GetGlobalData()
 	lower := [...]int64{int64(globalData.SpaceDimention[base.AxisX].Lower), int64(globalData.SpaceDimention[base.AxisY].Lower), int64(globalData.SpaceDimention[base.AxisZ].Lower)}
 	higher := [...]int64{int64(globalData.SpaceDimention[base.AxisX].Higher), int64(globalData.SpaceDimention[base.AxisY].Higher), int64(globalData.SpaceDimention[base.AxisZ].Higher)}
@@ -24,39 +24,39 @@ func NewField(sphereRadius uint64) *Field {
 	for i = lower[0]; i <= higher[0]; i++ {
 		for j = lower[1]; j <= higher[1]; j++ {
 			for k = lower[2]; k <= higher[2]; k++ {
-				coords := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}
-				newField.field[coords] = NewMonomer(coords, MonomerTypeUndefined)
+				coords := base.Vector3DF{float64(i), float64(j), float64(k)}
+				newField.monomers[coords] = NewMonomer(coords, MonomerTypeUndefined)
 			}
 		}
 	}
 	for i = lower[0]; i <= higher[0]; i++ {
 		for j = lower[1]; j <= higher[1]; j++ {
 			for k = lower[2]; k <= higher[2]; k++ {
-				coords := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k)}
-				monomer := newField.field[coords]
+				coords := base.Vector3DF{float64(i), float64(j), float64(k)}
+				monomer := newField.monomers[coords]
 				if i < higher[0] {
-					next := base.Vector3DF{X: float64(i + 1), Y: float64(j), Z: float64(k)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i + 1), float64(j), float64(k)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 				if i > lower[0] {
-					next := base.Vector3DF{X: float64(i - 1), Y: float64(j), Z: float64(k)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i - 1), float64(j), float64(k)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 				if j < higher[1] {
-					next := base.Vector3DF{X: float64(i), Y: float64(j + 1), Z: float64(k)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i), float64(j + 1), float64(k)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 				if j > lower[1] {
-					next := base.Vector3DF{X: float64(i), Y: float64(j - 1), Z: float64(k)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i), float64(j - 1), float64(k)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 				if k < higher[2] {
-					next := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k + 1)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i), float64(j), float64(k + 1)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 				if k > lower[2] {
-					next := base.Vector3DF{X: float64(i), Y: float64(j), Z: float64(k - 1)}
-					MakeConnection(monomer, newField.field[next], ConnectionTypeUndefined)
+					next := base.Vector3DF{float64(i), float64(j), float64(k - 1)}
+					MakeConnection(monomer, newField.monomers[next], ConnectionTypeUndefined)
 				}
 			}
 		}
@@ -75,21 +75,21 @@ func (field *Field) MakeFree(monomer *Monomer) {
 }
 
 func (field *Field) IsFree(coords base.Vector3DF) bool {
-	var monomer = field.field[coords]
+	var monomer = field.monomers[coords]
 	return monomer.IsTypeOf(MonomerTypeUndefined)
 }
 
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 	var globalData = globaldata.GetGlobalData()
 	return base.Vector3D{
-		X: coords.X % int64(globalData.SpaceDimention[base.AxisX].Higher),
-		Y: coords.Y % int64(globalData.SpaceDimention[base.AxisY].Higher),
-		Z: coords.Z % int64(globalData.SpaceDimention[base.AxisZ].Higher),
+		coords[base.AxisX] % int64(globalData.SpaceDimention[base.AxisX].Higher),
+		coords[base.AxisY] % int64(globalData.SpaceDimention[base.AxisY].Higher),
+		coords[base.AxisZ] % int64(globalData.SpaceDimention[base.AxisZ].Higher),
 	}
 }
 
 func (field *Field) IsBusy() bool {
-	for _, mon := range field.field {
+	for _, mon := range field.monomers {
 		if mon.IsTypeOf(MonomerTypeUndefined) {
 			return false
 		}
@@ -98,7 +98,7 @@ func (field *Field) IsBusy() bool {
 }
 
 func (field *Field) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
-	return field.field[coords]
+	return field.monomers[coords]
 }
 
 func (field *Field) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {
@@ -106,7 +106,7 @@ func (field *Field) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {
 		return base.PointInSpace(&point, &lower, &higher)
 	}
 	monomers := make([]*Monomer, 0)
-	for point, mon := range field.field {
+	for point, mon := range field.monomers {
 		if isIn(point) {
 			monomers = append(monomers, mon)
 		}
@@ -156,7 +156,7 @@ func (field *Field) DefineStartMonomer() *Monomer {
 
 func (field *Field) MarshalJSON() ([]byte, error) {
 	newField := make([]MonomerJSON, 0)
-	for _, mon := range field.field {
+	for _, mon := range field.monomers {
 		newField = append(newField, mon.ToJSON())
 	}
 	return json.Marshal(&struct {
@@ -170,16 +170,40 @@ func (field *Field) MarshalJSON() ([]byte, error) {
 
 func (field *Field) DeepCopy() *Field {
 	newField := NewField(field.sphereRadius)
-	for coords, mon := range field.field {
-		newField.field[coords].DeepCopyFrom(mon, newField)
+	for coords, mon := range field.monomers {
+		newField.monomers[coords].DeepCopyFrom(mon, newField)
 	}
 	return newField
 }
 
 func (field *Field) Waterize() {
-	for _, mon := range field.field {
+	for _, mon := range field.monomers {
 		if mon.MonomerType == MonomerTypeUndefined {
 			mon.MonomerType = MonomerTypeWater
 		}
 	}
+}
+
+func (field *Field) GetMinMonomersByAxis(axis base.Axis) []*Monomer {
+	minMonomers := make([]*Monomer, 0)
+	for point, mon := range field.monomers {
+		if len(minMonomers) == 0 || point[axis] < minMonomers[0].Coords()[axis] {
+			minMonomers = []*Monomer{mon}
+		} else {
+			minMonomers = append(minMonomers, mon)
+		}
+	}
+	return minMonomers
+}
+
+func (field *Field) GetMaxMonomersByAxis(axis base.Axis) []*Monomer {
+	minMonomers := make([]*Monomer, 0)
+	for point, mon := range field.monomers {
+		if len(minMonomers) == 0 || point[axis] > minMonomers[0].Coords()[axis] {
+			minMonomers = []*Monomer{mon}
+		} else {
+			minMonomers = append(minMonomers, mon)
+		}
+	}
+	return minMonomers
 }

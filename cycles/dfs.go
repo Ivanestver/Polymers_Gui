@@ -92,9 +92,9 @@ func (dfs *_DFSAlg) updateStack(currMonomer *datatypes.Monomer, stack *base.Stac
 func (dfs *_DFSAlg) isEdge(currMonomer *datatypes.Monomer) bool {
 	ret := false
 	for _, edgeValue := range []float64{dfs.rightBorder} {
-		ret = ret || base.CompareFloat(edgeValue, currMonomer.Coords().X) ||
-			base.CompareFloat(edgeValue, currMonomer.Coords().Y) ||
-			base.CompareFloat(edgeValue, currMonomer.Coords().Z)
+		ret = ret || base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisX]) ||
+			base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisY]) ||
+			base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisZ])
 	}
 	return ret
 }
@@ -106,7 +106,7 @@ func addNewPath(paths *[][]*datatypes.Monomer, candidate []*datatypes.Monomer) {
 func areSiblisgs(mon1, mon2 *datatypes.Monomer) bool {
 	c1 := mon1.Coords()
 	c2 := mon2.Coords()
-	return math.Abs(c1.X-c2.X) == 1 && c1.Y == c2.Y && c1.Z == c2.Z ||
-		c1.X == c2.X && math.Abs(c1.Y-c2.Y) == 1 && c1.Z == c2.Z ||
-		c1.X == c2.X && c1.Y == c2.Y && math.Abs(c1.Z-c2.Z) == 1
+	return math.Abs(c1[base.AxisX]-c2[base.AxisX]) == 1 && c1[base.AxisY] == c2[base.AxisY] && c1[base.AxisZ] == c2[base.AxisZ] ||
+		c1[base.AxisX] == c2[base.AxisX] && math.Abs(c1[base.AxisY]-c2[base.AxisY]) == 1 && c1[base.AxisZ] == c2[base.AxisZ] ||
+		c1[base.AxisX] == c2[base.AxisX] && c1[base.AxisY] == c2[base.AxisY] && math.Abs(c1[base.AxisZ]-c2[base.AxisZ]) == 1
 }

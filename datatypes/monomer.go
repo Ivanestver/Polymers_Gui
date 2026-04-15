@@ -144,83 +144,83 @@ func GetSideByMonomers(from, to *Monomer) Side {
 	}
 
 	result := base.Vector3DF{
-		X: to.coords.X - from.coords.X,
-		Y: to.coords.Y - from.coords.Y,
-		Z: to.coords.Z - from.coords.Z,
+		to.coords[base.AxisX] - from.coords[base.AxisX],
+		to.coords[base.AxisY] - from.coords[base.AxisY],
+		to.coords[base.AxisZ] - from.coords[base.AxisZ],
 	}
-	if result.X == 0 {
-		if result.Y == 0 {
-			if result.Z == 0 {
+	if result[base.AxisX] == 0 {
+		if result[base.AxisY] == 0 {
+			if result[base.AxisZ] == 0 {
 				return SideUndefined
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUp
 			} else {
 				return SideDown
 			}
-		} else if result.Y > 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] > 0 {
+			if result[base.AxisZ] == 0 {
 				return SideLeft
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideLeftUp
 			} else {
 				return SideLeftDown
 			}
-		} else if result.Y < 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] < 0 {
+			if result[base.AxisZ] == 0 {
 				return SideRight
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideRightUp
 			} else {
 				return SideRightDown
 			}
 		}
-	} else if result.X > 0 {
-		if result.Y == 0 {
-			if result.Z == 0 {
+	} else if result[base.AxisX] > 0 {
+		if result[base.AxisY] == 0 {
+			if result[base.AxisZ] == 0 {
 				return SideForward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpForward
 			} else {
 				return SideDownForward
 			}
-		} else if result.Y > 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] > 0 {
+			if result[base.AxisZ] == 0 {
 				return SideLeftForward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpLeftForward
 			} else {
 				return SideDownLeftForward
 			}
-		} else if result.Y < 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] < 0 {
+			if result[base.AxisZ] == 0 {
 				return SideRightForward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpRightForward
 			} else {
 				return SideDownRightForward
 			}
 		}
-	} else { // result.X < 0
-		if result.Y == 0 {
-			if result.Z == 0 {
+	} else { // result[base.AxisX] < 0
+		if result[base.AxisY] == 0 {
+			if result[base.AxisZ] == 0 {
 				return SideBackward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpBackward
 			} else {
 				return SideDownBackward
 			}
-		} else if result.Y > 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] > 0 {
+			if result[base.AxisZ] == 0 {
 				return SideLeftBackward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpLeftBackward
 			} else {
 				return SideDownLeftBackward
 			}
-		} else if result.Y < 0 {
-			if result.Z == 0 {
+		} else if result[base.AxisY] < 0 {
+			if result[base.AxisZ] == 0 {
 				return SideRightBackward
-			} else if result.Z > 0 {
+			} else if result[base.AxisZ] > 0 {
 				return SideUpRightBackward
 			} else {
 				return SideDownRightBackward
