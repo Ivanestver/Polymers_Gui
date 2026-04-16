@@ -163,7 +163,7 @@ func GetAngle(v1, v2 Vector3DF) float64 {
 func DotProduct(v1, v2 Vector3DF) float64 {
 	prod := 0.0
 	for i := range v1 {
-		prod += v1[i] * v1[i]
+		prod += v1[i] * v2[i]
 	}
 	return prod
 }
