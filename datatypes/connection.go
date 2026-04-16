@@ -27,6 +27,22 @@ func (conn *Connection) GetOtherSide(currMonomer *Monomer) (*Monomer, error) {
 	}
 }
 
+func (conn *Connection) GetVectorFrom(monomer *Monomer) (base.Vector3DF, error) {
+	if other, err := conn.GetOtherSide(monomer); err != nil {
+		return base.InvalidVectorF(), err
+	} else {
+		return base.MakeVectorF(&base.Point3DF{
+			X: monomer.coords[base.AxisX],
+			Y: monomer.coords[base.AxisY],
+			Z: monomer.coords[base.AxisZ],
+		}, &base.Point3DF{
+			X: other.coords[base.AxisX],
+			Y: other.coords[base.AxisY],
+			Z: other.coords[base.AxisZ],
+		}), nil
+	}
+}
+
 func MakeConnection(mon1, mon2 *Monomer, connectionType ConnectionType) error {
 	if mon1 == nil || mon2 == nil {
 		return errors.New("one of monomers is nil")

@@ -3,6 +3,7 @@ package datatypes
 import (
 	"errors"
 	"polymers/base"
+	"polymers/outputformat"
 )
 
 type Monomer struct {
@@ -40,6 +41,24 @@ func (monomer *Monomer) GetSibling(side Side) (*Monomer, error) {
 	} else {
 		return nil, errors.New("no sibling")
 	}
+}
+
+func (monomer *Monomer) GetSiblingsAlongAxis(axis base.Axis) []*Monomer {
+	printer := outputformat.GetPrint()
+	axisV := base.AxisToVector[axis]
+	siblings := make([]*Monomer, 0)
+	for _, conn := range monomer.sides {
+		connVector, err := conn.GetVectorFrom(monomer)
+		if err != nil {
+			printer.PrintflnError("GetSiblingsAlongAxis: %s", err.Error())
+			continue
+		}
+		if base.DotProduct(connVector, axisV) >= 0 {
+			other, _ := conn.GetOtherSide(monomer)
+			siblings = append(siblings, other)
+		}
+	}
+	return siblings
 }
 
 func (monomer *Monomer) GetSideOfSibling(otherMon *Monomer) Side {
