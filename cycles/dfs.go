@@ -41,11 +41,6 @@ func (dfs *_DFSAlg) FindCycles(startPoint *datatypes.Monomer) [][]*datatypes.Mon
 		}
 		currMonomer := obj.(*datatypes.Monomer)
 		if dfs.isNewPoint(currMonomer) {
-			// for len(currPath) > 0 && !areSiblisgs(currMonomer, currPath[len(currPath)-1]) {
-			// 	last := currPath[len(currPath)-1]
-			// 	delete(dfs.usedPoints, last.Number)
-			// 	currPath = currPath[:len(currPath)-1]
-			// }
 			dfs.usedPoints[currMonomer.Number] = struct{}{}
 			currPath = append(currPath, currMonomer)
 			if dfs.isEdge(currMonomer) {
