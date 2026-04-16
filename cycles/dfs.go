@@ -70,12 +70,8 @@ func (dfs *_DFSAlg) isNewPoint(currMonomer *datatypes.Monomer) bool {
 }
 
 func (dfs *_DFSAlg) updateStack(currMonomer *datatypes.Monomer, stack *base.Stack) {
-	for _, sideToMove := range dfs.sidesToMove {
-		sibling, err := currMonomer.GetSibling(sideToMove)
-		if err != nil {
-			dfs.printer.PrintlnError(err.Error())
-			continue
-		}
+	siblings := currMonomer.GetSiblingsAlongAxis(dfs.axisAlong)
+	for _, sibling := range siblings {
 		if dfs.isNewPoint(sibling) {
 			stack.Push(sibling)
 		} else {
