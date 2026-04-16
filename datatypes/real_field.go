@@ -78,8 +78,10 @@ func (realField *RealField) GetMinMonomersByAxis(axis base.Axis) []*Monomer {
 	for point, mon := range realField.monomers {
 		if len(minMonomers) == 0 || point[axis] < minMonomers[0].Coords()[axis] {
 			minMonomers = []*Monomer{mon}
-		} else {
+		} else if base.CompareFloat(point[axis], minMonomers[0].Coords()[axis]) {
 			minMonomers = append(minMonomers, mon)
+		} else {
+			continue
 		}
 	}
 	return minMonomers
@@ -90,8 +92,10 @@ func (realField *RealField) GetMaxMonomersByAxis(axis base.Axis) []*Monomer {
 	for point, mon := range realField.monomers {
 		if len(minMonomers) == 0 || point[axis] > minMonomers[0].Coords()[axis] {
 			minMonomers = []*Monomer{mon}
-		} else {
+		} else if base.CompareFloat(point[axis], minMonomers[0].Coords()[axis]) {
 			minMonomers = append(minMonomers, mon)
+		} else {
+			continue
 		}
 	}
 	return minMonomers
