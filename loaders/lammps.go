@@ -47,7 +47,10 @@ func (loader *_LammpsLoader) Load(filename string, fieldType datatypes.FieldType
 
 func parseFromJSON(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.FieldType) (*views.GlobulaView, error) {
 	field := makeField(fieldType, jsonStruct.SpaceDimention)
-	polymers := makePolymers(jsonStruct, field, fieldType)
+	polymers, err := makePolymers(jsonStruct, field, fieldType)
+	if err != nil {
+		return nil, err
+	}
 	literals := make(map[datatypes.MonomerType]string)
 	for _, atom := range jsonStruct.AtomTypes {
 		literals[datatypes.MonomerType(atom.AtomType-1)] = atom.AtomLabel
@@ -61,7 +64,7 @@ func makeField(fieldType datatypes.FieldType, spaceDimention [3][2]float64) data
 	return datatypes.CreateField(fieldType, spaceDimention)
 }
 
-func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IField, fieldType datatypes.FieldType) []datatypes.IPolymer {
+func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IField, fieldType datatypes.FieldType) ([]datatypes.IPolymer, error) {
 	polymersMap := make(map[int]datatypes.IPolymer)
 	for _, atom := range lammpsStruct.Atoms {
 		moleculeID := atom.MoleculeID - 1
@@ -82,9 +85,20 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
 		polymer.AddMonomer(a)
 	}
+
+	for _, bond := range lammpsStruct.Bonds {
+		atom1 := lammpsStruct.Atoms[bond.Ends[0]-1]
+		atom2 := lammpsStruct.Atoms[bond.Ends[1]-1]
+		mon1 := field.GetMonomerByCoords(base.Vector3DF{atom1.X, atom1.Y, atom1.Z})
+		mon2 := field.GetMonomerByCoords(base.Vector3DF{atom2.X, atom2.Y, atom2.Z})
+		if err := datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionTypeOne); err != nil {
+			return nil, err
+		}
+	}
+
 	polymers := make([]datatypes.IPolymer, len(polymersMap))
 	for i, polymer := range polymersMap {
 		polymers[i] = polymer
 	}
-	return polymers
+	return polymers, nil
 }
