@@ -24,6 +24,7 @@ func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 		printer: outputformat.GetPrint(),
 	}
 	analyzer.file, _ = os.Create("cycles.log")
+	defer analyzer.file.Close()
 	analyzer.analyzeSurfaceIntersections()
 	analyzer.analyzePaths()
 }
@@ -69,16 +70,22 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 
 func defineStartingPoints(axisAlong base.Axis, field datatypes.IField) ([]*datatypes.Monomer, float64) {
 	points := field.GetMinMonomersByAxis(axisAlong)
-	var moveDirection datatypes.Side
+	leftBorder := 0.0
+	if len(points) > 0 {
+		leftBorder = points[0].Coords()[axisAlong]
+	}
 
-	return moveSurfaceAlong(&points, moveDirection, axisAlong)
+	return points, leftBorder
 }
 
 func defineFinishingPoints(axisAlong base.Axis, field datatypes.IField) ([]*datatypes.Monomer, float64) {
 	points := field.GetMaxMonomersByAxis(axisAlong)
-	var moveDirection datatypes.Side
+	leftBorder := 0.0
+	if len(points) > 0 {
+		leftBorder = points[0].Coords()[axisAlong]
+	}
 
-	return moveSurfaceAlong(&points, moveDirection, axisAlong)
+	return points, leftBorder
 }
 
 func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side, axisAlong base.Axis) ([]*datatypes.Monomer, float64) {
@@ -121,20 +128,11 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 			continue
 		}
 		surfaceIntersections := make(map[float64]int)
-		step := getDimentions(axis, startingMonomers, moveDirection)
+		step := (end - start) * 0.05
 		start += step / 2
 		for coordOnAxis := start; coordOnAxis < end; coordOnAxis += step {
 			// Calculate the intersections
-			surfaceIntersections[coordOnAxis] = getIntersectionsCount(axis, coordOnAxis, &startingMonomers, moveDirection)
-			// Move points forwards
-			for i := len(startingMonomers) - 1; i >= 0; i-- {
-				nextMonomer, err := startingMonomers[i].GetSibling(moveDirection)
-				if err != nil {
-					startingMonomers = append(startingMonomers[:i], startingMonomers[i+1:]...)
-					continue
-				}
-				startingMonomers[i] = nextMonomer
-			}
+			surfaceIntersections[coordOnAxis] = analyzer.getIntersectionsCount(axis, coordOnAxis, &startingMonomers, moveDirection)
 		}
 
 		// Print the results
@@ -172,18 +170,23 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 	return
 }
 
-func getIntersectionsCount(axis base.Axis, coordOnAxis float64, prevPoints *[]*datatypes.Monomer, moveDirection datatypes.Side) int {
+func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxis float64, prevPoints *[]*datatypes.Monomer, moveDirection datatypes.Side) int {
 	intersectionsCount := 0
-	for i := len(*prevPoints) - 1; i >= 0; i-- {
-		prevPoint := (*prevPoints)[i]
-		nextPoint, err := (*prevPoints)[i].GetSibling(moveDirection)
-		if err != nil { // If it's the deadend, remove the point due to being reluctant
-			*prevPoints = append((*prevPoints)[:i], (*prevPoints)[i+1:]...)
-			continue
-		}
-		if prevPoint.Coords()[axis] < coordOnAxis && coordOnAxis < nextPoint.Coords()[axis] {
-			intersectionsCount++
-		}
-	}
+	views.ForEachPolymer(analyzer.globula, func(p *views.PolymerView) {
+		views.ForEachMonomer(p, func(m *datatypes.Monomer) bool {
+			siblings := m.GetSiblingsAlongAxis(axis)
+			mCoord := m.Coords()[axis]
+			if mCoord > coordOnAxis || base.CompareFloat(mCoord, coordOnAxis) {
+				return true
+			}
+			for _, sibling := range siblings {
+				siblingCoord := sibling.Coords()[axis]
+				if coordOnAxis < siblingCoord {
+					intersectionsCount++
+				}
+			}
+			return true
+		})
+	})
 	return intersectionsCount
 }

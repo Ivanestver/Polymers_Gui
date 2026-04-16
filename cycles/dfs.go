@@ -81,13 +81,7 @@ func (dfs *_DFSAlg) updateStack(currMonomer *datatypes.Monomer, stack *base.Stac
 }
 
 func (dfs *_DFSAlg) isEdge(currMonomer *datatypes.Monomer) bool {
-	ret := false
-	for _, edgeValue := range []float64{dfs.rightBorder} {
-		ret = ret || base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisX]) ||
-			base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisY]) ||
-			base.CompareFloat(edgeValue, currMonomer.Coords()[base.AxisZ])
-	}
-	return ret
+	return len(currMonomer.GetSiblingsAlongAxisStrict(dfs.axisAlong)) == 0
 }
 
 func addNewPath(paths *[][]*datatypes.Monomer, candidate []*datatypes.Monomer) {
