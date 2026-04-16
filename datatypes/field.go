@@ -1,7 +1,6 @@
 package datatypes
 
 import (
-	"encoding/json"
 	"math/rand"
 	"polymers/base"
 	"polymers/globaldata"
@@ -154,19 +153,19 @@ func (field *Field) DefineStartMonomer() *Monomer {
 	return field.GetMonomerByCoords(startPosition)
 }
 
-func (field *Field) MarshalJSON() ([]byte, error) {
-	newField := make([]MonomerJSON, 0)
-	for _, mon := range field.monomers {
-		newField = append(newField, mon.ToJSON())
-	}
-	return json.Marshal(&struct {
-		SphereRadius uint64
-		Field        []MonomerJSON
-	}{
-		SphereRadius: field.sphereRadius,
-		Field:        newField,
-	})
-}
+// func (field *Field) MarshalJSON() ([]byte, error) {
+// 	newField := make([]MonomerJSON, 0)
+// 	for _, mon := range field.monomers {
+// 		newField = append(newField, mon.ToJSON())
+// 	}
+// 	return json.Marshal(&struct {
+// 		SphereRadius uint64
+// 		Field        []MonomerJSON
+// 	}{
+// 		SphereRadius: field.sphereRadius,
+// 		Field:        newField,
+// 	})
+// }
 
 func (field *Field) DeepCopy() *Field {
 	newField := NewField(field.sphereRadius)

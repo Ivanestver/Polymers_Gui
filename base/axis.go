@@ -9,6 +9,15 @@ const (
 	AxisCount Axis = 3
 )
 
+var AxisXVec = Vector3DF{1.0, 0.0, 0.0}
+var AxisYVec = Vector3DF{0.0, 1.0, 0.0}
+var AxisZVec = Vector3DF{0.0, 0.0, 1.0}
+var AxisToVector map[Axis]Vector3DF = map[Axis]Vector3DF{
+	AxisX: AxisXVec,
+	AxisY: AxisYVec,
+	AxisZ: AxisZVec,
+}
+
 func (axis Axis) ToString() string {
 	switch axis {
 	case AxisX:

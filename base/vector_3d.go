@@ -116,12 +116,12 @@ func IndentityVectorF() Vector3DF {
 	}
 }
 
-func AddVecF(left Vector3DF, right Vector3DF) Vector3DF {
-	return Vector3DF{
-		left[AxisX] + right[AxisX],
-		left[AxisY] + right[AxisY],
-		left[AxisZ] + right[AxisZ],
+func AddVecF(vectors ...Vector3DF) Vector3DF {
+	res := Vector3DF{0.0, 0.0, 0.0}
+	for _, v := range vectors {
+		res.AddF(&v)
 	}
+	return res
 }
 
 func SubtractVecF(left Vector3DF, right Vector3DF) Vector3DF {

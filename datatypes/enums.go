@@ -6,7 +6,7 @@ import (
 )
 
 type MoveDirection = int8
-type Side int16
+type Side = base.Vector3DF
 type MonomerType int8
 type ConnectionType int8
 type GlobulaViewType int
@@ -17,35 +17,33 @@ const (
 	DirectionCount    MoveDirection = 2
 )
 
-const (
-	SideUndefined         = -10
-	SideForward           = Side(int8(base.AxisX+1) * DirectionForward)
-	SideBackward          = Side(int8(base.AxisX+1) * DirectionBackward)
-	SideLeft              = Side(int8(base.AxisY+1) * DirectionForward)
-	SideRight             = Side(int8(base.AxisY+1) * DirectionBackward)
-	SideUp                = Side(int8(base.AxisZ+1) * DirectionForward)
-	SideDown              = Side(int8(base.AxisZ+1) * DirectionBackward)
-	SideUpLeftForward     = 1000
-	SideUpForward         = SideUpLeftForward + 1
-	SideUpRightForward    = SideUpForward + 1
-	SideLeftForward       = SideUpRightForward + 1
-	SideRightForward      = SideLeftForward + 1
-	SideDownLeftForward   = SideRightForward + 1
-	SideDownForward       = SideDownLeftForward + 1
-	SideDownRightForward  = SideDownForward + 1
-	SideLeftUp            = SideDownRightForward + 1
-	SideLeftDown          = SideLeftUp + 1
-	SideRightUp           = SideLeftDown + 1
-	SideRightDown         = SideRightUp + 1
-	SideUpLeftBackward    = SideRightDown + 1
-	SideUpBackward        = SideUpLeftBackward + 1
-	SideUpRightBackward   = SideUpBackward + 1
-	SideLeftBackward      = SideUpRightBackward + 1
-	SideRightBackward     = SideLeftBackward + 1
-	SideDownLeftBackward  = SideRightBackward + 1
-	SideDownBackward      = SideDownLeftBackward + 1
-	SideDownRightBackward = SideDownBackward + 1
-)
+var SideUndefined = Side{0.0, 0.0, 0.0}
+var SideForward = base.AxisXVec
+var SideBackward = base.MultiplyByConstantF(&SideForward, float64(DirectionBackward))
+var SideLeft = base.AxisYVec
+var SideRight = base.MultiplyByConstantF(&SideLeft, float64(DirectionBackward))
+var SideUp = base.AxisZVec
+var SideDown = base.MultiplyByConstantF(&SideUp, float64(DirectionBackward))
+var SideUpLeftForward = base.AddVecF(base.AddVecF(SideUp, SideLeft), SideForward)
+var SideUpForward = base.AddVecF(SideUp, SideForward)
+var SideUpRightForward = base.AddVecF(SideUp, SideRight, SideForward)
+var SideLeftForward = base.AddVecF(SideLeft, SideForward)
+var SideRightForward = base.AddVecF(SideRight, SideForward)
+var SideDownLeftForward = base.AddVecF(SideDown, SideLeft, SideForward)
+var SideDownForward = base.AddVecF(SideDown, SideForward)
+var SideDownRightForward = base.AddVecF(SideDown, SideRight, SideForward)
+var SideLeftUp = base.AddVecF(SideLeft, SideUp)
+var SideLeftDown = base.AddVecF(SideLeft, SideDown)
+var SideRightUp = base.AddVecF(SideRight, SideUp)
+var SideRightDown = base.AddVecF(SideRight, SideDown)
+var SideUpLeftBackward = base.AddVecF(SideUp, SideLeft, SideBackward)
+var SideUpBackward = base.AddVecF(SideUp, SideBackward)
+var SideUpRightBackward = base.AddVecF(SideUp, SideRight, SideBackward)
+var SideLeftBackward = base.AddVecF(SideLeft, SideBackward)
+var SideRightBackward = base.AddVecF(SideRight, SideBackward)
+var SideDownLeftBackward = base.AddVecF(SideDown, SideLeft, SideBackward)
+var SideDownBackward = base.AddVecF(SideDown, SideBackward)
+var SideDownRightBackward = base.AddVecF(SideDown, SideRight, SideBackward)
 
 const (
 	MonomerTypeUndefined   MonomerType = -1
@@ -94,65 +92,16 @@ func GetAllSides() []Side {
 }
 
 func GetSide(axis base.Axis, moveDirection MoveDirection) Side {
-	return Side(uint8(axis+1) * uint8(moveDirection))
+	v := base.AxisToVector[axis]
+	v.MultiplyByConstantF(float64(moveDirection))
+	return v
 }
 
 func GetReversedSide(side Side) Side {
-	switch side {
-	case SideForward:
-		return SideBackward
-	case SideBackward:
-		return SideForward
-	case SideUp:
-		return SideDown
-	case SideDown:
-		return SideUp
-	case SideLeft:
-		return SideRight
-	case SideRight:
-		return SideLeft
-	case SideUpLeftForward:
-		return SideDownRightBackward
-	case SideUpForward:
-		return SideDownBackward
-	case SideUpRightForward:
-		return SideDownLeftBackward
-	case SideLeftForward:
-		return SideRightBackward
-	case SideRightForward:
-		return SideLeftBackward
-	case SideDownLeftForward:
-		return SideUpRightBackward
-	case SideDownForward:
-		return SideUpBackward
-	case SideDownRightForward:
-		return SideUpLeftBackward
-	case SideLeftUp:
-		return SideRightDown
-	case SideLeftDown:
-		return SideRightUp
-	case SideRightUp:
-		return SideLeftDown
-	case SideRightDown:
-		return SideLeftUp
-	case SideUpLeftBackward:
-		return SideDownRightForward
-	case SideUpBackward:
-		return SideDownForward
-	case SideUpRightBackward:
-		return SideDownLeftForward
-	case SideLeftBackward:
-		return SideRightForward
-	case SideRightBackward:
-		return SideLeftForward
-	case SideDownLeftBackward:
-		return SideUpRightForward
-	case SideDownBackward:
-		return SideUpForward
-	case SideDownRightBackward:
-		return SideUpLeftForward
-	default:
+	if side == SideUndefined {
 		panic("Unappropriate side")
+	} else {
+		return base.MultiplyByConstantF(&side, -1)
 	}
 }
 
