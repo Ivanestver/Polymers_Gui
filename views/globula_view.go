@@ -62,6 +62,13 @@ func (globula *GlobulaView) Len() int {
 	return len(globula.polymers)
 }
 
+func (globula *GlobulaView) GetPolymerByID(id int) *PolymerView {
+	if id < 0 || id >= globula.Len() {
+		return nil
+	}
+	return globula.polymers[id]
+}
+
 func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 	return globula.globulaProperties[prop]
 }

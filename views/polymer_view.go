@@ -34,6 +34,13 @@ func (polymerView *PolymerView) Len() int {
 	return polymerView.polymer.Len()
 }
 
+func (polymerView *PolymerView) GetMonomerByID(id int) *datatypes.Monomer {
+	if id < 0 || id >= polymerView.Len() {
+		return nil
+	}
+	return polymerView.polymer.GetMonomerByIdx(id)
+}
+
 func (polymerView *PolymerView) GetStartEndMonomers() (*datatypes.Monomer, *datatypes.Monomer) {
 	if polymerView.polymer.Len() == 0 {
 		panic("The PolymerView cannot contain an empty polymer")
