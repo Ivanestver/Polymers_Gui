@@ -5,28 +5,202 @@ import (
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/globaldata"
 	"polymers/outputformat"
 	"polymers/views"
 	"slices"
 )
 
 type CyclesAnalyzer struct {
+	graph   *Graph
 	globula *views.GlobulaView
 	axises  []base.Axis
 	printer outputformat.IPrint
 	file    *os.File
+	nodes   map[int]base.Vector3DF
+}
+
+func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis) *CyclesAnalyzer {
+	analyzer := &CyclesAnalyzer{}
+	analyzer.graph = NewGraph(globula)
+	analyzer.globula = globula
+	analyzer.axises = axises
+	analyzer.printer = outputformat.GetPrint()
+	analyzer.nodes = make(map[int]base.Vector3DF)
+	for polNum := 0; polNum < globula.Len(); polNum++ {
+		pol := globula.GetPolymerByID(polNum)
+		if pol == nil {
+			continue
+		}
+		for monNumber := 0; monNumber < pol.Len(); monNumber++ {
+			if mon := pol.GetMonomerByID(monNumber); mon != nil {
+				analyzer.nodes[int(mon.Number)] = mon.Coords()
+			}
+		}
+	}
+	return analyzer
 }
 
 func Analyze(globula *views.GlobulaView, axises []base.Axis) {
-	analyzer := CyclesAnalyzer{
-		globula: globula,
-		axises:  axises,
-		printer: outputformat.GetPrint(),
-	}
+	analyzer := NewCyclesAnalyzer(globula, axises)
 	analyzer.file, _ = os.Create("cycles.log")
 	defer analyzer.file.Close()
-	analyzer.analyzeSurfaceIntersections()
-	analyzer.analyzePaths()
+	analyzer.analyzeOrigin()
+	analyzer.analyzePreprocessed()
+	// analyzer.analyzeSurfaceIntersections()
+	// analyzer.analyzePaths()
+}
+
+func (analyzer *CyclesAnalyzer) analyzeOrigin() {
+	analyzer.analyzeParticlesCount()
+	analyzer.analyzeNumberOfVertexes()
+	analyzer.analyzeTrees()
+	analyzer.analyzeClusters()
+}
+
+func (analyzer *CyclesAnalyzer) analyzeParticlesCount() {
+	analyzer.printer.Printfln("Общее число вершин N: %d", analyzer.graph.GetAvailableNodesCount())
+}
+
+func (analyzer *CyclesAnalyzer) analyzeNumberOfVertexes() {
+	numberOfVertexes := make(map[int]int)
+	nodesCount := analyzer.graph.GetNodesCount()
+	for i := 0; i < nodesCount; i++ {
+		if !analyzer.graph.IsAvailable(i) {
+			continue
+		}
+		connectedCount := 0
+		for j := 0; j < nodesCount; j++ {
+			if analyzer.graph.AreConnected(i, j) {
+				connectedCount++
+			}
+		}
+		numberOfVertexes[connectedCount] += 1
+	}
+
+	analyzer.printer.Println("Распределение по количеству связей")
+	for i := 0; i < 6; i++ {
+		if number, ok := numberOfVertexes[i]; ok {
+			analyzer.printer.Printfln("\t%d %d", i, number)
+		} else {
+			analyzer.printer.Printfln("\t%d 0", i)
+		}
+	}
+}
+
+func (analyzer *CyclesAnalyzer) analyzeTrees() {
+	nodesCount := analyzer.graph.GetNodesCount()
+	nodesInTreesCount := 0
+	for {
+		nodesToDisable := make([]int, 0)
+		for i := 0; i < nodesCount; i++ {
+			connectedNodes := analyzer.graph.GetConnectedOf(i)
+			if len(connectedNodes) == 1 {
+				nodesToDisable = append(nodesToDisable, i)
+			}
+		}
+		if len(nodesToDisable) == 0 {
+			break
+		}
+		nodesInTreesCount += len(nodesToDisable)
+		for _, nodeToDisable := range nodesToDisable {
+			analyzer.graph.Disable(nodeToDisable)
+		}
+	}
+
+	analyzer.printer.Printfln("Количество узлов в деревьях: %d", nodesInTreesCount)
+}
+
+type cluster []int
+
+func (analyzer *CyclesAnalyzer) analyzeClusters() {
+	// Find clusters
+	clusters := analyzer.findClusters()
+	analyzer.printer.Println("Кластерный анализ:")
+	analyzer.printer.Printfln("\tКоличество кластеров: %d", len(clusters))
+	nodesInClustersCount := 0
+	for _, c := range clusters {
+		nodesInClustersCount += len(c)
+	}
+	analyzer.printer.Printfln("\tКоличество узлов в кластерах: %d", nodesInClustersCount)
+
+	// Remove non-periodic
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
+	eX := (spaceDimention[base.AxisX].Higher - spaceDimention[base.AxisX].Lower) * 0.02
+	eY := (spaceDimention[base.AxisY].Higher - spaceDimention[base.AxisY].Lower) * 0.02
+	eZ := (spaceDimention[base.AxisZ].Higher - spaceDimention[base.AxisZ].Lower) * 0.02
+	for _, c := range clusters {
+		hasMin := false
+		hasMax := false
+		for _, i := range c {
+			coords := analyzer.nodes[i]
+			hasMin = coords[base.AxisX] < spaceDimention[base.AxisX].Lower || base.CompareFloatWithE(coords[base.AxisX], spaceDimention[base.AxisX].Lower, eX) ||
+				coords[base.AxisY] < spaceDimention[base.AxisY].Lower || base.CompareFloatWithE(coords[base.AxisY], spaceDimention[base.AxisY].Lower, eY) ||
+				coords[base.AxisZ] < spaceDimention[base.AxisZ].Lower || base.CompareFloatWithE(coords[base.AxisZ], spaceDimention[base.AxisZ].Lower, eZ)
+
+			hasMax = coords[base.AxisX] > spaceDimention[base.AxisX].Higher || base.CompareFloatWithE(coords[base.AxisX], spaceDimention[base.AxisX].Higher, eX) ||
+				coords[base.AxisY] > spaceDimention[base.AxisY].Higher || base.CompareFloatWithE(coords[base.AxisY], spaceDimention[base.AxisY].Higher, eY) ||
+				coords[base.AxisZ] > spaceDimention[base.AxisZ].Higher || base.CompareFloatWithE(coords[base.AxisZ], spaceDimention[base.AxisZ].Higher, eZ)
+			if hasMin && hasMax {
+				break
+			}
+		}
+		if !hasMin || !hasMax {
+			for _, i := range c {
+				analyzer.graph.Disable(i)
+			}
+		} else if len(c) == 1 {
+			analyzer.graph.Disable(c[0])
+		}
+	}
+}
+
+func (analyzer *CyclesAnalyzer) findClusters() []cluster {
+	clusters := make([]cluster, 0)
+	nodesCount := analyzer.graph.GetNodesCount()
+	visitedPoints := make(map[int]struct{})
+	for node := 0; node < nodesCount; node++ {
+		if _, ok := visitedPoints[node]; ok {
+			continue
+		}
+		if !analyzer.graph.IsAvailable(node) {
+			continue
+		}
+		c := analyzer.findCluster(node, visitedPoints)
+		if len(c) > 0 {
+			clusters = append(clusters, c)
+		}
+	}
+	return clusters
+}
+
+func (analyzer *CyclesAnalyzer) findCluster(startPoint int, visitedPoints map[int]struct{}) cluster {
+	if !analyzer.graph.IsAvailable(startPoint) {
+		return cluster{}
+	}
+	stack := base.Stack{}
+	c := cluster{}
+	stack.Push(startPoint)
+	for !stack.IsEmpty() {
+		item, _ := stack.Pop()
+		point := item.(int)
+		if _, ok := visitedPoints[point]; ok {
+			continue
+		}
+		c = append(c, point)
+		visitedPoints[point] = struct{}{}
+		for _, connected := range analyzer.graph.GetConnectedOf(point) {
+			if _, ok := visitedPoints[connected]; !ok {
+				stack.Push(connected)
+			}
+		}
+	}
+	return c
+}
+
+func (analyzer *CyclesAnalyzer) analyzePreprocessed() {
+	analyzer.analyzeParticlesCount()
+	analyzer.analyzeNumberOfVertexes()
 }
 
 func (analyzer *CyclesAnalyzer) analyzePaths() {
