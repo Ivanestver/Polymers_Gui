@@ -43,6 +43,21 @@ func (monomer *Monomer) GetSibling(side Side) (*Monomer, error) {
 	}
 }
 
+func (monomer *Monomer) GetSiblings() []*Monomer {
+	siblings := make([]*Monomer, 0)
+	for _, con := range monomer.sides {
+		if con == nil {
+			continue
+		}
+		sibling, err := con.GetOtherSide(monomer)
+		if err != nil || sibling == nil || sibling.IsTypeOf(MonomerTypeUndefined) {
+			continue
+		}
+		siblings = append(siblings, sibling)
+	}
+	return siblings
+}
+
 func (monomer *Monomer) GetSiblingsAlongAxis(axis base.Axis) []*Monomer {
 	printer := outputformat.GetPrint()
 	axisV := base.AxisToVector[axis]
