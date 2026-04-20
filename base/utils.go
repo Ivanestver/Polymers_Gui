@@ -182,6 +182,10 @@ func CompareFloat(left, right float64) bool {
 	return math.Abs(left-right) <= 0.001
 }
 
+func CompareFloatWithE(left, right, e float64) bool {
+	return math.Abs(left-right) <= e
+}
+
 func PointInSpace(coords, lower, higher *Vector3DF) bool {
 	isInSpace := true
 	for _, axis := range []Axis{AxisX, AxisY, AxisZ} {
