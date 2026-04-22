@@ -50,7 +50,7 @@ func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 	analyzer := NewCyclesAnalyzer(globula, axises)
 	analyzer.analyzeOrigin()
 	analyzer.analyzePreprocessed()
-	//analyzer.analyzeSurfaceIntersections()
+	analyzer.analyzeSurfaceIntersections()
 	analyzer.analyzePaths()
 	outputformat.SetPrint(oldPrinter)
 }
@@ -484,7 +484,7 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 		slices.Sort(keys)
 		analyzer.printer.Printfln("For %s:", axis.ToString())
 		for i, key := range keys {
-			analyzer.printer.Printfln("\t%d: %d", i+1, surfaceIntersections[key])
+			analyzer.printer.Printfln("\t%d. %f: %d", i+1, key, surfaceIntersections[key])
 		}
 	}
 }
