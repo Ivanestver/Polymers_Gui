@@ -1,7 +1,6 @@
 package cycles
 
 import (
-	"fmt"
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
@@ -16,7 +15,6 @@ type CyclesAnalyzer struct {
 	globula *views.GlobulaView
 	axises  []base.Axis
 	printer outputformat.IPrint
-	file    *os.File
 	nodes   map[int]base.Vector3DF
 }
 
@@ -34,7 +32,7 @@ func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis) *CyclesAn
 		}
 		for monNumber := 0; monNumber < pol.Len(); monNumber++ {
 			if mon := pol.GetMonomerByID(monNumber); mon != nil {
-				analyzer.nodes[int(mon.Number)] = mon.Coords()
+				analyzer.nodes[int(mon.Number-1)] = mon.Coords()
 			}
 		}
 	}
@@ -42,13 +40,19 @@ func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis) *CyclesAn
 }
 
 func Analyze(globula *views.GlobulaView, axises []base.Axis) {
+	file, err := os.Create("cycles.log")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	oldPrinter := outputformat.GetPrint()
+	outputformat.SetPrint(outputformat.NewFilePrint(file))
 	analyzer := NewCyclesAnalyzer(globula, axises)
-	analyzer.file, _ = os.Create("cycles.log")
-	defer analyzer.file.Close()
 	analyzer.analyzeOrigin()
 	analyzer.analyzePreprocessed()
-	// analyzer.analyzeSurfaceIntersections()
-	// analyzer.analyzePaths()
+	//analyzer.analyzeSurfaceIntersections()
+	analyzer.analyzePaths()
+	outputformat.SetPrint(oldPrinter)
 }
 
 func (analyzer *CyclesAnalyzer) analyzeOrigin() {
@@ -125,45 +129,53 @@ func (analyzer *CyclesAnalyzer) analyzeClusters() {
 	analyzer.printer.Printfln("\tКоличество узлов в кластерах: %d", nodesInClustersCount)
 
 	// Remove non-periodic
-	spaceDimention := globaldata.GetGlobalData().SpaceDimention
-	eX := (spaceDimention[base.AxisX].Higher - spaceDimention[base.AxisX].Lower) * 0.02
-	eY := (spaceDimention[base.AxisY].Higher - spaceDimention[base.AxisY].Lower) * 0.02
-	eZ := (spaceDimention[base.AxisZ].Higher - spaceDimention[base.AxisZ].Lower) * 0.02
 	for _, c := range clusters {
-		hasMin := false
-		hasMax := false
-		for _, i := range c {
-			coords := analyzer.nodes[i]
-			hasMin = coords[base.AxisX] < spaceDimention[base.AxisX].Lower || base.CompareFloatWithE(coords[base.AxisX], spaceDimention[base.AxisX].Lower, eX) ||
-				coords[base.AxisY] < spaceDimention[base.AxisY].Lower || base.CompareFloatWithE(coords[base.AxisY], spaceDimention[base.AxisY].Lower, eY) ||
-				coords[base.AxisZ] < spaceDimention[base.AxisZ].Lower || base.CompareFloatWithE(coords[base.AxisZ], spaceDimention[base.AxisZ].Lower, eZ)
-
-			hasMax = coords[base.AxisX] > spaceDimention[base.AxisX].Higher || base.CompareFloatWithE(coords[base.AxisX], spaceDimention[base.AxisX].Higher, eX) ||
-				coords[base.AxisY] > spaceDimention[base.AxisY].Higher || base.CompareFloatWithE(coords[base.AxisY], spaceDimention[base.AxisY].Higher, eY) ||
-				coords[base.AxisZ] > spaceDimention[base.AxisZ].Higher || base.CompareFloatWithE(coords[base.AxisZ], spaceDimention[base.AxisZ].Higher, eZ)
-			if hasMin && hasMax {
-				break
-			}
-		}
-		if !hasMin || !hasMax {
+		if len(c) == 1 {
+			analyzer.graph.Disable(c[0])
+		} else if !analyzer.isPassingCluster(c) {
 			for _, i := range c {
 				analyzer.graph.Disable(i)
 			}
-		} else if len(c) == 1 {
-			analyzer.graph.Disable(c[0])
 		}
 	}
 }
 
+func (analyzer *CyclesAnalyzer) isPassingCluster(c cluster) bool {
+	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
+		minClusters, maxClusters := analyzer.getMinMaxOfCluster(c, axis)
+		if len(minClusters) > 0 && len(maxClusters) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (analyzer *CyclesAnalyzer) getMinMaxOfCluster(c cluster, axis base.Axis) (minClusters, maxClusters []int) {
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
+	eX := (spaceDimention[axis].Higher - spaceDimention[axis].Lower) * 0.02
+	minClusters = make([]int, 0)
+	maxClusters = make([]int, 0)
+	for _, i := range c {
+		coords := analyzer.nodes[i]
+		if spaceDimention[axis].Lower > coords[axis] ||
+			base.CompareFloatWithE(coords[axis], spaceDimention[axis].Lower, eX) {
+			minClusters = append(minClusters, i)
+		}
+
+		if coords[axis] > spaceDimention[axis].Higher ||
+			base.CompareFloatWithE(coords[axis], spaceDimention[axis].Higher, eX) {
+			maxClusters = append(maxClusters, i)
+		}
+	}
+	return
+}
+
 func (analyzer *CyclesAnalyzer) findClusters() []cluster {
 	clusters := make([]cluster, 0)
-	nodesCount := analyzer.graph.GetNodesCount()
+	nodes := analyzer.graph.GetAvailableNodes()
 	visitedPoints := make(map[int]struct{})
-	for node := 0; node < nodesCount; node++ {
+	for _, node := range nodes {
 		if _, ok := visitedPoints[node]; ok {
-			continue
-		}
-		if !analyzer.graph.IsAvailable(node) {
 			continue
 		}
 		c := analyzer.findCluster(node, visitedPoints)
@@ -201,28 +213,183 @@ func (analyzer *CyclesAnalyzer) findCluster(startPoint int, visitedPoints map[in
 func (analyzer *CyclesAnalyzer) analyzePreprocessed() {
 	analyzer.analyzeParticlesCount()
 	analyzer.analyzeNumberOfVertexes()
+	analyzer.analyzeDensity()
+	analyzer.analyzeSubchains()
+}
+
+func (analyzer *CyclesAnalyzer) analyzeDensity() {
+	spaceDim := globaldata.GetGlobalData().SpaceDimention
+	N := analyzer.graph.GetAvailableNodesCount()
+	V := spaceDim.GetV()
+	analyzer.printer.Printfln("Плотность сетки: %f", float64(N)/V)
+}
+
+type subchain []int
+
+func (analyzer *CyclesAnalyzer) analyzeSubchains() {
+	// The strategy is to find a subchain and replace it
+	availableNodes := analyzer.graph.GetAvailableNodes()
+	subchains := make([]subchain, 0)
+	// First, find the subchains
+	for _, node := range availableNodes {
+		connectedNodes := analyzer.graph.GetConnectedOf(node)
+		if len(connectedNodes) < 3 {
+			continue
+		}
+		calculatedSubchains := analyzer.findSubchainsFrom(node)
+		for _, s := range calculatedSubchains {
+			if len(s) < 2 || slices.ContainsFunc(subchains, func(sub subchain) bool {
+				if len(sub) != len(s) {
+					return false
+				}
+				for _, item := range sub {
+					if !slices.Contains(s, item) {
+						return false
+					}
+				}
+				return true
+			}) {
+				continue
+			}
+			subchains = append(subchains, s)
+		}
+	}
+
+	analyzer.printer.Printfln("Число субцепей: %d", len(subchains))
+
+	distribution := make(map[int]int)
+	for _, subc := range subchains {
+		distribution[len(subc)] += 1
+	}
+	analyzer.printer.Println("Распределение субцепей по длинам субцепи (длина-количество):")
+	lengths := make([]int, len(distribution))
+	for l := range distribution {
+		lengths = append(lengths, l)
+	}
+	minLength := slices.Min(lengths)
+	maxLength := slices.Max(lengths)
+	for l := minLength; l <= maxLength; l++ {
+		analyzer.printer.Printfln("\t%d: %d", l, distribution[l])
+	}
+
+	// Second, reduce them
+	for _, s := range subchains {
+		if len(s) < 2 {
+			continue
+		}
+		for i := 0; i < len(s)-1; i++ {
+			analyzer.graph.BreakConnection(s[i], s[i+1])
+			if 0 < i && i < len(s)-1 {
+				analyzer.graph.Disable(s[i])
+			}
+		}
+		analyzer.graph.MakeConnection(s[0], s[len(s)-1])
+	}
+}
+
+func (analyzer *CyclesAnalyzer) findSubchainsFrom(i int) []subchain {
+	stack := base.Stack{}
+	visited := make(map[int]struct{})
+	visited[i] = struct{}{}
+	subchains := make([]subchain, 0)
+	s := subchain{i}
+	connectedNodes := analyzer.graph.GetConnectedOf(i)
+	for _, j := range connectedNodes {
+		stack.Push(j)
+	}
+	for !stack.IsEmpty() {
+		item, ok := stack.Pop()
+		if !ok {
+			continue
+		}
+		node := item.(int)
+		if len(s) > 0 && s[len(s)-1] == node {
+			s = s[:len(s)-1]
+		}
+		if _, ok := visited[node]; ok {
+			continue
+		}
+		stack.Push(node)
+		connectedNodes = analyzer.graph.GetConnectedOf(node)
+		s = append(s, node)
+		visited[node] = struct{}{}
+		if len(connectedNodes) == 2 {
+			for _, n := range connectedNodes {
+				stack.Push(n)
+			}
+		} else {
+			temp := make([]int, len(s))
+			copy(temp, s)
+			subchains = append(subchains, temp)
+		}
+	}
+	return subchains
 }
 
 func (analyzer *CyclesAnalyzer) analyzePaths() {
-	cyclesMap := make(map[base.Axis][][]*datatypes.Monomer)
+	cyclesMap := make(map[base.Axis][][]int)
 	for _, axis := range analyzer.axises {
-		startingPoints, leftBorder, rightBorder := analyzer.getStartingPointsForCycles(axis)
-		if startingPoints == nil && len(startingPoints) == 0 {
-			analyzer.printer.PrintlnError("no starting points have been defined")
-			continue
+		// startingPoints, leftBorder, rightBorder := analyzer.getStartingPointsForCycles(axis)
+		// if startingPoints == nil && len(startingPoints) == 0 {
+		// 	analyzer.printer.PrintlnError("no starting points have been defined")
+		// 	continue
+		// }
+		// cycles := make([][]*datatypes.Monomer, 0)
+		// dfs := makeDFSAlg(axis, leftBorder, rightBorder)
+		// for _, startingPoint := range startingPoints {
+		// 	cycles = append(cycles, dfs.FindCycles(startingPoint)...)
+		// }
+		// cyclesMap[axis] = cycles
+		clusters := analyzer.findClusters()
+		paths := make([][]int, 0)
+		currPath := make([]int, 0)
+		for _, c := range clusters {
+			minClusters1, maxClusters1 := analyzer.getMinMaxOfCluster(c, axis)
+			minClusters := slices.DeleteFunc(minClusters1, func(i int) bool {
+				return slices.Contains(maxClusters1, i)
+			})
+			maxClusters := slices.DeleteFunc(maxClusters1, func(i int) bool {
+				return slices.Contains(minClusters1, i)
+			})
+			for _, startNode := range minClusters {
+				visited := make(map[int]struct{})
+				stack := base.Stack{startNode}
+				for !stack.IsEmpty() {
+					item, _ := stack.Peek()
+					node := item.(int)
+					if _, ok := visited[node]; !ok {
+						visited[node] = struct{}{}
+						currPath = append(currPath, node)
+						if slices.Contains(maxClusters, node) {
+							p := make([]int, len(currPath))
+							copy(p, currPath)
+							paths = append(paths, p)
+						} else {
+							connectedNodes := analyzer.graph.GetConnectedOf(node)
+							for _, connectedNode := range connectedNodes {
+								if _, ok := visited[connectedNode]; !ok {
+									stack.Push(connectedNode)
+								}
+							}
+						}
+					} else {
+						stack.Pop()
+						if node == currPath[len(currPath)-1] {
+							last := currPath[len(currPath)-1]
+							delete(visited, last)
+							currPath = currPath[:len(currPath)-1]
+						}
+					}
+				}
+			}
 		}
-		cycles := make([][]*datatypes.Monomer, 0)
-		dfs := makeDFSAlg(axis, leftBorder, rightBorder)
-		for _, startingPoint := range startingPoints {
-			cycles = append(cycles, dfs.FindCycles(startingPoint)...)
-		}
-		cyclesMap[axis] = cycles
+		cyclesMap[axis] = paths
 	}
 
 	// Print axises
-	analyzer.file.WriteString("Across cutting planes X,Y,Z :\n")
+	analyzer.printer.Println("Across cutting planes X,Y,Z :")
 	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
-		fmt.Fprintf(analyzer.file, "\t%s: %d\n", axis.ToString(), len(cyclesMap[axis]))
+		analyzer.printer.Printfln("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
 	}
 }
 
@@ -293,20 +460,18 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 }
 
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
-	analyzer.file.WriteString("LOAD BEARING BONDS CROSSING X,Y,Z CUTTING PLANES:\n")
+	analyzer.printer.Printfln("LOAD BEARING BONDS CROSSING X,Y,Z CUTTING PLANES:")
+	stepsCount := 20.0
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	for _, axis := range analyzer.axises {
-		startingMonomers, start, end := analyzer.getStartingPointsForCycles(axis)
-		moveDirection := getMoveDirection(axis)
-		if moveDirection == datatypes.SideUndefined {
-			analyzer.printer.PrintflnError("could not define the move direction of the axis %s", axis.ToString())
-			continue
-		}
+		start := spaceDimention[axis].Lower
+		end := spaceDimention[axis].Higher
 		surfaceIntersections := make(map[float64]int)
-		step := (end - start) * 0.05
+		step := (end - start) / stepsCount
 		start += step / 2
 		for coordOnAxis := start; coordOnAxis < end; coordOnAxis += step {
 			// Calculate the intersections
-			surfaceIntersections[coordOnAxis] = analyzer.getIntersectionsCount(axis, coordOnAxis, &startingMonomers, moveDirection)
+			surfaceIntersections[coordOnAxis] = analyzer.getIntersectionsCount(axis, coordOnAxis)
 		}
 
 		// Print the results
@@ -317,9 +482,9 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 			i++
 		}
 		slices.Sort(keys)
-		fmt.Fprintf(analyzer.file, "For %s:\n", axis.ToString())
+		analyzer.printer.Printfln("For %s:", axis.ToString())
 		for i, key := range keys {
-			fmt.Fprintf(analyzer.file, "\t%d: %d\n", i+1, surfaceIntersections[key])
+			analyzer.printer.Printfln("\t%d: %d", i+1, surfaceIntersections[key])
 		}
 	}
 }
@@ -344,23 +509,26 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 	return
 }
 
-func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxis float64, prevPoints *[]*datatypes.Monomer, moveDirection datatypes.Side) int {
+func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxis float64) int {
 	intersectionsCount := 0
-	views.ForEachPolymer(analyzer.globula, func(p *views.PolymerView) {
-		views.ForEachMonomer(p, func(m *datatypes.Monomer) bool {
-			siblings := m.GetSiblingsAlongAxis(axis)
-			mCoord := m.Coords()[axis]
-			if mCoord > coordOnAxis || base.CompareFloat(mCoord, coordOnAxis) {
-				return true
-			}
-			for _, sibling := range siblings {
-				siblingCoord := sibling.Coords()[axis]
-				if coordOnAxis < siblingCoord {
+	nodesCount := analyzer.graph.GetNodesCount()
+	for i := 0; i < nodesCount-1; i++ {
+		if !analyzer.graph.IsAvailable(i) {
+			continue
+		}
+		for j := i + 1; j < nodesCount; j++ {
+			if analyzer.graph.IsAvailable(j) && analyzer.graph.AreConnected(i, j) {
+				xi := analyzer.nodes[i][axis]
+				xj := analyzer.nodes[j][axis]
+				isIn := func(left, right float64) bool {
+					return (base.CompareFloat(left, coordOnAxis) || left < coordOnAxis) &&
+						(base.CompareFloat(coordOnAxis, right) || coordOnAxis < right)
+				}
+				if isIn(xi, xj) || isIn(xj, xi) {
 					intersectionsCount++
 				}
 			}
-			return true
-		})
-	})
+		}
+	}
 	return intersectionsCount
 }
