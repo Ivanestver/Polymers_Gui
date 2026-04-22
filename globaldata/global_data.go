@@ -42,6 +42,12 @@ func (spaceDimention *SpaceDimention) GetCenter() base.Vector3DF {
 	}
 }
 
+func (spaceDimention *SpaceDimention) GetV() float64 {
+	return (spaceDimention[base.AxisX].Higher - spaceDimention[base.AxisX].Lower) *
+		(spaceDimention[base.AxisY].Higher - spaceDimention[base.AxisY].Lower) *
+		(spaceDimention[base.AxisZ].Higher - spaceDimention[base.AxisZ].Lower)
+}
+
 type GlobalData struct {
 	UpVector       base.Vector3D
 	DownVector     base.Vector3D
