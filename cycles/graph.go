@@ -86,3 +86,27 @@ func (graph *Graph) inBounds(i int) bool {
 func (graph *Graph) IsAvailable(i int) bool {
 	return graph.inBounds(i) && graph.enabled[i]
 }
+
+func (graph *Graph) MakeConnection(i, j int) {
+	if graph.IsAvailable(i) && graph.IsAvailable(j) {
+		graph.graph[i][j] = 1
+		graph.graph[j][i] = 1
+	}
+}
+
+func (graph *Graph) BreakConnection(i, j int) {
+	if graph.IsAvailable(i) && graph.IsAvailable(j) {
+		graph.graph[i][j] = 0
+		graph.graph[j][i] = 0
+	}
+}
+
+func (graph *Graph) GetAvailableNodes() []int {
+	availableNodes := make([]int, 0)
+	for node := range graph.graph {
+		if graph.IsAvailable(node) {
+			availableNodes = append(availableNodes, node)
+		}
+	}
+	return availableNodes
+}
