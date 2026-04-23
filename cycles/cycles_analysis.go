@@ -12,20 +12,22 @@ import (
 )
 
 type CyclesAnalyzer struct {
-	graph   *Graph
-	globula *views.GlobulaView
-	axises  []base.Axis
-	printer outputformat.IPrint
-	nodes   map[int]base.Vector3DF
+	graph      *Graph
+	globula    *views.GlobulaView
+	axises     []base.Axis
+	printer    outputformat.IPrint
+	nodes      map[int]base.Vector3DF
+	stepsCount int
 }
 
-func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis) *CyclesAnalyzer {
+func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis, stepsCount int) *CyclesAnalyzer {
 	analyzer := &CyclesAnalyzer{}
 	analyzer.graph = NewGraph(globula)
 	analyzer.globula = globula
 	analyzer.axises = axises
 	analyzer.printer = outputformat.GetPrint()
 	analyzer.nodes = make(map[int]base.Vector3DF)
+	analyzer.stepsCount = stepsCount
 	for polNum := 0; polNum < globula.Len(); polNum++ {
 		pol := globula.GetPolymerByID(polNum)
 		if pol == nil {
@@ -40,7 +42,7 @@ func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis) *CyclesAn
 	return analyzer
 }
 
-func Analyze(globula *views.GlobulaView, axises []base.Axis) {
+func Analyze(globula *views.GlobulaView, axises []base.Axis, stepsCount int) {
 	file, err := os.Create("cycles.log")
 	if err != nil {
 		panic(err)
@@ -48,7 +50,7 @@ func Analyze(globula *views.GlobulaView, axises []base.Axis) {
 	defer file.Close()
 	oldPrinter := outputformat.GetPrint()
 	outputformat.SetPrint(outputformat.NewFilePrint(file))
-	analyzer := NewCyclesAnalyzer(globula, axises)
+	analyzer := NewCyclesAnalyzer(globula, axises, stepsCount)
 	analyzer.analyzeOrigin()
 	analyzer.analyzePreprocessed()
 	analyzer.analyzeSurfaceIntersections()
@@ -479,13 +481,12 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 
 func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 	analyzer.printer.Printfln("LOAD BEARING BONDS CROSSING X,Y,Z CUTTING PLANES:")
-	stepsCount := 20.0
 	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	for _, axis := range analyzer.axises {
 		start := spaceDimention[axis].Lower
 		end := spaceDimention[axis].Higher
 		surfaceIntersections := make(map[float64]int)
-		step := (end - start) / stepsCount
+		step := (end - start) / float64(analyzer.stepsCount)
 		start += step / 2
 		currMonomers, _ := analyzer.getMinMaxOfCluster(analyzer.graph.GetAvailableNodes(), axis)
 		for coordOnAxis := start; coordOnAxis < end; coordOnAxis += step {

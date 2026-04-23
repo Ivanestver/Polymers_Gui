@@ -282,10 +282,14 @@ func main() {
 				printer.PrintflnError("When loading: %s", err.Error())
 			}
 		case interp.CommandCycles:
-			data := data.(map[string]base.Axis)
+			data := data.(map[string]interface{})
+			steps := 1
+			if stepsInterface, ok := data["steps"]; ok {
+				steps = stepsInterface.(int)
+			}
 			var axises []base.Axis
 			if axis, ok := data["axis"]; ok {
-				axises = []base.Axis{axis}
+				axises = []base.Axis{axis.(base.Axis)}
 			} else {
 				axises = []base.Axis{base.AxisX, base.AxisY, base.AxisZ}
 			}

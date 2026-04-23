@@ -553,8 +553,17 @@ func load() (Command, interface{}) {
 }
 
 func cycles() (Command, interface{}) {
-	m := make(map[string]base.Axis)
+	m := make(map[string]interface{})
 	token, err := getNextToken()
+	if err != nil {
+		return CommandCycles, m
+	}
+	steps, err := strconv.ParseInt(token, 10, 64)
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
+	m["steps"] = steps
+	token, err = getNextToken()
 	if err != nil {
 		return CommandCycles, m
 	}
