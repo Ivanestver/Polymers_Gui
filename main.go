@@ -293,7 +293,7 @@ func main() {
 			} else {
 				axises = []base.Axis{base.AxisX, base.AxisY, base.AxisZ}
 			}
-			cycles.Analyze(globula, axises)
+			cycles.Analyze(globula, axises, steps)
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
