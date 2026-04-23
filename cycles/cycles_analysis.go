@@ -469,9 +469,10 @@ func (analyzer *CyclesAnalyzer) analyzeSurfaceIntersections() {
 		surfaceIntersections := make(map[float64]int)
 		step := (end - start) / stepsCount
 		start += step / 2
+		currMonomers, _ := analyzer.getMinMaxOfCluster(analyzer.graph.GetAvailableNodes(), axis)
 		for coordOnAxis := start; coordOnAxis < end; coordOnAxis += step {
 			// Calculate the intersections
-			surfaceIntersections[coordOnAxis] = analyzer.getIntersectionsCount(axis, coordOnAxis)
+			surfaceIntersections[coordOnAxis] = analyzer.getIntersectionsCount(axis, coordOnAxis, &currMonomers)
 		}
 
 		// Print the results
@@ -509,26 +510,51 @@ func getDimentions(axisAlong base.Axis, startingPoints []*datatypes.Monomer, mov
 	return
 }
 
-func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxis float64) int {
+func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxis float64, currNodes *[]int) int {
 	intersectionsCount := 0
-	nodesCount := analyzer.graph.GetNodesCount()
-	for i := 0; i < nodesCount-1; i++ {
-		if !analyzer.graph.IsAvailable(i) {
+	for {
+		nodesToRemove := make([]int, 0)
+		for _, currNode := range *currNodes {
+			connectedNodes := analyzer.graph.GetConnectedOf(currNode)
+			currCoords := analyzer.nodes[currNode]
+			if currCoords[axis] > coordOnAxis {
+				continue
+			}
+			outOfBounds := 0
+			for _, connectedNode := range connectedNodes {
+				connectedCoords := analyzer.nodes[connectedNode]
+				if connectedCoords[axis]-currCoords[axis] < 0.0 {
 			continue
 		}
-		for j := i + 1; j < nodesCount; j++ {
-			if analyzer.graph.IsAvailable(j) && analyzer.graph.AreConnected(i, j) {
-				xi := analyzer.nodes[i][axis]
-				xj := analyzer.nodes[j][axis]
-				isIn := func(left, right float64) bool {
-					return (base.CompareFloat(left, coordOnAxis) || left < coordOnAxis) &&
-						(base.CompareFloat(coordOnAxis, right) || coordOnAxis < right)
+				if connectedCoords[axis] < coordOnAxis {
+					outOfBounds++
+					continue
 				}
-				if isIn(xi, xj) || isIn(xj, xi) {
 					intersectionsCount++
 				}
+			if outOfBounds == len(connectedNodes) {
+				nodesToRemove = append(nodesToRemove, currNode)
 			}
 		}
+		if len(nodesToRemove) == 0 {
+			break
+		}
+		nodesToAdd := make([]int, 0)
+		*currNodes = slices.DeleteFunc(*currNodes, func(currNode int) bool {
+			if slices.Contains(nodesToRemove, currNode) {
+				connectedNodes := analyzer.graph.GetConnectedOf(currNode)
+				nodeToRemoveCoords := analyzer.nodes[currNode]
+				connectedNodes = slices.DeleteFunc(connectedNodes, func(connectedNode int) bool {
+					connectedNodeCoords := analyzer.nodes[connectedNode]
+					return connectedNodeCoords[axis]-nodeToRemoveCoords[axis] < 0.0
+				})
+				nodesToAdd = append(nodesToAdd, connectedNodes...)
+				return true
+			} else {
+				return false
+			}
+		})
+		*currNodes = append(*currNodes, nodesToAdd...)
 	}
 	return intersectionsCount
 }
