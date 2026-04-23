@@ -1,6 +1,7 @@
 package cycles
 
 import (
+	"math"
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
@@ -327,22 +328,10 @@ func (analyzer *CyclesAnalyzer) findSubchainsFrom(i int) []subchain {
 }
 
 func (analyzer *CyclesAnalyzer) analyzePaths() {
-	cyclesMap := make(map[base.Axis][][]int)
+	clusters := analyzer.findClusters()
+	analyzer.printer.Println("Across cutting planes X,Y,Z :")
 	for _, axis := range analyzer.axises {
-		// startingPoints, leftBorder, rightBorder := analyzer.getStartingPointsForCycles(axis)
-		// if startingPoints == nil && len(startingPoints) == 0 {
-		// 	analyzer.printer.PrintlnError("no starting points have been defined")
-		// 	continue
-		// }
-		// cycles := make([][]*datatypes.Monomer, 0)
-		// dfs := makeDFSAlg(axis, leftBorder, rightBorder)
-		// for _, startingPoint := range startingPoints {
-		// 	cycles = append(cycles, dfs.FindCycles(startingPoint)...)
-		// }
-		// cyclesMap[axis] = cycles
-		clusters := analyzer.findClusters()
 		paths := make([][]int, 0)
-		currPath := make([]int, 0)
 		for _, c := range clusters {
 			minClusters1, maxClusters1 := analyzer.getMinMaxOfCluster(c, axis)
 			minClusters := slices.DeleteFunc(minClusters1, func(i int) bool {
@@ -353,43 +342,72 @@ func (analyzer *CyclesAnalyzer) analyzePaths() {
 			})
 			for _, startNode := range minClusters {
 				visited := make(map[int]struct{})
-				stack := base.Stack{startNode}
-				for !stack.IsEmpty() {
-					item, _ := stack.Peek()
+				queue := base.Queue{startNode}
+				parents := make(map[int]*base.Set)
+				lengths := make(map[int]int)
+				for _, node := range analyzer.graph.GetAvailableNodes() {
+					lengths[node] = math.MaxInt
+				}
+				lengths[startNode] = 0
+				visited[startNode] = struct{}{}
+				for !queue.IsEmpty() {
+					item, _ := queue.Pop()
 					node := item.(int)
-					if _, ok := visited[node]; !ok {
-						visited[node] = struct{}{}
-						currPath = append(currPath, node)
-						if slices.Contains(maxClusters, node) {
-							p := make([]int, len(currPath))
-							copy(p, currPath)
-							paths = append(paths, p)
-						} else {
-							connectedNodes := analyzer.graph.GetConnectedOf(node)
-							for _, connectedNode := range connectedNodes {
-								if _, ok := visited[connectedNode]; !ok {
-									stack.Push(connectedNode)
-								}
-							}
+					if slices.Contains(maxClusters, node) {
+						continue
+					}
+					connectedNodes := analyzer.graph.GetConnectedOf(node)
+					for _, connectedNode := range connectedNodes {
+						newLength := lengths[node] + 1
+						if _, ok := visited[connectedNode]; !ok {
+							queue.Push(connectedNode)
 						}
-					} else {
-						stack.Pop()
-						if node == currPath[len(currPath)-1] {
-							last := currPath[len(currPath)-1]
-							delete(visited, last)
-							currPath = currPath[:len(currPath)-1]
+						if newLength < lengths[connectedNode] {
+							lengths[connectedNode] = newLength
+							s := &base.Set{}
+							s.Insert(node)
+							parents[connectedNode] = s
+						} else if newLength == lengths[connectedNode] {
+							s := parents[connectedNode]
+							s.Insert(node)
+						}
+					}
+					visited[node] = struct{}{}
+				}
+
+				for _, node := range maxClusters {
+					currNode := node
+					path := []int{}
+					stack := base.Stack{currNode}
+					for !stack.IsEmpty() {
+						i := stack.PeekNotSafe().(int)
+						if len(path) > 0 && i == path[len(path)-1] {
+							stack.Pop()
+							path = path[:len(path)-1]
+							continue
+						}
+						path = append(path, i)
+						if i == startNode {
+							temp := make([]int, len(path))
+							copy(temp, path)
+							paths = append(paths, temp)
+							slices.Reverse(temp)
+							if !slices.ContainsFunc(paths, func(p []int) bool {
+								return slices.Equal(p, temp)
+							}) {
+								paths = append(paths, temp)
+							}
+						} else {
+							parentsOfI := parents[i]
+							for p := range *parentsOfI {
+								stack.Push(p)
+							}
 						}
 					}
 				}
 			}
 		}
-		cyclesMap[axis] = paths
-	}
-
-	// Print axises
-	analyzer.printer.Println("Across cutting planes X,Y,Z :")
-	for _, axis := range []base.Axis{base.AxisX, base.AxisY, base.AxisZ} {
-		analyzer.printer.Printfln("\t%s: %d", axis.ToString(), len(cyclesMap[axis]))
+		analyzer.printer.Printfln("\t%s: %d", axis.ToString(), len(paths))
 	}
 }
 
@@ -524,14 +542,14 @@ func (analyzer *CyclesAnalyzer) getIntersectionsCount(axis base.Axis, coordOnAxi
 			for _, connectedNode := range connectedNodes {
 				connectedCoords := analyzer.nodes[connectedNode]
 				if connectedCoords[axis]-currCoords[axis] < 0.0 {
-			continue
-		}
+					continue
+				}
 				if connectedCoords[axis] < coordOnAxis {
 					outOfBounds++
 					continue
 				}
-					intersectionsCount++
-				}
+				intersectionsCount++
+			}
 			if outOfBounds == len(connectedNodes) {
 				nodesToRemove = append(nodesToRemove, currNode)
 			}
