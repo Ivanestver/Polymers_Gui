@@ -105,10 +105,6 @@ func main() {
 	if len(*scriptPtr) > 0 {
 		commands = getCommandsFromScript(*scriptPtr, *modePtr)
 	}
-	spaceDimention := setUpSpaceDimention(&commands)
-	printer.PrintlnInfo("Configuring the global data")
-	globaldata.ConfigureGlobalData(spaceDimention)
-	printer.PrintlnInfo("Configuring the global data finished")
 	printer.PrintlnInfo("The preparations are done! Now you may set up the input data and run the algorithm.")
 	cmdReader := bufio.NewReader(os.Stdin)
 	isWorking := true
@@ -127,6 +123,28 @@ func main() {
 			printer.PrintlnError(data.(string))
 		case interp.CommandHelp:
 			interp.PrintHelp()
+		case interp.CommandSpace:
+			m := data.(map[string]float64)
+			var spaceDimention globaldata.SpaceDimention
+			spaceDimention[base.AxisX].Higher = m["x_higher"]
+			spaceDimention[base.AxisY].Higher = m["y_higher"]
+			spaceDimention[base.AxisZ].Higher = m["z_higher"]
+			if x, ok := m["x_lower"]; ok {
+				spaceDimention[base.AxisX].Lower = x
+			} else {
+				spaceDimention[base.AxisX].Lower = 0.0
+			}
+			if y, ok := m["y_lower"]; ok {
+				spaceDimention[base.AxisY].Lower = y
+			} else {
+				spaceDimention[base.AxisY].Lower = 0.0
+			}
+			if z, ok := m["z_lower"]; ok {
+				spaceDimention[base.AxisZ].Lower = z
+			} else {
+				spaceDimention[base.AxisZ].Lower = 0.0
+			}
+			globaldata.SetSpaceDimention(spaceDimention)
 		case interp.CommandBuild:
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string), m["name"].(string))
