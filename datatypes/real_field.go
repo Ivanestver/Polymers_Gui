@@ -11,7 +11,7 @@ type RealField struct {
 
 func NewRealField(restrictions [3][2]float64) *RealField {
 	realField := &RealField{}
-	globaldata.ConfigureGlobalData(globaldata.SpaceDimention{
+	globaldata.SetSpaceDimention(globaldata.SpaceDimention{
 		{Lower: restrictions[0][0], Higher: restrictions[0][1]},
 		{Lower: restrictions[1][0], Higher: restrictions[1][1]},
 		{Lower: restrictions[2][0], Higher: restrictions[2][1]},
