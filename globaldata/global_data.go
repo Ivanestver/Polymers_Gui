@@ -49,26 +49,12 @@ func (spaceDimention *SpaceDimention) GetV() float64 {
 }
 
 type GlobalData struct {
-	UpVector       base.Vector3D
-	DownVector     base.Vector3D
-	LeftVector     base.Vector3D
-	RightVector    base.Vector3D
-	ForwardVector  base.Vector3D
-	BackwardVector base.Vector3D
-
 	SpaceDimention SpaceDimention
 }
 
 var globalData GlobalData
 
-func ConfigureGlobalData(spaceDimention SpaceDimention) {
-	globalData.UpVector = base.Vector3D{0, 1, 0}
-	globalData.DownVector = base.Vector3D{0, -1, 0}
-	globalData.LeftVector = base.Vector3D{1, 0, 0}
-	globalData.RightVector = base.Vector3D{-1, 0, 0}
-	globalData.ForwardVector = base.Vector3D{0, 0, 1}
-	globalData.BackwardVector = base.Vector3D{0, 0, -1}
-
+func SetSpaceDimention(spaceDimention SpaceDimention) {
 	globalData.SpaceDimention = spaceDimention
 }
 
