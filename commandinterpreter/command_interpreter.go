@@ -35,6 +35,7 @@ const (
 	CommandLoaderSTR           = "load"
 	CommandLatticeSTR          = "lattice"
 	CommandRealSTR             = "real"
+	CommandSpaceSTR            = "space"
 )
 
 type Command = int
@@ -60,6 +61,7 @@ const (
 	CommandAtomistic
 	CommandLoader
 	CommandCycles
+	CommandSpace
 )
 
 var currProgram string
@@ -175,6 +177,7 @@ func s() (Command, interface{}) {
 		CommandAtomisticSTR:        atomistic,
 		CommandLoaderSTR:           load,
 		CommandCyclesSTR:           cycles,
+		CommandSpaceSTR:            space,
 	}[token]; ok {
 		return f()
 	} else {
@@ -578,4 +581,65 @@ func cycles() (Command, interface{}) {
 		return CommandUndefined, fmt.Sprintf("axis can be only 'X', 'Y', 'Z', but given %s", token)
 	}
 	return CommandCycles, m
+}
+
+func space() (Command, interface{}) {
+	token, err := getNextToken()
+	if err != nil {
+		return CommandUndefined, err
+	}
+	xHigher, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandUndefined, err
+	}
+	token, err = getNextToken()
+	if err != nil {
+		return CommandUndefined, err
+	}
+	yHigher, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandUndefined, err
+	}
+	token, err = getNextToken()
+	if err != nil {
+		return CommandUndefined, err
+	}
+	zHigher, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandUndefined, err
+	}
+
+	m := make(map[string]float64)
+	m["x_higher"] = xHigher
+	m["y_higher"] = yHigher
+	m["z_higher"] = zHigher
+
+	token, err = getNextToken()
+	if err != nil {
+		return CommandSpace, m
+	}
+	xLower, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandSpace, m
+	}
+	token, err = getNextToken()
+	if err != nil {
+		return CommandSpace, m
+	}
+	yLower, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandSpace, m
+	}
+	token, err = getNextToken()
+	if err != nil {
+		return CommandSpace, m
+	}
+	zLower, err := strconv.ParseFloat(token, 64)
+	if err != nil {
+		return CommandSpace, m
+	}
+	m["x_lower"] = xLower
+	m["y_lower"] = yLower
+	m["z_lower"] = zLower
+	return CommandSpace, m
 }
