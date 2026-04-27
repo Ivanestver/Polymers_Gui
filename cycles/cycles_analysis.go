@@ -29,12 +29,12 @@ func NewCyclesAnalyzer(globula *views.GlobulaView, axises []base.Axis, stepsCoun
 	analyzer.nodes = make(map[int]base.Vector3DF)
 	analyzer.stepsCount = stepsCount
 	for polNum := 0; polNum < globula.Len(); polNum++ {
-		pol := globula.GetPolymerByID(polNum)
+		pol := globula.GetPolymerByIdx(polNum)
 		if pol == nil {
 			continue
 		}
 		for monNumber := 0; monNumber < pol.Len(); monNumber++ {
-			if mon := pol.GetMonomerByID(monNumber); mon != nil {
+			if mon := pol.GetMonomerByIdx(monNumber); mon != nil {
 				analyzer.nodes[int(mon.Number-1)] = mon.Coords()
 			}
 		}

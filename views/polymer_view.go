@@ -34,11 +34,11 @@ func (polymerView *PolymerView) Len() int {
 	return polymerView.polymer.Len()
 }
 
-func (polymerView *PolymerView) GetMonomerByID(id int) *datatypes.Monomer {
-	if id < 0 || id >= polymerView.Len() {
+func (polymerView *PolymerView) GetMonomerByIdx(idx int) *datatypes.Monomer {
+	if idx < 0 || idx >= polymerView.Len() {
 		return nil
 	}
-	return polymerView.polymer.GetMonomerByIdx(id)
+	return polymerView.polymer.GetMonomerByIdx(idx)
 }
 
 func (polymerView *PolymerView) GetStartEndMonomers() (*datatypes.Monomer, *datatypes.Monomer) {

@@ -19,12 +19,12 @@ func NewGraph(globula *views.GlobulaView) *Graph {
 	}
 
 	for polymerNumber := 0; polymerNumber < globula.Len(); polymerNumber++ {
-		polymer := globula.GetPolymerByID(polymerNumber)
+		polymer := globula.GetPolymerByIdx(polymerNumber)
 		if polymer == nil {
 			continue
 		}
 		for monomerNumber := 0; monomerNumber < polymer.Len(); monomerNumber++ {
-			monomer := polymer.GetMonomerByID(monomerNumber)
+			monomer := polymer.GetMonomerByIdx(monomerNumber)
 			if monomer != nil {
 				siblings := monomer.GetSiblings()
 				for _, sibling := range siblings {
