@@ -565,7 +565,7 @@ func cycles() (Command, interface{}) {
 	if err != nil {
 		return CommandUndefined, err.Error()
 	}
-	m["steps"] = steps
+	m["steps"] = int(steps)
 	token, err = getNextToken()
 	if err != nil {
 		return CommandCycles, m

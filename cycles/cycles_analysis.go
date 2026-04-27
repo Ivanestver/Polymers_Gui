@@ -378,6 +378,9 @@ func (analyzer *CyclesAnalyzer) analyzePaths() {
 				}
 
 				for _, node := range maxClusters {
+					if _, ok := parents[node]; !ok {
+						continue
+					}
 					currNode := node
 					path := []int{}
 					stack := base.Stack{currNode}
