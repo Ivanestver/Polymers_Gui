@@ -124,19 +124,19 @@ func AddVecF(vectors ...Vector3DF) Vector3DF {
 	return res
 }
 
-func SubtractVecF(left Vector3DF, right Vector3DF) Vector3DF {
+func SubtractVecF(from Vector3DF, what Vector3DF) Vector3DF {
 	return Vector3DF{
-		left[AxisX] - right[AxisX],
-		left[AxisY] - right[AxisY],
-		left[AxisZ] - right[AxisZ],
+		from[AxisX] - what[AxisX],
+		from[AxisY] - what[AxisY],
+		from[AxisZ] - what[AxisZ],
 	}
 }
 
-func MultiplyByConstantF(left *Vector3DF, c float64) Vector3DF {
+func MultiplyByConstantF(v *Vector3DF, c float64) Vector3DF {
 	return Vector3DF{
-		left[AxisX] * c,
-		left[AxisY] * c,
-		left[AxisZ] * c,
+		v[AxisX] * c,
+		v[AxisY] * c,
+		v[AxisZ] * c,
 	}
 }
 
@@ -156,7 +156,7 @@ func MakeVectorF(from, to *Point3DF) Vector3DF {
 	}
 }
 
-func GetAngle(v1, v2 Vector3DF) float64 {
+func GetAngleInRad(v1, v2 Vector3DF) float64 {
 	return math.Acos(DotProduct(v1, v2) / (v1.Len() * v2.Len()))
 }
 

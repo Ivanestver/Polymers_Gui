@@ -605,7 +605,7 @@ func rotateMonomers(polymers []*_Polymer) {
 				},
 			)
 
-			angle := base.GetAngle(rotationPivotDirection, destinationDirection)
+			angle := base.GetAngleInRad(rotationPivotDirection, destinationDirection)
 			rotationVector := base.VectorProduct(rotationPivotDirection, destinationDirection)
 			for atomNumber := range mon.Atoms {
 				initialDirection := base.MakeVectorF(

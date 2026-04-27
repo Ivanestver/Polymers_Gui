@@ -52,7 +52,7 @@ func TestRotateVectorCorrectness(t *testing.T) {
 	angle := math.Pi / 6
 	rotationVector := Vector3DF{0, 0, 1}
 	real := RotateVector(v, angle, rotationVector)
-	realAngle := GetAngle(v, real)
+	realAngle := GetAngleInRad(v, real)
 	if math.Abs(realAngle-angle) > 0.1 {
 		t.Fatalf("Incorrect rotated vector correctness. Expected: %f, got: %f", angle, realAngle)
 	}
