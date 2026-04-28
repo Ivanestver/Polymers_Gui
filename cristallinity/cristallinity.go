@@ -122,12 +122,43 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 			if sibling == fPrevMon(&analyzer.carbonSkeleton) {
 				continue
 			}
-				fAdd(&analyzer.carbonSkeleton, sibling)
-				canMove = true
-				break
+			fAdd(&analyzer.carbonSkeleton, sibling)
+			canMove = true
+			break
 		}
 	}
 	return nil
+}
+
+type _CristallizedSticks []*datatypes.Monomer
+
+func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedSticks {
+	const offset = 2
+	initDirection := base.InvalidVectorF()
+	sticks := make([]_CristallizedSticks, 0)
+	currStick := _CristallizedSticks{}
+	for i := offset; i < len(analyzer.carbonSkeleton); i += offset {
+		prev := analyzer.carbonSkeleton[i-offset]
+		curr := analyzer.carbonSkeleton[i]
+		directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
+		if initDirection.IsInvalid() {
+			initDirection = directionVector
+			currStick = append(currStick, prev)
+			currStick = append(currStick, curr)
+		} else {
+			angleInGrad := base.GetAngleInGrad(initDirection, directionVector)
+			if math.Abs(angleInGrad) < 5.0 {
+				currStick = append(currStick, curr)
+			} else {
+				if len(currStick) > 2 {
+					sticks = append(sticks, currStick)
+				}
+				currStick = _CristallizedSticks{}
+				initDirection = directionVector
+			}
+		}
+	}
+	return sticks
 }
 
 func Analyze(globula *views.GlobulaView) {
