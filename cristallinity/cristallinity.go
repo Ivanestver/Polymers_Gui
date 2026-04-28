@@ -1,11 +1,14 @@
 package cristallinity
 
 import (
+	"bufio"
 	"errors"
 	"math"
+	"os"
 	"polymers/base"
 	"polymers/datatypes"
 	"polymers/outputformat"
+	"polymers/savers"
 	"polymers/views"
 )
 
@@ -161,10 +164,31 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 	return sticks
 }
 
+func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedSticks) {
+	for _, stick := range sticks {
+		for _, monInStick := range stick {
+			monInStick.MonomerType = datatypes.MonomerTypeOContaining
+		}
+	}
+	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
+		file, err := os.Open("cristal.data")
+		if err == nil {
+			defer file.Close()
+			writer := bufio.NewWriter(file)
+			if _, err = writer.WriteString(s); err != nil {
+				panic(err.Error())
+			}
+			panic("Saved")
+		}
+	}
+}
+
 func Analyze(globula *views.GlobulaView) {
 	printer := outputformat.GetPrint()
-	_, err := makeCristallinityAnalyzer(globula)
+	analyzer, err := makeCristallinityAnalyzer(globula)
 	if err != nil {
 		printer.PrintflnError("%v", err)
 	}
+	sticks := analyzer.findCristallizedParts()
+	analyzer.debugSticks(sticks)
 }
