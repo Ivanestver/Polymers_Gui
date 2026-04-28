@@ -37,9 +37,11 @@ func (analyzer *_CristallinityAnalyzer) defineCarbonSkeleton() error {
 		panic("It's impossible if -CH2- exists but its sibings don't")
 	}
 	// 2.1. Go back
-	if err := analyzer.defineBackSkeletonPart(CH2Carbon,
+	if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+		return (*s)[0]
+	},
 		func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-			return (*s)[0]
+			return (*s)[1]
 		},
 		func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
 			*s = append([]*datatypes.Monomer{newMon}, (*s)...)
@@ -47,9 +49,11 @@ func (analyzer *_CristallinityAnalyzer) defineCarbonSkeleton() error {
 		return err
 	}
 	// 2.2. Go forth
-	if err := analyzer.defineBackSkeletonPart(CH2Carbon,
+	if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+		return (*s)[len(*s)-1]
+	},
 		func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-			return (*s)[len(*s)-1]
+			return (*s)[len(*s)-2]
 		},
 		func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
 			*s = append(*s, newMon)
@@ -101,13 +105,12 @@ func (analyzer *_CristallinityAnalyzer) getDirectingMonomers(startMonomer *datat
 	return
 }
 
-func (analyzer *_CristallinityAnalyzer) defineBackSkeletonPart(startMonomer *datatypes.Monomer, fGetDirection func(s *[]*datatypes.Monomer) *datatypes.Monomer, fAdd func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer)) error {
+func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s *[]*datatypes.Monomer) *datatypes.Monomer, fAdd func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer)) error {
 	// Assume startPoint and directingMonomer are already in the skeleton
 	// Where to move
-	direction := base.SubtractVecF(fGetDirection(&analyzer.carbonSkeleton).Coords(), startMonomer.Coords())
 	canMove := true
 	for canMove {
-		currMonomer := fGetDirection(&analyzer.carbonSkeleton)
+		currMonomer := fCurrMon(&analyzer.carbonSkeleton)
 		if currMonomer == nil {
 			return errors.New("атом в углеродном скелете не может быть пустым местом")
 		}
@@ -116,13 +119,12 @@ func (analyzer *_CristallinityAnalyzer) defineBackSkeletonPart(startMonomer *dat
 			if sibling == nil || sibling.MonomerType != datatypes.MonomerTypeUsual {
 				continue
 			}
-			v := base.SubtractVecF(sibling.Coords(), currMonomer.Coords())
-			angle := base.GetAngleInRad(v, direction) * 57.275 // 1 rad = 57.275 grad
-			if math.Abs(angle) <= 5.0 {
+			if sibling == fPrevMon(&analyzer.carbonSkeleton) {
+				continue
+			}
 				fAdd(&analyzer.carbonSkeleton, sibling)
 				canMove = true
 				break
-			}
 		}
 	}
 	return nil
