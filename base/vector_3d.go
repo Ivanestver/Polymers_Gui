@@ -156,8 +156,20 @@ func MakeVectorF(from, to *Point3DF) Vector3DF {
 	}
 }
 
+func RadIntoGrad(angleInRad float64) float64 {
+	return angleInRad * 57.275
+}
+
+func GradIntoRad(angleInGrad float64) float64 {
+	return angleInGrad / 57.275
+}
+
 func GetAngleInRad(v1, v2 Vector3DF) float64 {
 	return math.Acos(DotProduct(v1, v2) / (v1.Len() * v2.Len()))
+}
+
+func GetAngleInGrad(v1, v2 Vector3DF) float64 {
+	return RadIntoGrad(GetAngleInRad(v1, v2))
 }
 
 func DotProduct(v1, v2 Vector3DF) float64 {
