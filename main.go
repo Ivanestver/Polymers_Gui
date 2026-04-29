@@ -12,6 +12,7 @@ import (
 	"polymers/base"
 	"polymers/buildglobula"
 	interp "polymers/commandinterpreter"
+	"polymers/cristallinity"
 	"polymers/cycles"
 	"polymers/datatypes"
 	"polymers/globaldata"
@@ -312,6 +313,9 @@ func main() {
 				axises = []base.Axis{base.AxisX, base.AxisY, base.AxisZ}
 			}
 			cycles.Analyze(globula, axises, steps)
+
+		case interp.CommandCristallinity:
+			cristallinity.Analyze(globula)
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
