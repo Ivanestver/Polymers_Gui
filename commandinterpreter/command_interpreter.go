@@ -36,6 +36,7 @@ const (
 	CommandLatticeSTR          = "lattice"
 	CommandRealSTR             = "real"
 	CommandSpaceSTR            = "space"
+	CommandCristallinitySTR    = "cristallinity"
 )
 
 type Command = int
@@ -62,6 +63,7 @@ const (
 	CommandLoader
 	CommandCycles
 	CommandSpace
+	CommandCristallinity
 )
 
 var currProgram string
@@ -178,6 +180,7 @@ func s() (Command, interface{}) {
 		CommandLoaderSTR:           load,
 		CommandCyclesSTR:           cycles,
 		CommandSpaceSTR:            space,
+		CommandCristallinitySTR:    cristallinity,
 	}[token]; ok {
 		return f()
 	} else {
@@ -642,4 +645,8 @@ func space() (Command, interface{}) {
 	m["y_lower"] = yLower
 	m["z_lower"] = zLower
 	return CommandSpace, m
+}
+
+func cristallinity() (Command, interface{}) {
+	return CommandCristallinity, struct{}{}
 }
