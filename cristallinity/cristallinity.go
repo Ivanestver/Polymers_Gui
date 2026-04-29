@@ -1,7 +1,6 @@
 package cristallinity
 
 import (
-	"bufio"
 	"errors"
 	"math"
 	"os"
@@ -34,34 +33,41 @@ func (analyzer *_CristallinityAnalyzer) defineCarbonSkeleton() error {
 	if CH2Carbon == nil {
 		return errors.New("отсутствуют мономеры -CH2-")
 	}
+	analyzer.carbonSkeleton = append(analyzer.carbonSkeleton, CH2Carbon)
 	// 2. Go back and forth to recover the carbon skeleton
 	backMonomer, forthMonomer := analyzer.getDirectingMonomers(CH2Carbon)
-	if backMonomer == nil || forthMonomer == nil {
+	if backMonomer == nil && forthMonomer == nil {
 		panic("It's impossible if -CH2- exists but its sibings don't")
 	}
-	// 2.1. Go back
-	if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-		return (*s)[0]
-	},
-		func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-			return (*s)[1]
+	if backMonomer != nil {
+		// 2.1. Go back
+		analyzer.carbonSkeleton = append([]*datatypes.Monomer{backMonomer}, analyzer.carbonSkeleton...)
+		if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+			return (*s)[0]
 		},
-		func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
-			*s = append([]*datatypes.Monomer{newMon}, (*s)...)
-		}); err != nil {
-		return err
+			func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+				return (*s)[1]
+			},
+			func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
+				*s = append([]*datatypes.Monomer{newMon}, (*s)...)
+			}); err != nil {
+			return err
+		}
 	}
-	// 2.2. Go forth
-	if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-		return (*s)[len(*s)-1]
-	},
-		func(s *[]*datatypes.Monomer) *datatypes.Monomer {
-			return (*s)[len(*s)-2]
+	if forthMonomer != nil {
+		// 2.2. Go forth
+		analyzer.carbonSkeleton = append(analyzer.carbonSkeleton, forthMonomer)
+		if err := analyzer.defineSkeleton(func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+			return (*s)[len(*s)-1]
 		},
-		func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
-			*s = append(*s, newMon)
-		}); err != nil {
-		return err
+			func(s *[]*datatypes.Monomer) *datatypes.Monomer {
+				return (*s)[len(*s)-2]
+			},
+			func(s *[]*datatypes.Monomer, newMon *datatypes.Monomer) {
+				*s = append(*s, newMon)
+			}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -146,12 +152,15 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 		directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
 		if initDirection.IsInvalid() {
 			initDirection = directionVector
-			currStick = append(currStick, prev)
-			currStick = append(currStick, curr)
+			for j := i - offset; j <= i; j++ {
+				currStick = append(currStick, analyzer.carbonSkeleton[j])
+			}
 		} else {
 			angleInGrad := base.GetAngleInGrad(initDirection, directionVector)
 			if math.Abs(angleInGrad) < 5.0 {
-				currStick = append(currStick, curr)
+				for j := i - offset + 1; j <= i; j++ {
+					currStick = append(currStick, analyzer.carbonSkeleton[j])
+				}
 			} else {
 				if len(currStick) > 2 {
 					sticks = append(sticks, currStick)
@@ -171,14 +180,12 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedSticks
 		}
 	}
 	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
-		file, err := os.Open("cristal.data")
+		file, err := os.Create("cristall.data")
 		if err == nil {
 			defer file.Close()
-			writer := bufio.NewWriter(file)
-			if _, err = writer.WriteString(s); err != nil {
-				panic(err.Error())
-			}
-			panic("Saved")
+			file.WriteString(s)
+		} else {
+			panic(err.Error())
 		}
 	}
 }
