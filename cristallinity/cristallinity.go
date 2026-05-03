@@ -181,30 +181,33 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 
 func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedStick {
 	const offset = 2
+	const invalidMonomerNumber = -1
 	initDirection := base.InvalidVectorF()
-	sticks := make([]_CristallizedSticks, 0)
-	currStick := _CristallizedSticks{}
-	for i := offset; i < len(analyzer.carbonSkeleton); i += offset {
-		prev := analyzer.carbonSkeleton[i-offset]
-		curr := analyzer.carbonSkeleton[i]
+	sticks := make([]_CristallizedStick, 0)
+	startMonomerNumber := invalidMonomerNumber
+	endMonomerNumber := invalidMonomerNumber
+	for i := 0; i < len(analyzer.carbonSkeleton)-offset; i++ {
+		prev := analyzer.carbonSkeleton[i]
+		curr := analyzer.carbonSkeleton[i+offset]
 		directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
-		if initDirection.IsInvalid() {
+		if startMonomerNumber == invalidMonomerNumber {
+			startMonomerNumber = i
+			endMonomerNumber = i + offset
 			initDirection = directionVector
-			for j := i - offset; j <= i; j++ {
-				currStick = append(currStick, analyzer.carbonSkeleton[j])
-			}
 		} else {
-			angleInGrad := base.GetAngleInGrad(initDirection, directionVector)
-			if math.Abs(angleInGrad) < 5.0 {
-				for j := i - offset + 1; j <= i; j++ {
-					currStick = append(currStick, analyzer.carbonSkeleton[j])
-				}
+			if areCodirectional(initDirection, directionVector) {
+				endMonomerNumber = i + offset
 			} else {
-				if len(currStick) > 2 {
-					sticks = append(sticks, currStick)
+				lenOfStick := endMonomerNumber - startMonomerNumber + 1
+				if (lenOfStick-2)/2 < 2 {
+					continue
 				}
-				currStick = _CristallizedSticks{}
-				initDirection = directionVector
+				currStick := make(_CristallizedStick, lenOfStick)
+				for j := startMonomerNumber; j <= endMonomerNumber; j++ {
+					currStick[j-startMonomerNumber] = analyzer.carbonSkeleton[j]
+				}
+				sticks = append(sticks, currStick)
+				startMonomerNumber = invalidMonomerNumber
 			}
 		}
 	}
