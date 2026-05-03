@@ -164,8 +164,12 @@ func GradIntoRad(angleInGrad float64) float64 {
 	return angleInGrad / 57.275
 }
 
+func GetCos(v1, v2 Vector3DF) float64 {
+	return DotProduct(v1, v2) / (v1.Len() * v2.Len())
+}
+
 func GetAngleInRad(v1, v2 Vector3DF) float64 {
-	return math.Acos(DotProduct(v1, v2) / (v1.Len() * v2.Len()))
+	return math.Acos(GetCos(v1, v2))
 }
 
 func GetAngleInGrad(v1, v2 Vector3DF) float64 {
