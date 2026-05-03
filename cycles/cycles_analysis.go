@@ -345,7 +345,7 @@ func (analyzer *CyclesAnalyzer) analyzePaths() {
 			for _, startNode := range minClusters {
 				visited := make(map[int]struct{})
 				queue := base.Queue{startNode}
-				parents := make(map[int]*base.Set)
+				parents := make(map[int]*base.UnorderedSet[int])
 				lengths := make(map[int]int)
 				for _, node := range analyzer.graph.GetAvailableNodes() {
 					lengths[node] = math.MaxInt
@@ -366,7 +366,7 @@ func (analyzer *CyclesAnalyzer) analyzePaths() {
 						}
 						if newLength < lengths[connectedNode] {
 							lengths[connectedNode] = newLength
-							s := &base.Set{}
+							s := &base.UnorderedSet[int]{}
 							s.Insert(node)
 							parents[connectedNode] = s
 						} else if newLength == lengths[connectedNode] {
