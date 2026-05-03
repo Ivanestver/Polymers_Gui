@@ -11,6 +11,46 @@ import (
 	"polymers/views"
 )
 
+type _CristallizedStick []*datatypes.Monomer
+
+func (stick *_CristallizedStick) GetDirection() base.Vector3DF {
+	if len(*stick) < 3 {
+		return base.InvalidVectorF()
+	}
+	return base.SubtractVecF((*stick)[2].Coords(), (*stick)[0].Coords())
+}
+
+func (stick *_CristallizedStick) GetCenterOfMasses() base.Vector3DF {
+	ret := base.IndentityVectorF()
+	for _, m := range *stick {
+		v := m.Coords()
+		ret.AddF(&v)
+	}
+	ret.MultiplyByConstantF(1.0 / float64(len(*stick)))
+	return ret
+}
+
+func (stick *_CristallizedStick) GetLengthTo(other *_CristallizedStick) float64 {
+	v1 := stick.GetCenterOfMasses()
+	direction1 := stick.GetDirection()
+	v2 := other.GetCenterOfMasses()
+	vVector := base.SubtractVecF(v1, v2)
+	vecMultiplication := base.VectorProduct(vVector, direction1)
+	return vecMultiplication.Len() / direction1.Len()
+}
+
+type _CristallizedDomain []_CristallizedStick
+
+func areCodirectional(v1, v2 base.Vector3DF) bool {
+	cosOfVectors := base.GetCos(v1, v2)
+	return base.CompareFloatWithE(1.0, cosOfVectors, 0.1)
+}
+
+func areColinear(v1, v2 base.Vector3DF) bool {
+	cosOfVectors := math.Abs(base.GetCos(v1, v2))
+	return base.CompareFloatWithE(1.0, cosOfVectors, 0.1)
+}
+
 type _CristallinityAnalyzer struct {
 	globula        *views.GlobulaView
 	carbonSkeleton []*datatypes.Monomer
@@ -139,9 +179,7 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 	return nil
 }
 
-type _CristallizedSticks []*datatypes.Monomer
-
-func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedSticks {
+func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedStick {
 	const offset = 2
 	initDirection := base.InvalidVectorF()
 	sticks := make([]_CristallizedSticks, 0)
@@ -173,7 +211,7 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 	return sticks
 }
 
-func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedSticks) {
+func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType datatypes.MonomerType) {
 	for _, stick := range sticks {
 		for _, monInStick := range stick {
 			monInStick.MonomerType = datatypes.MonomerTypeOContaining
