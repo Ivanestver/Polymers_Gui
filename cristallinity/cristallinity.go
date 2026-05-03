@@ -217,7 +217,7 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType datatypes.MonomerType) {
 	for _, stick := range sticks {
 		for _, monInStick := range stick {
-			monInStick.MonomerType = datatypes.MonomerTypeOContaining
+			monInStick.MonomerType = monomerType
 		}
 	}
 	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
@@ -231,6 +231,72 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 	}
 }
 
+func (analyzer *_CristallinityAnalyzer) joinSticksToDomains(sticks []_CristallizedStick) []_CristallizedDomain {
+	sets := make([]base.UnorderedSet[int], len(sticks))
+	for i := range sets {
+		sets[i] = base.UnorderedSet[int]{}
+		sets[i].Insert(i)
+	}
+	for {
+		sets1 := make([]base.UnorderedSet[int], 0)
+		used := base.UnorderedSet[int]{}
+		for i := 0; i < len(sets); i++ {
+			if used.Contains(i) {
+				continue
+			}
+			for j := 0; j < len(sets); j++ {
+				if used.Contains(j) || i == j {
+					continue
+				}
+				sticks1 := sets[i]
+				sticks2 := sets[j]
+				if domainsAreClose(sticks1, sticks2, sticks) {
+					used.Insert(i)
+					used.Insert(j)
+					set1 := base.UnorderedSet[int]{}
+					for s := range sticks1 {
+						set1.Insert(s)
+					}
+					for s := range sticks2 {
+						set1.Insert(s)
+					}
+					sets1 = append(sets1, set1)
+				}
+			}
+		}
+		if len(sets) == len(sets1) || len(sets1) == 0 {
+			break
+		}
+		sets = sets1
+	}
+	domains := make([]_CristallizedDomain, len(sets))
+	for i, s := range sets {
+		domains[i] = _CristallizedDomain{}
+		for value := range s {
+			domains[i] = append(domains[i], sticks[value])
+		}
+	}
+	return domains
+}
+
+func domainsAreClose(sticks1, sticks2 base.UnorderedSet[int], sticks []_CristallizedStick) bool {
+	for s1 := range sticks1 {
+		for s2 := range sticks2 {
+			if areClose(sticks[s1], sticks[s2]) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func areClose(stick1, stick2 _CristallizedStick) bool {
+	return areColinear(
+		stick1.GetDirection(),
+		stick2.GetDirection(),
+	) && stick1.GetLengthTo(&stick2) < 1.44
+}
+
 func Analyze(globula *views.GlobulaView) {
 	printer := outputformat.GetPrint()
 	analyzer, err := makeCristallinityAnalyzer(globula)
@@ -238,5 +304,5 @@ func Analyze(globula *views.GlobulaView) {
 		printer.PrintflnError("%v", err)
 	}
 	sticks := analyzer.findCristallizedParts()
-	analyzer.debugSticks(sticks)
+	analyzer.joinSticksToDomains(sticks)
 }
