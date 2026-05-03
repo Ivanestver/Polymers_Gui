@@ -37,6 +37,7 @@ const (
 	CommandRealSTR             = "real"
 	CommandSpaceSTR            = "space"
 	CommandCristallinitySTR    = "cristallinity"
+	CommandCommentSTR          = '#'
 )
 
 type Command = int
@@ -98,20 +99,29 @@ func getNextToken() (string, error) {
 		}
 		char = rune(getCurrChar())
 	}
-	for unicode.IsLetter(char) || unicode.IsNumber(char) ||
-		char == '_' ||
-		char == '.' ||
-		char == '%' ||
-		char == '(' || char == ')' ||
-		char == '*' ||
-		char == ',' ||
-		char == '-' {
-		token += string(getCurrChar())
-		moveForward()
-		if finished() {
+	for {
+		if unicode.IsLetter(char) || unicode.IsNumber(char) ||
+			char == '_' ||
+			char == '.' ||
+			char == '%' ||
+			char == '(' || char == ')' ||
+			char == '*' ||
+			char == ',' ||
+			char == '-' {
+			token += string(getCurrChar())
+			moveForward()
+			if finished() {
+				break
+			}
+			char = rune(getCurrChar())
+		} else if char == CommandCommentSTR {
+			for !finished() {
+				moveForward()
+			}
+			break
+		} else {
 			break
 		}
-		char = rune(getCurrChar())
 	}
 	return token, nil
 }
