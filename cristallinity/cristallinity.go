@@ -2,6 +2,7 @@ package cristallinity
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"polymers/base"
@@ -297,12 +298,33 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 	) && stick1.GetLengthTo(&stick2) < 1.44
 }
 
-func Analyze(globula *views.GlobulaView) {
+func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
+	file, err := os.Create("cristallized.log")
+	if err != nil {
+		outputformat.GetPrint().PrintflnError("Ошибка при анализе доменов: %v", err)
+	}
+	defer file.Close()
+	analyzer.analyzeCristallinity(domains, file)
+}
+
+func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_CristallizedDomain, file *os.File) {
+	domainMonomersCount := 0
+	for _, domain := range domains {
+		for _, stick := range domain {
+			domainMonomersCount += len(stick)
+		}
+	}
+
+	fmt.Fprintf(file, "Степень кристалличности: %f\n", float64(domainMonomersCount)/float64(analyzer.globula.GetAtomsCount()))
+}
+
+func Analyze(globula *views.GlobulaView, offset int, outputFilename string) {
 	printer := outputformat.GetPrint()
-	analyzer, err := makeCristallinityAnalyzer(globula)
+	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename)
 	if err != nil {
 		printer.PrintflnError("%v", err)
 	}
 	sticks := analyzer.findCristallizedParts()
-	analyzer.joinSticksToDomains(sticks)
+	domains := analyzer.joinSticksToDomains(sticks)
+	analyzer.analyzeDomains(domains)
 }
