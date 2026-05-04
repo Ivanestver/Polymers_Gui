@@ -55,12 +55,16 @@ func areColinear(v1, v2 base.Vector3DF) bool {
 type _CristallinityAnalyzer struct {
 	globula        *views.GlobulaView
 	carbonSkeleton []*datatypes.Monomer
+	offset         int
+	outputFilename string
 }
 
-func makeCristallinityAnalyzer(globula *views.GlobulaView) (*_CristallinityAnalyzer, error) {
+func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string) (*_CristallinityAnalyzer, error) {
 	analyzer := &_CristallinityAnalyzer{
 		globula:        globula,
 		carbonSkeleton: make([]*datatypes.Monomer, 0),
+		offset:         offset,
+		outputFilename: outputFilename,
 	}
 	if err := analyzer.defineCarbonSkeleton(); err != nil {
 		return nil, err
@@ -181,7 +185,7 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 }
 
 func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedStick {
-	const offset = 2
+	offset := analyzer.offset
 	const invalidMonomerNumber = -1
 	initDirection := base.InvalidVectorF()
 	sticks := make([]_CristallizedStick, 0)
@@ -299,7 +303,7 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
-	file, err := os.Create("cristallized.log")
+	file, err := os.Create(analyzer.outputFilename)
 	if err != nil {
 		outputformat.GetPrint().PrintflnError("Ошибка при анализе доменов: %v", err)
 	}

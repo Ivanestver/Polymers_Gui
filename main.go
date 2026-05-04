@@ -315,7 +315,21 @@ func main() {
 			cycles.Analyze(globula, axises, steps)
 
 		case interp.CommandCristallinity:
-			cristallinity.Analyze(globula)
+			offset := 2
+			outputFileName := "cristallized.log"
+			if d, ok := data.(map[string]interface{}); ok {
+				if offsetInf, ok := d["offset"]; ok {
+					if offsetFromData, ok := offsetInf.(int); ok {
+						offset = offsetFromData
+					}
+				}
+				if outputFilenameInf, ok := d["output_filename"]; ok {
+					if outputFilenameFromData, ok := outputFilenameInf.(string); ok {
+						outputFileName = outputFilenameFromData
+					}
+				}
+			}
+			cristallinity.Analyze(globula, offset, outputFileName)
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
