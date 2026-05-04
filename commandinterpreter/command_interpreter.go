@@ -658,5 +658,21 @@ func space() (Command, interface{}) {
 }
 
 func cristallinity() (Command, interface{}) {
-	return CommandCristallinity, struct{}{}
+	token, err := getNextToken()
+	if err != nil {
+		return CommandCristallinity, struct{}{}
+	}
+	offset, err := strconv.Atoi(token)
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
+	m := make(map[string]interface{})
+	m["offset"] = offset
+
+	token, err = getParameterAsString()
+	if err != nil {
+		return CommandCristallinity, m
+	}
+	m["output_filename"] = token
+	return CommandCristallinity, m
 }
