@@ -24,7 +24,7 @@ func NewField(sphereRadius uint64) *Field {
 		for j = lower[1]; j <= higher[1]; j++ {
 			for k = lower[2]; k <= higher[2]; k++ {
 				coords := base.Vector3DF{float64(i), float64(j), float64(k)}
-				newField.monomers[coords] = NewMonomer(coords, MonomerTypeUndefined)
+				newField.monomers[coords] = NewMonomer(coords, base.MendeleevTableElementUndefined)
 			}
 		}
 	}
@@ -64,18 +64,18 @@ func NewField(sphereRadius uint64) *Field {
 }
 
 func (field *Field) MakeFilled(monomer *Monomer) {
-	if monomer.MonomerType == MonomerTypeUndefined {
-		monomer.MonomerType = MonomerTypeUsual
+	if monomer.IsTypeOf(base.MendeleevTableElementUndefined) {
+		monomer.MonomerType = base.Carbon
 	}
 }
 
 func (field *Field) MakeFree(monomer *Monomer) {
-	monomer.MonomerType = MonomerTypeUndefined
+	monomer.MonomerType = base.Carbon
 }
 
 func (field *Field) IsFree(coords base.Vector3DF) bool {
 	var monomer = field.monomers[coords]
-	return monomer.IsTypeOf(MonomerTypeUndefined)
+	return monomer.IsTypeOf(base.MendeleevTableElementUndefined)
 }
 
 func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
@@ -89,7 +89,7 @@ func (field *Field) GetSellWithinBorders(coords base.Vector3D) base.Vector3D {
 
 func (field *Field) IsBusy() bool {
 	for _, mon := range field.monomers {
-		if mon.IsTypeOf(MonomerTypeUndefined) {
+		if mon.IsTypeOf(base.MendeleevTableElementUndefined) {
 			return false
 		}
 	}
@@ -118,7 +118,7 @@ func (field *Field) GetAvailableCells(currPos base.Vector3DF) []*Monomer {
 	monomer := field.GetMonomerByCoords(currPos)
 	for _, side := range GetMovementSides() {
 		sibling, err := monomer.GetSibling(side)
-		if err == nil && sibling.IsTypeOf(MonomerTypeUndefined) {
+		if err == nil && sibling.IsTypeOf(base.MendeleevTableElementUndefined) {
 			availableCells = append(availableCells, sibling)
 		}
 	}
@@ -177,8 +177,8 @@ func (field *Field) DeepCopy() *Field {
 
 func (field *Field) Waterize() {
 	for _, mon := range field.monomers {
-		if mon.MonomerType == MonomerTypeUndefined {
-			mon.MonomerType = MonomerTypeWater
+		if mon.IsTypeOf(base.MendeleevTableElementUndefined) {
+			mon.MonomerType = base.Nitrogen
 		}
 	}
 }

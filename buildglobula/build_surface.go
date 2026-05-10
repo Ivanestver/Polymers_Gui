@@ -15,10 +15,6 @@ func (inputData *SurfaceAlgInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaSurfaceType
 }
 
-func (inputData *SurfaceAlgInputData) GetLiterals() map[datatypes.MonomerType]string {
-	return BuildThreadAlgInputData{}.GetLiterals()
-}
-
 type SurfaceInputDataBuilder struct {
 }
 

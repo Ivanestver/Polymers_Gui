@@ -2,6 +2,7 @@ package views
 
 import (
 	"encoding/json"
+	"polymers/base"
 	"polymers/datatypes"
 )
 
@@ -17,7 +18,7 @@ func NewPolymerView(polymer datatypes.IPolymer) *PolymerView {
 
 	prev := newPolymerView.polymer.GetMonomerByIdx(0)
 	curr := newPolymerView.polymer.GetMonomerByIdx(1)
-	for curr != nil && curr.IsTypeOf(datatypes.MonomerTypeUndefined) && polymer.GetFieldType() != datatypes.FieldTypeReal {
+	for curr != nil && curr.IsTypeOf(base.MendeleevTableElementUndefined) && polymer.GetFieldType() != datatypes.FieldTypeReal {
 		datatypes.MakeConnection(prev, curr, datatypes.ConnectionTypeOne)
 		prev = curr
 		curr = curr.NextMonomer

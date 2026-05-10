@@ -19,7 +19,6 @@ type ICalcAlg interface {
 
 type ICalcAlgInputData interface {
 	GetGlobulaType() views.GlobulaProperty
-	GetLiterals() map[datatypes.MonomerType]string
 }
 
 type IInputDataBuilder interface {
@@ -66,17 +65,4 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 		return nil
 	}
 	return nil
-}
-
-func GetLiteralsTable() map[datatypes.MonomerType]string {
-	m := make(map[datatypes.MonomerType]string)
-	m[datatypes.MonomerTypeUndefined] = ""
-	m[datatypes.MonomerTypeUsual] = "O"
-	m[datatypes.MonomerTypeOContaining] = "N"
-	m[datatypes.MonomerTypeVynil] = "C"
-	m[datatypes.MonomerTypeFwise] = "F"
-	m[datatypes.MonomerTypeClwise] = "Cl"
-	m[datatypes.MonomerTypeCrosslinked] = "H"
-	m[datatypes.MonomerTypeWater] = "I"
-	return m
 }

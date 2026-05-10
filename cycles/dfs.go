@@ -62,7 +62,7 @@ func (dfs *_DFSAlg) FindCycles(startPoint *datatypes.Monomer) [][]*datatypes.Mon
 }
 
 func (dfs *_DFSAlg) isNewPoint(currMonomer *datatypes.Monomer) bool {
-	if _, ok := dfs.usedPoints[currMonomer.Number]; ok || currMonomer.IsTypeOf(datatypes.MonomerTypeUndefined) {
+	if _, ok := dfs.usedPoints[currMonomer.Number]; ok || currMonomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 		return false
 	} else {
 		return true

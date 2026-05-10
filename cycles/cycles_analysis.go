@@ -426,7 +426,7 @@ func (analyzer *CyclesAnalyzer) getStartingPointsForCycles(axisAlong base.Axis) 
 	finishingPoints, rightBorder := defineFinishingPoints(axisAlong, field)
 
 	return slices.DeleteFunc(startingPoints, func(p *datatypes.Monomer) bool {
-		return p.IsTypeOf(datatypes.MonomerTypeUndefined) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
+		return p.IsTypeOf(base.MendeleevTableElementUndefined) || slices.ContainsFunc(finishingPoints, func(m *datatypes.Monomer) bool {
 			return datatypes.MonomersAreEqual(p, m)
 		})
 	}), leftBorder, rightBorder
@@ -458,7 +458,7 @@ func moveSurfaceAlong(points *[]*datatypes.Monomer, moveDirection datatypes.Side
 	for len(*points) > 0 {
 		for i := len(*points) - 1; i >= 0; i-- {
 			point := (*points)[i]
-			if point.IsNotTypeOf(datatypes.MonomerTypeUndefined) {
+			if point.IsNotTypeOf(base.MendeleevTableElementUndefined) {
 				resultingPoints = append(resultingPoints, point)
 				*points = append((*points)[:i], (*points)[i+1:]...)
 				if border == nil {

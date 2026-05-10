@@ -3,10 +3,9 @@ package patternlib
 import (
 	"bufio"
 	"os"
-	"polymers/datatypes"
+	"polymers/base"
 	"polymers/outputformat"
 	"polymers/views"
-	"slices"
 )
 
 func GetPattern(data map[string]string) (string, bool) {
@@ -42,10 +41,22 @@ func GetPattern(data map[string]string) (string, bool) {
 
 func AnyLetterIsUndefined(pattern string, globula *views.GlobulaView) bool {
 	printer := outputformat.GetPrint()
-	for _, letter := range pattern {
-		l := string(letter)
-		if globula.GetMonomerTypeByLiteral(l) == datatypes.MonomerTypeUndefined {
-			printer.PrintlnError(l + " does not have its decryption")
+	hasMonomerWithElement := func(l string) bool {
+		polymersCount := globula.Len()
+		for i := 0; i < polymersCount; i++ {
+			polymer := globula.GetPolymerByIdx(i)
+			for j := 0; j < polymer.Len(); j++ {
+				monomer := polymer.GetMonomerByIdx(j)
+				if string(l) == string(monomer.MonomerType) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	for _, l := range pattern {
+		if !hasMonomerWithElement(string(l)) {
+			printer.PrintflnError("%s does not have its decryption", string(l))
 			return true
 		}
 	}
@@ -53,43 +64,13 @@ func AnyLetterIsUndefined(pattern string, globula *views.GlobulaView) bool {
 }
 
 func ApplyAsGlobula(globula *views.GlobulaView, pattern string) {
-	views.ForEachPolymer(globula, func(pv *views.PolymerView) {
+	for polymerNumber := 0; polymerNumber < globula.Len(); polymerNumber++ {
 		currentLetterNumber := 0
-		views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
-			m.MonomerType = globula.GetMonomerTypeByLiteral(string(pattern[currentLetterNumber]))
+		polymer := globula.GetPolymerByIdx(polymerNumber)
+		for monomerNumber := 0; monomerNumber < polymer.Len(); monomerNumber++ {
+			m := polymer.GetMonomerByIdx(monomerNumber)
+			m.MonomerType = base.RecognizeElement(string(pattern[currentLetterNumber]))
 			currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
-			return true
-		})
-	})
-}
-
-func ApplyAsThread(globula *views.GlobulaView, pattern string) {
-	literalsTable := globula.GetLiterals()
-	literals := make([]datatypes.MonomerType, 0)
-	for m := range *literalsTable {
-		literals = append(literals, m)
-	}
-	slices.SortFunc(literals, func(a, b datatypes.MonomerType) int {
-		if int(a) < int(b) {
-			return -1
-		} else if int(a) == int(b) {
-			return 0
-		} else {
-			return 1
 		}
-	})
-	views.ForEachPolymer(globula, func(pv *views.PolymerView) {
-		currentLetterNumber := 0
-		views.ForEachMonomer(pv, func(m *datatypes.Monomer) bool {
-			for _, monType := range literals {
-				if string(pattern[currentLetterNumber]) == (*literalsTable)[monType] {
-					m.MonomerType = monType
-					currentLetterNumber = (currentLetterNumber + 1) % len(pattern)
-					return true
-				}
-			}
-			return false
-		})
-	})
-
+	}
 }

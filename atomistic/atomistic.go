@@ -131,7 +131,7 @@ func getPolymer(globula *views.GlobulaView) []*_Polymer {
 			polymers[i].Monomers = append(polymers[i].Monomers, &_Monomer{
 				Atoms: []_Atom{
 					{
-						Label:  globula.GetLiteral(m.MonomerType),
+						Label:  string(m.MonomerType),
 						Coords: coords,
 					},
 				},

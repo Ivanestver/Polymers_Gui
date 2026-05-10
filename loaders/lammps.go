@@ -52,11 +52,7 @@ func parseFromJSON(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.
 	if err != nil {
 		return nil, err
 	}
-	literals := make(map[datatypes.MonomerType]string)
-	for _, atom := range jsonStruct.AtomTypes {
-		literals[datatypes.MonomerType(atom.AtomType-1)] = atom.AtomLabel
-	}
-	globula := views.NewGlobulaView(polymers, views.GlobulaThreadType, literals)
+	globula := views.NewGlobulaView(polymers, views.GlobulaThreadType)
 	return globula, nil
 }
 
@@ -85,11 +81,10 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		}
 		atomTypeStruct := lammpsStruct.AtomTypes[atom.AtomType]
 		mendeleevTableElement := base.RecognizeElement(atomTypeStruct.AtomLabel)
-		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
 		if mendeleevTableElement == base.MendeleevTableElementUndefined {
 			panic(fmt.Sprintf("Неизвестный элемент: %s", atomTypeStruct.AtomLabel))
 		}
-		a.MonomerType1 = mendeleevTableElement
+		a.MonomerType = mendeleevTableElement
 		polymer.AddMonomer(a)
 	}
 

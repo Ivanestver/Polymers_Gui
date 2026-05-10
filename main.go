@@ -353,7 +353,7 @@ func buildGlobula(algType buildglobula.AlgType, predefinedParams []string, parti
 		for i := 0; i < len(polymers); i++ {
 			polymers[i] = finishedPolymers[i]
 		}
-		globula = views.NewGlobulaView(polymers, inputData_.GetGlobulaType(), inputData_.GetLiterals())
+		globula = views.NewGlobulaView(polymers, inputData_.GetGlobulaType())
 	}
 }
 
@@ -422,12 +422,7 @@ func processPattern(data map[string]string) (*views.GlobulaView, error) {
 		printer.PrintlnError("Please, define the missing decryptions to continue")
 		return nil, errors.New("please, define the missing decryptions to continue")
 	}
-
-	if globula.Is(views.GlobulaGlobulaType) {
-		patternlib.ApplyAsGlobula(globula, pattern)
-	} else {
-		patternlib.ApplyAsThread(globula, pattern)
-	}
+	patternlib.ApplyAsGlobula(globula, pattern)
 
 	return globula, nil
 }

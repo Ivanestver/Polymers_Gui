@@ -6,18 +6,20 @@ type MendeleevTableElement string
 
 const (
 	MendeleevTableElementUndefined MendeleevTableElement = ""
-	Hidrogen                       MendeleevTableElement = "H"
+	Hydrogen                       MendeleevTableElement = "H"
 	Carbon                         MendeleevTableElement = "C"
 	Oxygen                         MendeleevTableElement = "O"
 	Nitrogen                       MendeleevTableElement = "N"
+	Fluorine                       MendeleevTableElement = "F"
 )
 
 func GetMendeleevTable() [118]MendeleevTableElement {
 	table := [118]MendeleevTableElement{}
-	table[0] = Hidrogen
+	table[0] = Hydrogen
 	table[5] = Carbon
 	table[6] = Nitrogen
 	table[7] = Oxygen
+	table[8] = Fluorine
 	return table
 }
 

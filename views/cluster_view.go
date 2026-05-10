@@ -55,7 +55,7 @@ func (clusterUnit *ClusterUnit) contains(monomer *dt.Monomer) bool {
 	return false
 }
 
-func (clusterUnit *ClusterUnit) setTypeOfMonomers(monomerType dt.MonomerType) {
+func (clusterUnit *ClusterUnit) setTypeOfMonomers(monomerType base.MendeleevTableElement) {
 	for i := 0; i < clusterUnit.Size(); i++ {
 		currMon := clusterUnit.monomers[i]
 		currMon.MonomerType = monomerType
@@ -117,7 +117,7 @@ func (cluster *Cluster) Axis() base.Axis {
 	return cluster.axis
 }
 
-func (cluster *Cluster) SetTypeOfMonomers(monomerType dt.MonomerType) {
+func (cluster *Cluster) SetTypeOfMonomers(monomerType base.MendeleevTableElement) {
 	for _, unit := range cluster.units {
 		unit.setTypeOfMonomers(monomerType)
 	}
@@ -287,7 +287,7 @@ func NewClusterViewRaw(clusters []*Cluster, axis base.Axis) *ClusterView {
 func (clusterView *ClusterView) Colorize(reset bool) {
 	for _, cluster := range clusterView.clusters {
 		if reset {
-			cluster.SetTypeOfMonomers(dt.MonomerTypeUsual)
+			cluster.SetTypeOfMonomers(base.Carbon)
 		} else {
 			cluster.SetTypeOfMonomers(dt.GetAxisColor(clusterView.axis))
 		}
@@ -328,7 +328,7 @@ func doTraverse(mainDirection dt.Side, directions []dt.Side, currMon *dt.Monomer
 	}
 
 	nextMonomer, err := currMon.GetSibling(directions[0])
-	if err != nil || nextMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
+	if err != nil || nextMonomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 		*potCluster = nil
 		return
 	}
@@ -374,7 +374,7 @@ func findClusters(currentGlobula *GlobulaView, axis base.Axis, avg float64) []*C
 			for i := 0; i < pol.Len(); i++ {
 				monomer := pol.polymer.GetMonomerByIdx(i)
 				mainDirection := getDirection(monomer)
-				if mainDirection == dt.SideUndefined || monomer.IsTypeOf(dt.MonomerTypeUndefined) {
+				if mainDirection == dt.SideUndefined || monomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 					continue
 				}
 

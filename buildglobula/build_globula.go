@@ -22,10 +22,6 @@ func (data CalcAlgInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaGlobulaType
 }
 
-func (data CalcAlgInputData) GetLiterals() map[datatypes.MonomerType]string {
-	return GetLiteralsTable()
-}
-
 type CalcAlgInputDataBuilder struct {
 }
 

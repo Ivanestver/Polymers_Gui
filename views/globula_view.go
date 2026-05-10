@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"math"
 	"math/rand"
 	"polymers/base"
@@ -32,11 +31,10 @@ type GlobulaView struct {
 	yClusters         *ClusterView
 	zClusters         *ClusterView
 	commonClusterDone bool
-	literalsTable     map[dt.MonomerType]string
 	globulaProperties map[GlobulaProperty]bool
 }
 
-func NewGlobulaView(polymers []dt.IPolymer, globulaType GlobulaProperty, literalsTable map[dt.MonomerType]string) *GlobulaView {
+func NewGlobulaView(polymers []dt.IPolymer, globulaType GlobulaProperty) *GlobulaView {
 	newGlobulaView := new(GlobulaView)
 	newGlobulaView.polymers = make([]*PolymerView, len(polymers))
 	for i := 0; i < len(polymers); i++ {
@@ -51,8 +49,6 @@ func NewGlobulaView(polymers []dt.IPolymer, globulaType GlobulaProperty, literal
 		})
 	}
 	newGlobulaView.commonClusterDone = false
-	newGlobulaView.literalsTable = make(map[dt.MonomerType]string)
-	maps.Copy(newGlobulaView.literalsTable, literalsTable)
 	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
 	newGlobulaView.globulaProperties[globulaType] = true
 	return newGlobulaView
@@ -75,34 +71,11 @@ func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = dt.MonomerTypeUsual; return true })
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = base.Carbon; return true })
 	}
 	for gp := range globula.globulaProperties {
 		delete(globula.globulaProperties, gp)
 	}
-}
-
-func (globula *GlobulaView) SetLiterals(literals map[dt.MonomerType]string) {
-	for monType, str := range literals {
-		globula.literalsTable[monType] = str
-	}
-}
-
-func (globula *GlobulaView) GetLiteral(monType dt.MonomerType) string {
-	return globula.literalsTable[monType]
-}
-
-func (globula *GlobulaView) GetLiterals() *map[dt.MonomerType]string {
-	return &globula.literalsTable
-}
-
-func (globula *GlobulaView) GetMonomerTypeByLiteral(letter string) dt.MonomerType {
-	for monType, l := range globula.literalsTable {
-		if letter == l {
-			return monType
-		}
-	}
-	return dt.MonomerTypeUndefined
 }
 
 /*
@@ -113,7 +86,7 @@ func (globula *GlobulaView) FullReset() {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			// Make monomer as usual
-			mon.MonomerType = dt.MonomerTypeUsual
+			mon.MonomerType = base.Carbon
 			// Break all the connections
 			for _, side := range dt.GetAllSides() {
 				sibling, err := mon.GetSibling(side)
@@ -286,7 +259,7 @@ func (globula *GlobulaView) getFirstMonomer() *dt.Monomer {
 func getBorderMonomer(startingMonomer *dt.Monomer, side dt.Side) *dt.Monomer {
 	current := startingMonomer
 	sibling, err := current.GetSibling(side)
-	for err == nil && sibling.MonomerType != dt.MonomerTypeUndefined {
+	for err == nil && sibling.IsNotTypeOf(base.MendeleevTableElementUndefined) {
 		current = sibling
 		sibling, err = current.GetSibling(side)
 	}
@@ -299,7 +272,7 @@ func (globula *GlobulaView) getClustersInThread(firstMonomer *dt.Monomer, cluste
 	for i := 0; i < clusterLength; i++ {
 		if i != 0 {
 			firstMonomer, _ = firstMonomer.GetSibling(dt.SideUp)
-			if firstMonomer == nil || firstMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
+			if firstMonomer == nil || firstMonomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 				break
 			}
 		}
@@ -308,24 +281,24 @@ func (globula *GlobulaView) getClustersInThread(firstMonomer *dt.Monomer, cluste
 			cluster := new(Cluster)
 			if base.Contains(startingMonomers, startingMonomer) {
 				startingMonomer, _ = startingMonomer.GetSibling(dt.SideRight)
-				if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
+				if startingMonomer == nil || startingMonomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 					startingMonomer, _ = getBorderMonomer(startingMonomer, dt.SideLeft).GetSibling(dt.SideBackward)
-					if startingMonomer == nil || startingMonomer.IsTypeOf(dt.MonomerTypeUndefined) {
+					if startingMonomer == nil || startingMonomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 						break
 					}
 				}
 			}
 			startingMonomers = append(startingMonomers, startingMonomer)
 			mon2, _ := startingMonomer.GetSibling(dt.SideRight)
-			if mon2.IsTypeOf(dt.MonomerTypeUndefined) {
+			if mon2.IsTypeOf(base.MendeleevTableElementUndefined) {
 				continue
 			}
 			mon3, _ := mon2.GetSibling(dt.SideBackward)
-			if mon3.IsTypeOf(dt.MonomerTypeUndefined) {
+			if mon3.IsTypeOf(base.MendeleevTableElementUndefined) {
 				continue
 			}
 			mon4, _ := mon3.GetSibling(dt.SideLeft)
-			if mon4.IsTypeOf(dt.MonomerTypeUndefined) {
+			if mon4.IsTypeOf(base.MendeleevTableElementUndefined) {
 				continue
 			}
 			mon11, _ := startingMonomer.GetSibling(dt.SideUp)
@@ -392,10 +365,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), dt.MonomerTypeOContaining)
+	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), base.Oxygen)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), dt.MonomerTypeVynil)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), base.Nitrogen)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -409,10 +382,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 
 func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), dt.MonomerTypeVynil)
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), base.Nitrogen)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), dt.MonomerTypeVynil)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), base.Nitrogen)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -426,7 +399,7 @@ func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	globula.globulaProperties[GlobulaAged] = true
 }
 
-func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather dt.MonomerType) []*dt.Monomer {
+func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGather base.MendeleevTableElement) []*dt.Monomer {
 	Bs := make([]*dt.Monomer, 0)
 	triesNumber := 0
 	for len(Bs) != groupsCount && triesNumber < groupsCount {
@@ -438,12 +411,12 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon {
 			triesNumber++
 			continue
 		}
 		nextMonomer := poly.polymer.GetMonomerByIdx(nextMonomerNumber)
-		if nextMonomer.MonomerType != dt.MonomerTypeUsual {
+		if nextMonomer.MonomerType != base.Carbon {
 			triesNumber++
 			continue
 		}
@@ -451,17 +424,17 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = dt.MonomerTypeOContaining
-			nextMonomer.MonomerType = dt.MonomerTypeVynil
-			if monomerTypeToGather == dt.MonomerTypeOContaining {
+			chosenMonomer.MonomerType = base.Oxygen
+			nextMonomer.MonomerType = base.Nitrogen
+			if monomerTypeToGather == base.Oxygen {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = dt.MonomerTypeVynil
-			nextMonomer.MonomerType = dt.MonomerTypeOContaining
-			if monomerTypeToGather == dt.MonomerTypeVynil {
+			chosenMonomer.MonomerType = base.Nitrogen
+			nextMonomer.MonomerType = base.Oxygen
+			if monomerTypeToGather == base.Nitrogen {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
@@ -472,7 +445,7 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 	return Bs
 }
 
-func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn dt.MonomerType) {
+func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn base.MendeleevTableElement) {
 	mapUsedBs := make(map[int]bool)
 	triesCount := 0
 	for len(mapUsedBs) != groupsCount && triesCount < 3*groupsCount {
@@ -504,8 +477,8 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType == dt.MonomerTypeUsual {
-			chosenMonomer.MonomerType = dt.MonomerTypeVynil
+		if chosenMonomer.MonomerType == base.Carbon {
+			chosenMonomer.MonomerType = base.Nitrogen
 			i++
 			triesNumber = 0
 		} else {
@@ -520,7 +493,7 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		poly := globula.polymers[chosenPoly]
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon {
 			continue
 		}
 
@@ -528,10 +501,10 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		for i := 0; i < len(movementSides); i++ {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
-			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == dt.MonomerTypeUsual {
+			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == base.Carbon {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = dt.MonomerTypeOContaining
-				nextMonomer.MonomerType = dt.MonomerTypeOContaining
+				chosenMonomer.MonomerType = base.Oxygen
+				nextMonomer.MonomerType = base.Oxygen
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
@@ -551,7 +524,7 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon {
 			timesRepeated++
 			continue
 		}
@@ -562,12 +535,12 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil &&
 				nextMonomer != nil &&
-				nextMonomer.MonomerType == dt.MonomerTypeUsual &&
+				nextMonomer.MonomerType == base.Carbon &&
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
-				nextMonomer.MonomerType = dt.MonomerTypeCrosslinked
+				chosenMonomer.MonomerType = base.Hydrogen
+				nextMonomer.MonomerType = base.Hydrogen
 				currentCount += 1
 				timesRepeated = 0
 				break
@@ -592,7 +565,7 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	// } else if err != nil {
 	// 	return err
 	// }
-	globula.breakConnections(OcontainingCount, dt.MonomerTypeVynil)
+	globula.breakConnections(OcontainingCount, base.Nitrogen)
 
 	// Then, distribute what's left
 	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
@@ -613,7 +586,7 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	return nil
 }
 
-func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext dt.MonomerType) (warning, err error) {
+func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext base.MendeleevTableElement) (warning, err error) {
 	warning = nil
 	err = nil
 	trialsCount := 0
@@ -623,8 +596,8 @@ func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, ty
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual ||
-			nextChosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon ||
+			nextChosenMonomer.MonomerType != base.Carbon {
 			trialsCount++
 			continue
 		}
@@ -650,14 +623,14 @@ func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual ||
-			nextChosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon ||
+			nextChosenMonomer.MonomerType != base.Carbon {
 			trialsCount++
 			continue
 		}
 		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.ConnectionTypeCrosslinks)
-		chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
-		nextChosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
+		chosenMonomer.MonomerType = base.Hydrogen
+		nextChosenMonomer.MonomerType = base.Hydrogen
 		ncross--
 		trialsCount = 0
 	}
@@ -676,7 +649,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 		chosenPolymer := globula.polymers[chosenPolymerNumber]
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len())
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != dt.MonomerTypeUsual {
+		if chosenMonomer.MonomerType != base.Carbon {
 			trialsCount++
 			continue
 		}
@@ -687,7 +660,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 			getBorderMonomer := func(side dt.Side, startMonomer *dt.Monomer) *dt.Monomer {
 				curr := startMonomer
 				prev, _ := curr.GetSibling(side)
-				for prev != nil && prev.MonomerType != dt.MonomerTypeUndefined {
+				for prev != nil && prev.MonomerType != base.MendeleevTableElementUndefined {
 					t := prev
 					prev, _ = curr.GetSibling(side)
 					curr = t
@@ -699,7 +672,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 				continue
 			}
 			if nextMonomer == nil ||
-				nextMonomer.MonomerType == dt.MonomerTypeUndefined {
+				nextMonomer.MonomerType == base.MendeleevTableElementUndefined {
 				switch chosenSide {
 				case dt.SideForward:
 					nextMonomer = getBorderMonomer(dt.SideBackward, chosenMonomer)
@@ -716,8 +689,8 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 			} else {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
 			}
-			chosenMonomer.MonomerType = dt.MonomerTypeCrosslinked
-			nextMonomer.MonomerType = dt.MonomerTypeCrosslinked
+			chosenMonomer.MonomerType = base.Hydrogen
+			nextMonomer.MonomerType = base.Hydrogen
 			trialsCount = 0
 			break
 		}
@@ -871,16 +844,16 @@ func (globula *GlobulaView) showActualAgeStatistics() string {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			if mon.NextMonomer != nil &&
-				((mon.MonomerType == dt.MonomerTypeVynil || mon.MonomerType == dt.MonomerTypeOContaining) &&
-					(mon.NextMonomer.MonomerType == dt.MonomerTypeVynil ||
-						mon.NextMonomer.MonomerType == dt.MonomerTypeOContaining)) {
+				((mon.MonomerType == base.Nitrogen || mon.MonomerType == base.Oxygen) &&
+					(mon.NextMonomer.MonomerType == base.Nitrogen ||
+						mon.NextMonomer.MonomerType == base.Oxygen)) {
 				cutsCount++
 			}
-			if mon.MonomerType == dt.MonomerTypeVynil {
+			if mon.MonomerType == base.Nitrogen {
 				CCount++
-			} else if mon.MonomerType == dt.MonomerTypeOContaining {
+			} else if mon.MonomerType == base.Oxygen {
 				NCount++
-			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == dt.MonomerTypeCrosslinked {
+			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == base.Hydrogen {
 				crossCount[mon.Number] = 1
 				for _, side := range dt.GetMovementSides() {
 					connectionType := mon.GetTypeOfConnectionWithSide(side)
@@ -934,7 +907,7 @@ func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error
 	}
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
-	globula.breakConnections(nOContaining, dt.MonomerTypeVynil)
+	globula.breakConnections(nOContaining, base.Nitrogen)
 
 	// Then, distribute what's left
 	globula.turnRandomBinsIntoC(ncut - nOContaining)

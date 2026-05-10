@@ -93,7 +93,7 @@ func CalcEnergy(polymer IPolymer) float64 {
 	}
 	for _, side := range GetMovementSides() {
 		sibling, err := lastPoint.GetSibling(side)
-		if err == nil && sibling.IsNotTypeOf(MonomerTypeUndefined) && !MonomersAreEqual(sibling, prelastPoint) {
+		if err == nil && sibling.IsNotTypeOf(base.MendeleevTableElementUndefined) && !MonomersAreEqual(sibling, prelastPoint) {
 			u += -1.0
 		}
 	}

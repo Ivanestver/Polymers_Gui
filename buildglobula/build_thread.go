@@ -25,16 +25,6 @@ func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaThreadType
 }
 
-func (alg BuildThreadAlgInputData) GetLiterals() map[datatypes.MonomerType]string {
-	m := make(map[datatypes.MonomerType]string)
-	m[datatypes.MonomerTypeUsual] = "O"
-	m[datatypes.MonomerTypeOContaining] = "N"
-	m[datatypes.MonomerTypeVynil] = "C"
-	m[datatypes.MonomerTypeCrosslinked] = "H"
-	m[datatypes.MonomerTypeS] = "S"
-	return m
-}
-
 type BuildThreadAlgInputDataBuilder struct {
 }
 

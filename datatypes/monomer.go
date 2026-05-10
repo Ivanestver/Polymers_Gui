@@ -7,19 +7,18 @@ import (
 )
 
 type Monomer struct {
-	coords       base.Vector3DF
-	MonomerType  MonomerType
-	MonomerType1 base.MendeleevTableElement
-	PrevMonomer  *Monomer
-	NextMonomer  *Monomer
-	sides        map[Side]*Connection
-	Number       int64
+	coords      base.Vector3DF
+	MonomerType base.MendeleevTableElement
+	PrevMonomer *Monomer
+	NextMonomer *Monomer
+	sides       map[Side]*Connection
+	Number      int64
 }
 
-func NewMonomer(coords base.Vector3DF, monomerType MonomerType) *Monomer {
+func NewMonomer(coords base.Vector3DF, monomerType base.MendeleevTableElement) *Monomer {
 	newMonomer := new(Monomer)
-	newMonomer.coords = coords
 	newMonomer.MonomerType = monomerType
+	newMonomer.coords = coords
 	newMonomer.PrevMonomer = nil
 	newMonomer.NextMonomer = nil
 	newMonomer.Number = -1
@@ -27,11 +26,11 @@ func NewMonomer(coords base.Vector3DF, monomerType MonomerType) *Monomer {
 	return newMonomer
 }
 
-func (monomer *Monomer) IsTypeOf(monType MonomerType) bool {
+func (monomer *Monomer) IsTypeOf(monType base.MendeleevTableElement) bool {
 	return monomer.MonomerType == monType
 }
 
-func (monomer *Monomer) IsNotTypeOf(monType MonomerType) bool {
+func (monomer *Monomer) IsNotTypeOf(monType base.MendeleevTableElement) bool {
 	return monomer.MonomerType != monType
 }
 
@@ -51,7 +50,7 @@ func (monomer *Monomer) GetSiblings() []*Monomer {
 			continue
 		}
 		sibling, err := con.GetOtherSide(monomer)
-		if err != nil || sibling == nil || sibling.IsTypeOf(MonomerTypeUndefined) {
+		if err != nil || sibling == nil || sibling.IsTypeOf(base.MendeleevTableElementUndefined) {
 			continue
 		}
 		siblings = append(siblings, sibling)
@@ -200,7 +199,7 @@ func GetSideByMonomers(from, to *Monomer) Side {
 
 type MonomerJSON struct {
 	Coords      base.Vector3DF
-	MonomerType MonomerType
+	MonomerType base.MendeleevTableElement
 	PrevMonomer base.Vector3DF
 	NextMonomer base.Vector3DF
 	Sides       map[Side]ConnectionJSON

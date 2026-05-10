@@ -122,7 +122,7 @@ func (analyzer *_CristallinityAnalyzer) getCH2Cabron() *datatypes.Monomer {
 		polymer := analyzer.globula.GetPolymerByIdx(polymernNumber)
 		for monomerIdx := 0; monomerIdx < polymer.Len(); monomerIdx++ {
 			monomer := polymer.GetMonomerByIdx(monomerIdx)
-			if monomer.MonomerType != datatypes.MonomerTypeUsual {
+			if monomer.IsNotTypeOf(base.Carbon) {
 				continue
 			}
 			siblings := monomer.GetSiblings()
@@ -131,7 +131,7 @@ func (analyzer *_CristallinityAnalyzer) getCH2Cabron() *datatypes.Monomer {
 				if sibling == nil {
 					continue
 				}
-				if sibling.MonomerType == datatypes.MonomerTypeCrosslinked {
+				if sibling.IsTypeOf(base.Hydrogen) {
 					HCount++
 				}
 			}
@@ -146,7 +146,7 @@ func (analyzer *_CristallinityAnalyzer) getCH2Cabron() *datatypes.Monomer {
 func (analyzer *_CristallinityAnalyzer) getDirectingMonomers(startMonomer *datatypes.Monomer) (backMonomer, forthMonomer *datatypes.Monomer) {
 	siblings := startMonomer.GetSiblings()
 	for _, sibling := range siblings {
-		if sibling.MonomerType == datatypes.MonomerTypeUsual {
+		if sibling.IsTypeOf(base.Carbon) {
 			if backMonomer == nil {
 				backMonomer = sibling
 			} else if forthMonomer == nil {
@@ -170,7 +170,7 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 		}
 		canMove = false
 		for _, sibling := range currMonomer.GetSiblings() {
-			if sibling == nil || sibling.MonomerType != datatypes.MonomerTypeUsual {
+			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
 				continue
 			}
 			if sibling == fPrevMon(&analyzer.carbonSkeleton) {
@@ -219,7 +219,7 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 	return sticks
 }
 
-func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType datatypes.MonomerType) {
+func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
 	for _, stick := range sticks {
 		for _, monInStick := range stick {
 			monInStick.MonomerType = monomerType

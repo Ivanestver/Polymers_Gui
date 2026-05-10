@@ -77,12 +77,12 @@ func writeSpaceDimention(lammpsStruct *lammps_structs.LammpsStruct) {
 
 func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
 	polymerID := 1
-	atomsTypes := make(map[dt.MonomerType]lammps_structs.Pair[int, string])
+	atomsTypes := make(map[base.MendeleevTableElement]lammps_structs.Pair[int, string])
 	updateAtomsInfo := createUpdateAtomsInfo(lammpsStruct, atomsTypes, globula)
 	// Write atoms and gather atom types info
 	views.ForEachPolymer(globula, func(polymer *views.PolymerView) {
 		views.ForEachMonomer(polymer, func(monomer *dt.Monomer) bool {
-			if monomer.MonomerType == dt.MonomerTypeUndefined {
+			if monomer.MonomerType == base.MendeleevTableElementUndefined {
 				panic("Monomer cannot be undefined inside a polymer")
 			}
 			updateAtomsInfo(monomer, polymerID)
@@ -110,13 +110,13 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	})
 }
 
-func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[dt.MonomerType]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
+func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[base.MendeleevTableElement]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
 	return func(monomer *dt.Monomer, polymerID int) {
 		p, ok := atomsTypes[monomer.MonomerType]
 		if !ok {
 			atomsTypes[monomer.MonomerType] = lammps_structs.Pair[int, string]{
 				Item1: len(atomsTypes) + 1,
-				Item2: globula.GetLiteral(monomer.MonomerType),
+				Item2: string(monomer.MonomerType),
 			}
 			p = atomsTypes[monomer.MonomerType]
 		}
