@@ -1,6 +1,7 @@
 package loaders
 
 import (
+	"fmt"
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
@@ -82,7 +83,13 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		if a == nil {
 			panic("Monomer is nil")
 		}
+		atomTypeStruct := lammpsStruct.AtomTypes[atom.AtomType]
+		mendeleevTableElement := base.RecognizeElement(atomTypeStruct.AtomLabel)
 		a.MonomerType = datatypes.MonomerType(atom.AtomType - 1)
+		if mendeleevTableElement == base.MendeleevTableElementUndefined {
+			panic(fmt.Sprintf("Неизвестный элемент: %s", atomTypeStruct.AtomLabel))
+		}
+		a.MonomerType1 = mendeleevTableElement
 		polymer.AddMonomer(a)
 	}
 

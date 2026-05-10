@@ -7,12 +7,13 @@ import (
 )
 
 type Monomer struct {
-	coords      base.Vector3DF
-	MonomerType MonomerType
-	PrevMonomer *Monomer
-	NextMonomer *Monomer
-	sides       map[Side]*Connection
-	Number      int64
+	coords       base.Vector3DF
+	MonomerType  MonomerType
+	MonomerType1 base.MendeleevTableElement
+	PrevMonomer  *Monomer
+	NextMonomer  *Monomer
+	sides        map[Side]*Connection
+	Number       int64
 }
 
 func NewMonomer(coords base.Vector3DF, monomerType MonomerType) *Monomer {
