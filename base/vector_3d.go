@@ -108,7 +108,7 @@ func InvalidVectorF() Vector3DF {
 	}
 }
 
-func IndentityVectorF() Vector3DF {
+func IdentityVectorF() Vector3DF {
 	return Vector3DF{
 		0.0,
 		0.0,

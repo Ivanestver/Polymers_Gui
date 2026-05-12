@@ -624,7 +624,7 @@ func rotateMonomers(polymers []*_Polymer) {
 }
 
 func getRcmGlobal(polymers []*_Polymer) base.Vector3DF {
-	v := base.IndentityVectorF()
+	v := base.IdentityVectorF()
 	n := 0.0
 	for _, polymer := range polymers {
 		for _, monomer := range polymer.Monomers {
@@ -639,7 +639,7 @@ func getRcmGlobal(polymers []*_Polymer) base.Vector3DF {
 }
 
 func getRcm(monomer *_Monomer) base.Vector3DF {
-	v := base.IndentityVectorF()
+	v := base.IdentityVectorF()
 	n := 0.0
 	for _, atom := range monomer.Atoms {
 		v.AddF(&atom.Coords)

@@ -79,7 +79,7 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		if a == nil {
 			panic("Monomer is nil")
 		}
-		atomTypeStruct := lammpsStruct.AtomTypes[atom.AtomType]
+		atomTypeStruct := lammpsStruct.AtomTypes[atom.AtomType-1]
 		mendeleevTableElement := base.RecognizeElement(atomTypeStruct.AtomLabel)
 		if mendeleevTableElement == base.MendeleevTableElementUndefined {
 			panic(fmt.Sprintf("Неизвестный элемент: %s", atomTypeStruct.AtomLabel))
