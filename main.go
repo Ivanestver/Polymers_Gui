@@ -329,7 +329,7 @@ func main() {
 						outputFileName = outputFilenameFromData
 					}
 				}
-				if levelInf, ok := d["output_filename"]; ok {
+				if levelInf, ok := d["level"]; ok {
 					if levelFromData, ok := levelInf.(string); ok {
 						level = levelFromData
 					}

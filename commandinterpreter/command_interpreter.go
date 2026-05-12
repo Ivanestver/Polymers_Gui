@@ -662,11 +662,13 @@ func cristallinity() (Command, interface{}) {
 	if err != nil {
 		return CommandCristallinity, struct{}{}
 	}
+	m := make(map[string]interface{})
+	m["level"] = token
+
 	offset, err := strconv.Atoi(token)
 	if err != nil {
-		return CommandUndefined, err.Error()
+		return CommandCristallinity, m
 	}
-	m := make(map[string]interface{})
 	m["offset"] = offset
 
 	token, err = getParameterAsString()
@@ -675,10 +677,5 @@ func cristallinity() (Command, interface{}) {
 	}
 	m["output_filename"] = token
 
-	token, err = getParameterAsString()
-	if err != nil {
-		return CommandCristallinity, m
-	}
-	m["level"] = token
 	return CommandCristallinity, m
 }
