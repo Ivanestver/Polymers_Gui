@@ -63,17 +63,23 @@ type _CristallinityAnalyzer struct {
 	globula        *views.GlobulaView
 	carbonSkeleton []*datatypes.Monomer
 	offset         int
-	outputFilename string
+	outputFile     *os.File
+	level          ScaleLevel
 }
 
-func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string) (*_CristallinityAnalyzer, error) {
+func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) (*_CristallinityAnalyzer, error) {
 	analyzer := &_CristallinityAnalyzer{
 		globula:        globula,
 		carbonSkeleton: make([]*datatypes.Monomer, 0),
 		offset:         offset,
-		outputFilename: outputFilename,
+		level:          level,
 	}
 	if err := analyzer.defineCarbonSkeleton(); err != nil {
+		return nil, err
+	}
+	if file, err := os.Create(outputFilename); err == nil {
+		analyzer.outputFile = file
+	} else {
 		return nil, err
 	}
 	return analyzer, nil
@@ -310,12 +316,7 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
-	file, err := os.Create(analyzer.outputFilename)
-	if err != nil {
-		outputformat.GetPrint().PrintflnError("Ошибка при анализе доменов: %v", err)
-	}
-	defer file.Close()
-	analyzer.analyzeCristallinity(domains, file)
+	analyzer.analyzeCristallinity(domains, analyzer.outputFile)
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_CristallizedDomain, file *os.File) {
@@ -331,10 +332,12 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 
 func Analyze(globula *views.GlobulaView, offset int, outputFilename string) {
 	printer := outputformat.GetPrint()
-	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename)
+	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename, level)
 	if err != nil {
 		printer.PrintflnError("%v", err)
+		return
 	}
+	defer analyzer.outputFile.Close()
 	sticks := analyzer.findCristallizedParts()
 	domains := analyzer.joinSticksToDomains(sticks)
 	analyzer.analyzeDomains(domains)
