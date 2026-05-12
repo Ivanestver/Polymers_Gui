@@ -1,6 +1,8 @@
 package base
 
-import "strings"
+import (
+	"strings"
+)
 
 type MendeleevTableElement string
 
@@ -34,7 +36,7 @@ func RecognizeElement(str string) MendeleevTableElement {
 	}
 	s = strings.ToUpper(s)
 	for _, elem := range GetMendeleevTable() {
-		if len(s) == len(elem) && MendeleevTableElement(s) == elem {
+		if elem != MendeleevTableElementUndefined && strings.HasPrefix(s, string(elem)) {
 			return elem
 		}
 	}
