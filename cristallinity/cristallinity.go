@@ -340,7 +340,28 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 	fmt.Fprintf(file, "Степень кристалличности: %f\n", float64(domainMonomersCount)/float64(analyzer.globula.GetAtomsCount()))
 }
 
-func Analyze(globula *views.GlobulaView, offset int, outputFilename string) {
+func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
+	director := analyzer.getDirector(sticks)
+	S := 0.0
+	for _, stick := range sticks {
+		stickDirection := stick.GetDirection()
+		cosTheta := base.GetCos(stickDirection, director)
+		S += 3*cosTheta*cosTheta - 1
+	}
+	S /= 2.0 * float64(len(sticks))
+	fmt.Fprintf(analyzer.outputFile, "S = %f", S)
+}
+
+func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
+	director := base.IdentityVectorF()
+	for _, stick := range sticks {
+		stickDirection := stick.GetDirection()
+		director.AddF(&stickDirection)
+	}
+	return director
+}
+
+func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) {
 	printer := outputformat.GetPrint()
 	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename, level)
 	if err != nil {
@@ -349,6 +370,7 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string) {
 	}
 	defer analyzer.outputFile.Close()
 	sticks := analyzer.findCristallizedParts()
-	domains := analyzer.joinSticksToDomains(sticks)
-	analyzer.analyzeDomains(domains)
+	analyzer.analyzeOrientations(sticks)
+	// domains := analyzer.joinSticksToDomains(sticks)
+	// analyzer.analyzeDomains(domains)
 }
