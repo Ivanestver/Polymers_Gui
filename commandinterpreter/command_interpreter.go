@@ -674,5 +674,11 @@ func cristallinity() (Command, interface{}) {
 		return CommandCristallinity, m
 	}
 	m["output_filename"] = token
+
+	token, err = getParameterAsString()
+	if err != nil {
+		return CommandCristallinity, m
+	}
+	m["level"] = token
 	return CommandCristallinity, m
 }

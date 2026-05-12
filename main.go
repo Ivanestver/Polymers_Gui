@@ -317,6 +317,7 @@ func main() {
 		case interp.CommandCristallinity:
 			offset := 2
 			outputFileName := "cristallized.log"
+			level := "atomistic"
 			if d, ok := data.(map[string]interface{}); ok {
 				if offsetInf, ok := d["offset"]; ok {
 					if offsetFromData, ok := offsetInf.(int); ok {
@@ -328,8 +329,13 @@ func main() {
 						outputFileName = outputFilenameFromData
 					}
 				}
+				if levelInf, ok := d["output_filename"]; ok {
+					if levelFromData, ok := levelInf.(string); ok {
+						level = levelFromData
+					}
+				}
 			}
-			cristallinity.Analyze(globula, offset, outputFileName)
+			cristallinity.Analyze(globula, offset, outputFileName, level)
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")

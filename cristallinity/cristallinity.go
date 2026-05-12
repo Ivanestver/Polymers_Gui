@@ -12,6 +12,13 @@ import (
 	"polymers/views"
 )
 
+type ScaleLevel = string // Атомистический, молекулярный и т.д.
+
+const (
+	Atomistic ScaleLevel = "atomistic"
+	Molecular ScaleLevel = "molecular"
+)
+
 type _CristallizedStick []*datatypes.Monomer
 
 func (stick *_CristallizedStick) GetDirection() base.Vector3DF {
@@ -22,7 +29,7 @@ func (stick *_CristallizedStick) GetDirection() base.Vector3DF {
 }
 
 func (stick *_CristallizedStick) GetCenterOfMasses() base.Vector3DF {
-	ret := base.IndentityVectorF()
+	ret := base.IdentityVectorF()
 	for _, m := range *stick {
 		v := m.Coords()
 		ret.AddF(&v)
