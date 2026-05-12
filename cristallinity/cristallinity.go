@@ -86,6 +86,16 @@ func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFil
 }
 
 func (analyzer *_CristallinityAnalyzer) defineCarbonSkeleton() error {
+	// 0. Check whether it's an atomistic representation or a molecular one
+	if analyzer.level == Molecular {
+		for polNumber := 0; polNumber < analyzer.globula.Len(); polNumber++ {
+			polymer := analyzer.globula.GetPolymerByIdx(polNumber)
+			for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
+				analyzer.carbonSkeleton = append(analyzer.carbonSkeleton, polymer.GetMonomerByIdx(monNumber))
+			}
+		}
+		return nil
+	}
 	// 1. Find a CH2 to realize where a carbon skeleton is
 	CH2Carbon := analyzer.getCH2Cabron()
 	if CH2Carbon == nil {
