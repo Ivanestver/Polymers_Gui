@@ -193,23 +193,23 @@ func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s
 	// Where to move
 	for skeletonNumber := 0; skeletonNumber < len(analyzer.carbonSkeleton); skeletonNumber++ {
 		carbonSkeleton := analyzer.carbonSkeleton[skeletonNumber]
-	canMove := true
-	for canMove {
+		canMove := true
+		for canMove {
 			currMonomer := fCurrMon(&carbonSkeleton)
-		if currMonomer == nil {
-			return errors.New("атом в углеродном скелете не может быть пустым местом")
-		}
-		canMove = false
-		for _, sibling := range currMonomer.GetSiblings() {
-			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
-				continue
+			if currMonomer == nil {
+				return errors.New("атом в углеродном скелете не может быть пустым местом")
 			}
+			canMove = false
+			for _, sibling := range currMonomer.GetSiblings() {
+				if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
+					continue
+				}
 				if sibling == fPrevMon(&carbonSkeleton) {
-				continue
-			}
+					continue
+				}
 				fAdd(&carbonSkeleton, sibling)
-			canMove = true
-			break
+				canMove = true
+				break
 			}
 		}
 	}
@@ -220,32 +220,32 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 	sticks := make([]_CristallizedStick, 0)
 	offset := analyzer.offset
 	for _, carbonSkeleton := range analyzer.carbonSkeleton {
-	const invalidMonomerNumber = -1
-	initDirection := base.InvalidVectorF()
-	startMonomerNumber := invalidMonomerNumber
-	endMonomerNumber := invalidMonomerNumber
+		const invalidMonomerNumber = -1
+		initDirection := base.InvalidVectorF()
+		startMonomerNumber := invalidMonomerNumber
+		endMonomerNumber := invalidMonomerNumber
 		for i := 0; i < len(carbonSkeleton)-offset; i++ {
 			prev := carbonSkeleton[i]
 			curr := carbonSkeleton[i+offset]
-		directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
-		if startMonomerNumber == invalidMonomerNumber {
-			startMonomerNumber = i
-			endMonomerNumber = i + offset
-			initDirection = directionVector
-		} else {
-			if areCodirectional(initDirection, directionVector) {
+			directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
+			if startMonomerNumber == invalidMonomerNumber {
+				startMonomerNumber = i
 				endMonomerNumber = i + offset
+				initDirection = directionVector
 			} else {
-				lenOfStick := endMonomerNumber - startMonomerNumber + 1
-				if (lenOfStick-2)/2 < 2 {
-					continue
-				}
-				currStick := make(_CristallizedStick, lenOfStick)
-				for j := startMonomerNumber; j <= endMonomerNumber; j++ {
+				if areCodirectional(initDirection, directionVector) {
+					endMonomerNumber = i + offset
+				} else {
+					lenOfStick := endMonomerNumber - startMonomerNumber + 1
+					if (lenOfStick-2)/2 < 2 {
+						continue
+					}
+					currStick := make(_CristallizedStick, lenOfStick)
+					for j := startMonomerNumber; j <= endMonomerNumber; j++ {
 						currStick[j-startMonomerNumber] = carbonSkeleton[j]
-				}
-				sticks = append(sticks, currStick)
-				startMonomerNumber = invalidMonomerNumber
+					}
+					sticks = append(sticks, currStick)
+					startMonomerNumber = invalidMonomerNumber
 				}
 			}
 		}
@@ -372,8 +372,25 @@ func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick)
 	return director
 }
 
+func validateInputParams(offset int, outputFilename string, level ScaleLevel) error {
+	if offset < 1 {
+		return errors.New("offset должен быть больше 0")
+	}
+	if len(outputFilename) == 0 {
+		return errors.New("название файла не должно быть пустым")
+	}
+	if level != Atomistic && level != Molecular {
+		return fmt.Errorf("неверный уровень: %s", string(level))
+	}
+	return nil
+}
+
 func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) {
 	printer := outputformat.GetPrint()
+	if err := validateInputParams(offset, outputFilename, level); err != nil {
+		printer.PrintlnError(err.Error())
+		return
+	}
 	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename, level)
 	if err != nil {
 		printer.PrintflnError("%v", err)
