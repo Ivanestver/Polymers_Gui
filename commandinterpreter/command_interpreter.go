@@ -38,6 +38,7 @@ const (
 	CommandSpaceSTR            = "space"
 	CommandCristallinitySTR    = "cristallinity"
 	CommandCommentSTR          = '#'
+	CommandTrajectoriesSTR     = "traj"
 )
 
 type Command = int
@@ -65,6 +66,7 @@ const (
 	CommandCycles
 	CommandSpace
 	CommandCristallinity
+	CommandTrajectories
 )
 
 var currProgram string
@@ -191,6 +193,7 @@ func s() (Command, interface{}) {
 		CommandCyclesSTR:           cycles,
 		CommandSpaceSTR:            space,
 		CommandCristallinitySTR:    cristallinity,
+		CommandTrajectoriesSTR:     trajectories,
 	}[token]; ok {
 		return f()
 	} else {
@@ -678,4 +681,14 @@ func cristallinity() (Command, interface{}) {
 	m["output_filename"] = token
 
 	return CommandCristallinity, m
+}
+
+func trajectories() (Command, interface{}) {
+	token, err := getParameterAsString()
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
+	m := make(map[string]string)
+	m["traj_filename"] = token
+	return CommandTrajectories, m
 }

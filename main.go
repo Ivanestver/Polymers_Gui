@@ -20,6 +20,7 @@ import (
 	"polymers/outputformat"
 	"polymers/patternlib"
 	"polymers/savers"
+	"polymers/trajectories"
 	"polymers/views"
 	"strconv"
 	"strings"
@@ -336,6 +337,17 @@ func main() {
 				}
 			}
 			cristallinity.Analyze(globula, offset, outputFileName, level)
+
+		case interp.CommandTrajectories:
+			data := data.(map[string]string)
+			trajectoriesFilename, ok := data["traj_filename"]
+			if !ok {
+				printer.PrintlnError("отсутствует входной файл траекторий")
+				continue
+			}
+			if err := trajectories.ApplyTrajectories(globula, trajectoriesFilename); err != nil {
+				printer.PrintflnError("%v", err)
+			}
 
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
