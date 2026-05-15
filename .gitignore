@@ -19,3 +19,4 @@ polymers_tool
 *.pdb
 *.msi
 *.m
+*dump*
