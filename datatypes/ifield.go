@@ -17,6 +17,7 @@ type IField interface {
 	MakeFree(monomer *Monomer)
 	IsFree(coords base.Vector3DF) bool
 	GetMonomerByCoords(coords base.Vector3DF) *Monomer
+	MoveMonomer(monomer *Monomer, to base.Vector3DF) error
 	GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer
 	GetMinMonomersByAxis(axis base.Axis) []*Monomer
 	GetMaxMonomersByAxis(axis base.Axis) []*Monomer

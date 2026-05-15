@@ -1,6 +1,7 @@
 package datatypes
 
 import (
+	"fmt"
 	"polymers/base"
 	"polymers/globaldata"
 )
@@ -58,6 +59,16 @@ func (realField *RealField) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
 		realField.monomers[coords] = m1
 		return m1
 	}
+}
+
+func (realField *RealField) MoveMonomer(monomer *Monomer, to base.Vector3DF) error {
+	if _, ok := realField.monomers[monomer.coords]; !ok {
+		return fmt.Errorf("нет указанного мономера: %v", monomer.coords)
+	}
+	delete(realField.monomers, monomer.coords)
+	monomer.coords = to
+	realField.monomers[to] = monomer
+	return nil
 }
 
 func (realField *RealField) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {

@@ -1,6 +1,7 @@
 package datatypes
 
 import (
+	"errors"
 	"math/rand"
 	"polymers/base"
 	"polymers/globaldata"
@@ -98,6 +99,10 @@ func (field *Field) IsBusy() bool {
 
 func (field *Field) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
 	return field.monomers[coords]
+}
+
+func (field *Field) MoveMonomer(monomer *Monomer, to base.Vector3DF) error {
+	return errors.New("Невозможно двигать мономеры на решётке")
 }
 
 func (field *Field) GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer {
