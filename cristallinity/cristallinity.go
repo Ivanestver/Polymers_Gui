@@ -10,6 +10,7 @@ import (
 	"polymers/outputformat"
 	"polymers/savers"
 	"polymers/views"
+	"slices"
 )
 
 type ScaleLevel = string // Атомистический, молекулярный и т.д.
@@ -357,19 +358,33 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 	for _, stick := range sticks {
 		stickDirection := stick.GetDirection()
 		cosTheta := base.GetCos(stickDirection, director)
-		S += 3*cosTheta*cosTheta - 1
+		fmt.Println(cosTheta)
+		S += cosTheta * cosTheta
 	}
-	S /= 2.0 * float64(len(sticks))
+	S = S / float64(len(sticks))
+	fmt.Println(S)
+	fmt.Println(math.Acos(math.Sqrt(S)))
+	S = (3.0*(S/float64(len(sticks))) - 1.0) / 2.0
 	fmt.Fprintf(analyzer.outputFile, "S = %f", S)
 }
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
-	director := base.IdentityVectorF()
-	for _, stick := range sticks {
-		stickDirection := stick.GetDirection()
-		director.AddF(&stickDirection)
-	}
-	return director
+	// director := base.IdentityVectorF()
+	// for _, stick := range sticks {
+	// 	stickDirection := stick.GetDirection()
+	// 	director.AddF(&stickDirection)
+	// }
+	// return director
+	director := slices.MaxFunc(sticks, func(s1, s2 _CristallizedStick) int {
+		if len(s1) < len(s2) {
+			return -1
+		} else if len(s1) == len(s2) {
+			return 0
+		} else {
+			return 1
+		}
+	})
+	return director.GetDirection()
 }
 
 func validateInputParams(offset int, outputFilename string, level ScaleLevel) error {
@@ -398,7 +413,12 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 	}
 	defer analyzer.outputFile.Close()
 	sticks := analyzer.findCristallizedParts()
+	if len(sticks) == 0 {
+		printer.PrintflnWarning("Отсутствуют кристаллические домены")
+		return
+	}
 	analyzer.analyzeOrientations(sticks)
+	// analyzer.debugSticks(sticks, base.Hydrogen)
 	// domains := analyzer.joinSticksToDomains(sticks)
 	// analyzer.analyzeDomains(domains)
 }
