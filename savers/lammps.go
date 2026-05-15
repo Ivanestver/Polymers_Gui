@@ -139,32 +139,29 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	bondID := 1
 	bondTypes := make(map[dt.ConnectionType]lammps_structs.BondType)
 	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, globula, &bondID)
-	allSides := dt.GetAllSides()
 	usedPairs := make(map[[2]int]bool)
-	views.ForEachPolymer(globula, func(polymer *views.PolymerView) {
-		views.ForEachMonomer(polymer, func(mon *dt.Monomer) bool {
-			for _, side := range allSides {
-				otherMon, err := mon.GetSibling(side)
-				if err != nil {
-					continue
-				}
+	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
+		polymer := globula.GetPolymerByIdx(polNumber)
+		for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
+			mon := polymer.GetMonomerByIdx(monNumber)
+			siblings := mon.GetSiblings()
+			for _, sibling := range siblings {
 				pair := [2]int{}
-				if mon.Number < otherMon.Number {
+				if mon.Number < sibling.Number {
 					pair[0] = int(mon.Number)
-					pair[1] = int(otherMon.Number)
+					pair[1] = int(sibling.Number)
 				} else {
-					pair[0] = int(otherMon.Number)
+					pair[0] = int(sibling.Number)
 					pair[1] = int(mon.Number)
 				}
 				if _, ok := usedPairs[pair]; ok {
 					continue
 				}
 				usedPairs[pair] = true
-				updateBondInfo(mon, otherMon)
+				updateBondInfo(mon, sibling)
 			}
-			return true
-		})
-	})
+		}
+	}
 
 	// Write the atom types info gathered
 	for _, p := range bondTypes {
