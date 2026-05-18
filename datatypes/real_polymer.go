@@ -57,6 +57,7 @@ func (realPolymer *RealPolymer) AddMonomer(monomer *Monomer) {
 	lastMonomer.NextMonomer = monomer
 	monomer.PrevMonomer = lastMonomer
 	realPolymer.monomers = append(realPolymer.monomers, monomer)
+	MakeConnection(lastMonomer, monomer, ConnectionTypeOne)
 }
 
 func (realPolymer *RealPolymer) GetMonomerByIdx(idx int) *Monomer {
