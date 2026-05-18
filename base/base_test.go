@@ -57,3 +57,13 @@ func TestRotateVectorCorrectness(t *testing.T) {
 		t.Fatalf("Incorrect rotated vector correctness. Expected: %f, got: %f", angle, realAngle)
 	}
 }
+
+func TestCosAngle(t *testing.T) {
+	v1 := Vector3DF{1, 0, 0}
+	v2 := Vector3DF{5, 0, 0}
+	expected := 1.0
+	real := GetCos(v1, v2)
+	if !CompareFloat(expected, real) {
+		t.Fatalf("Неверный расчёт косинуса. Ожидаемый: %f, фактический: %f", expected, real)
+	}
+}
