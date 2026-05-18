@@ -7,6 +7,7 @@ import (
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/globaldata"
 	"polymers/outputformat"
 	"polymers/savers"
 	"polymers/views"
@@ -26,7 +27,7 @@ func (stick *_CristallizedStick) GetDirection() base.Vector3DF {
 	if len(*stick) < 3 {
 		return base.InvalidVectorF()
 	}
-	return base.SubtractVecF((*stick)[2].Coords(), (*stick)[0].Coords())
+	return base.SubtractVecF((*stick)[len(*stick)-1].Coords(), (*stick)[0].Coords())
 }
 
 func (stick *_CristallizedStick) GetCenterOfMasses() base.Vector3DF {
@@ -62,94 +63,102 @@ func areColinear(v1, v2 base.Vector3DF) bool {
 
 type _CarbonSkeleton []*datatypes.Monomer
 
-type _CristallinityAnalyzer struct {
-	globula        *views.GlobulaView
-	carbonSkeleton []_CarbonSkeleton
-	offset         int
-	outputFile     *os.File
-	level          ScaleLevel
+type _CristallinityCarbonSkeletonBuilder struct {
+	globula *views.GlobulaView
+	level   ScaleLevel
+	carbons map[int64]*datatypes.Monomer
 }
 
-func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) (*_CristallinityAnalyzer, error) {
-	analyzer := &_CristallinityAnalyzer{
-		globula:        globula,
-		carbonSkeleton: make([]_CarbonSkeleton, 0),
-		offset:         offset,
-		level:          level,
+func makeCarbonSkeletonBuilder(globula *views.GlobulaView) *_CristallinityCarbonSkeletonBuilder {
+	return &_CristallinityCarbonSkeletonBuilder{
+		globula: globula,
+		carbons: map[int64]*datatypes.Monomer{},
 	}
-	if err := analyzer.defineCarbonSkeleton(); err != nil {
-		return nil, err
-	}
-	if file, err := os.Create(outputFilename); err == nil {
-		analyzer.outputFile = file
-	} else {
-		return nil, err
-	}
-	return analyzer, nil
 }
 
-func (analyzer *_CristallinityAnalyzer) defineCarbonSkeleton() error {
-	// 0. Check whether it's an atomistic representation or a molecular one
-	if analyzer.level == Molecular {
-		analyzer.carbonSkeleton = make([]_CarbonSkeleton, analyzer.globula.Len())
-		for polNumber := 0; polNumber < analyzer.globula.Len(); polNumber++ {
-			polymer := analyzer.globula.GetPolymerByIdx(polNumber)
-			analyzer.carbonSkeleton[polNumber] = make(_CarbonSkeleton, polymer.Len())
+func (builder *_CristallinityCarbonSkeletonBuilder) Build() ([]_CarbonSkeleton, error) {
+	if builder.level == Molecular {
+		carbonSkeleton := make([]_CarbonSkeleton, builder.globula.Len())
+		for polNumber := 0; polNumber < builder.globula.Len(); polNumber++ {
+			polymer := builder.globula.GetPolymerByIdx(polNumber)
+			carbonSkeleton[polNumber] = make(_CarbonSkeleton, polymer.Len())
 			for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
-				analyzer.carbonSkeleton[polNumber][monNumber] = polymer.GetMonomerByIdx(monNumber)
+				carbonSkeleton[polNumber][monNumber] = polymer.GetMonomerByIdx(monNumber)
 			}
 		}
-		return nil
+		return carbonSkeleton, nil
 	}
 	// 1. Find a CH2 to realize where a carbon skeleton is
-	CH2Carbon := analyzer.getCH2Cabron()
-	if CH2Carbon == nil {
-		return errors.New("отсутствуют мономеры -CH2-")
+	builder.defineAllCH2Carbons()
+	if len(builder.carbons) == 0 {
+		return nil, errors.New("отсутствуют мономеры -CH2-")
 	}
-	carbonSkeleton := make(_CarbonSkeleton, 0)
-	carbonSkeleton = append(carbonSkeleton, CH2Carbon)
-	// 2. Go back and forth to recover the carbon skeleton
-	backMonomer, forthMonomer := analyzer.getDirectingMonomers(CH2Carbon)
-	if backMonomer == nil && forthMonomer == nil {
-		panic("It's impossible if -CH2- exists but its sibings don't")
+	carbonSkeletons := make([]_CarbonSkeleton, 0)
+	keys := make([]int64, 0)
+	for key := range builder.carbons {
+		keys = append(keys, key)
 	}
-	if backMonomer != nil {
-		// 2.1. Go back
-		carbonSkeleton = append([]*datatypes.Monomer{backMonomer}, carbonSkeleton...)
-		if err := analyzer.defineSkeleton(func(s *_CarbonSkeleton) *datatypes.Monomer {
-			return (*s)[0]
-		},
-			func(s *_CarbonSkeleton) *datatypes.Monomer {
-				return (*s)[1]
-			},
-			func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
-				*s = append([]*datatypes.Monomer{newMon}, (*s)...)
-			}); err != nil {
-			return err
+	slices.Sort(keys)
+	for len(keys) > 0 {
+		// 2. Go back and forth to recover the carbon skeleton
+		key := keys[0]
+		CH2Carbon := builder.carbons[key]
+		delete(builder.carbons, key)
+		keys = keys[1:]
+		carbonSkeleton := make(_CarbonSkeleton, 0)
+		carbonSkeleton = append(carbonSkeleton, CH2Carbon)
+		backMonomer, forthMonomer := builder.getDirectingMonomers(CH2Carbon)
+		if backMonomer == nil && forthMonomer == nil {
+			panic("It's impossible if -CH2- exists but its sibings don't")
 		}
-	}
-	if forthMonomer != nil {
-		// 2.2. Go forth
-		carbonSkeleton = append(carbonSkeleton, forthMonomer)
-		if err := analyzer.defineSkeleton(func(s *_CarbonSkeleton) *datatypes.Monomer {
-			return (*s)[len(*s)-1]
-		},
-			func(s *_CarbonSkeleton) *datatypes.Monomer {
-				return (*s)[len(*s)-2]
-			},
-			func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
-				*s = append(*s, newMon)
-			}); err != nil {
-			return err
+		if backMonomer != nil {
+			// 2.1. Go back
+			carbonSkeleton = append([]*datatypes.Monomer{backMonomer}, carbonSkeleton...)
+			if err := builder.defineSkeleton(&carbonSkeleton,
+				func(s *_CarbonSkeleton) *datatypes.Monomer {
+					return (*s)[0]
+				},
+				func(s *_CarbonSkeleton) *datatypes.Monomer {
+					return (*s)[1]
+				},
+				func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
+					*s = append([]*datatypes.Monomer{newMon}, (*s)...)
+					delete(builder.carbons, newMon.Number)
+					if idx := slices.Index(keys, newMon.Number); idx != -1 {
+						keys = append(keys[:idx], keys[idx+1:]...)
+					}
+				}); err != nil {
+				return nil, err
+			}
 		}
+		if forthMonomer != nil {
+			// 2.2. Go forth
+			carbonSkeleton = append(carbonSkeleton, forthMonomer)
+			if err := builder.defineSkeleton(&carbonSkeleton, func(s *_CarbonSkeleton) *datatypes.Monomer {
+				return (*s)[len(*s)-1]
+			},
+				func(s *_CarbonSkeleton) *datatypes.Monomer {
+					return (*s)[len(*s)-2]
+				},
+				func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
+					*s = append(*s, newMon)
+					delete(builder.carbons, newMon.Number)
+					if idx := slices.Index(keys, newMon.Number); idx != -1 {
+						keys = append(keys[:idx], keys[idx+1:]...)
+					}
+				}); err != nil {
+				return nil, err
+			}
+		}
+		carbonSkeletons = append(carbonSkeletons, carbonSkeleton)
+		carbonSkeleton = make(_CarbonSkeleton, 0)
 	}
-	analyzer.carbonSkeleton = append(analyzer.carbonSkeleton, carbonSkeleton)
-	return nil
+	return carbonSkeletons, nil
 }
 
-func (analyzer *_CristallinityAnalyzer) getCH2Cabron() *datatypes.Monomer {
-	for polymernNumber := 0; polymernNumber < analyzer.globula.Len(); polymernNumber++ {
-		polymer := analyzer.globula.GetPolymerByIdx(polymernNumber)
+func (builder *_CristallinityCarbonSkeletonBuilder) defineAllCH2Carbons() {
+	for polymernNumber := 0; polymernNumber < builder.globula.Len(); polymernNumber++ {
+		polymer := builder.globula.GetPolymerByIdx(polymernNumber)
 		for monomerIdx := 0; monomerIdx < polymer.Len(); monomerIdx++ {
 			monomer := polymer.GetMonomerByIdx(monomerIdx)
 			if monomer.IsNotTypeOf(base.Carbon) {
@@ -165,15 +174,39 @@ func (analyzer *_CristallinityAnalyzer) getCH2Cabron() *datatypes.Monomer {
 					HCount++
 				}
 			}
-			if HCount == 2 {
-				return monomer
+			if HCount >= 2 {
+				builder.carbons[monomer.Number] = monomer
 			}
+		}
+	}
+}
+
+func (builder *_CristallinityCarbonSkeletonBuilder) defineSkeleton(carbonSkeleton *_CarbonSkeleton, fCurrMon, fPrevMon func(s *_CarbonSkeleton) *datatypes.Monomer, fAdd func(s *_CarbonSkeleton, newMon *datatypes.Monomer)) error {
+	// Assume startPoint and directingMonomer are already in the skeleton
+	// Where to move
+	canMove := true
+	for canMove {
+		currMonomer := fCurrMon(carbonSkeleton)
+		if currMonomer == nil {
+			return errors.New("атом в углеродном скелете не может быть пустым местом")
+		}
+		canMove = false
+		for _, sibling := range currMonomer.GetSiblings() {
+			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
+				continue
+			}
+			if sibling == fPrevMon(carbonSkeleton) {
+				continue
+			}
+			fAdd(carbonSkeleton, sibling)
+			canMove = true
+			break
 		}
 	}
 	return nil
 }
 
-func (analyzer *_CristallinityAnalyzer) getDirectingMonomers(startMonomer *datatypes.Monomer) (backMonomer, forthMonomer *datatypes.Monomer) {
+func (builder *_CristallinityCarbonSkeletonBuilder) getDirectingMonomers(startMonomer *datatypes.Monomer) (backMonomer, forthMonomer *datatypes.Monomer) {
 	siblings := startMonomer.GetSiblings()
 	for _, sibling := range siblings {
 		if sibling.IsTypeOf(base.Carbon) {
@@ -189,29 +222,55 @@ func (analyzer *_CristallinityAnalyzer) getDirectingMonomers(startMonomer *datat
 	return
 }
 
-func (analyzer *_CristallinityAnalyzer) defineSkeleton(fCurrMon, fPrevMon func(s *_CarbonSkeleton) *datatypes.Monomer, fAdd func(s *_CarbonSkeleton, newMon *datatypes.Monomer)) error {
+type _CristallinityAnalyzer struct {
+	globula        *views.GlobulaView
+	carbonSkeleton []_CarbonSkeleton
+	offset         int
+	outputFile     *os.File
+	level          ScaleLevel
+}
+
+func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) (*_CristallinityAnalyzer, error) {
+	analyzer := &_CristallinityAnalyzer{
+		globula:        globula,
+		carbonSkeleton: make([]_CarbonSkeleton, 0),
+		offset:         offset,
+		level:          level,
+	}
+	builder := makeCarbonSkeletonBuilder(globula)
+	if skeletons, err := builder.Build(); err != nil {
+		return nil, err
+	} else {
+		analyzer.carbonSkeleton = skeletons
+	}
+	if file, err := os.Create(outputFilename); err == nil {
+		analyzer.outputFile = file
+	} else {
+		return nil, err
+	}
+	return analyzer, nil
+}
+
+func (analyzer *_CristallinityAnalyzer) defineSkeleton(carbonSkeleton *_CarbonSkeleton, fCurrMon, fPrevMon func(s *_CarbonSkeleton) *datatypes.Monomer, fAdd func(s *_CarbonSkeleton, newMon *datatypes.Monomer)) error {
 	// Assume startPoint and directingMonomer are already in the skeleton
 	// Where to move
-	for skeletonNumber := 0; skeletonNumber < len(analyzer.carbonSkeleton); skeletonNumber++ {
-		carbonSkeleton := analyzer.carbonSkeleton[skeletonNumber]
-		canMove := true
-		for canMove {
-			currMonomer := fCurrMon(&carbonSkeleton)
-			if currMonomer == nil {
-				return errors.New("атом в углеродном скелете не может быть пустым местом")
+	canMove := true
+	for canMove {
+		currMonomer := fCurrMon(carbonSkeleton)
+		if currMonomer == nil {
+			return errors.New("атом в углеродном скелете не может быть пустым местом")
+		}
+		canMove = false
+		for _, sibling := range currMonomer.GetSiblings() {
+			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
+				continue
 			}
-			canMove = false
-			for _, sibling := range currMonomer.GetSiblings() {
-				if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
-					continue
-				}
-				if sibling == fPrevMon(&carbonSkeleton) {
-					continue
-				}
-				fAdd(&carbonSkeleton, sibling)
-				canMove = true
-				break
+			if sibling == fPrevMon(carbonSkeleton) {
+				continue
 			}
+			fAdd(carbonSkeleton, sibling)
+			canMove = true
+			break
 		}
 	}
 	return nil
@@ -225,10 +284,10 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 		initDirection := base.InvalidVectorF()
 		startMonomerNumber := invalidMonomerNumber
 		endMonomerNumber := invalidMonomerNumber
-		for i := 0; i < len(carbonSkeleton)-offset; i++ {
+		for i := 0; i < len(carbonSkeleton)-offset; i += offset {
 			prev := carbonSkeleton[i]
 			curr := carbonSkeleton[i+offset]
-			directionVector := base.SubtractVecF(prev.Coords(), curr.Coords())
+			directionVector := base.SubtractVecF(curr.Coords(), prev.Coords())
 			if startMonomerNumber == invalidMonomerNumber {
 				startMonomerNumber = i
 				endMonomerNumber = i + offset
@@ -236,32 +295,41 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 			} else {
 				if areCodirectional(initDirection, directionVector) {
 					endMonomerNumber = i + offset
-				} else {
-					lenOfStick := endMonomerNumber - startMonomerNumber + 1
-					if (lenOfStick-2)/2 < 2 {
+					initDirection = directionVector
+					if i < len(carbonSkeleton)-2-offset {
 						continue
 					}
-					currStick := make(_CristallizedStick, lenOfStick)
-					for j := startMonomerNumber; j <= endMonomerNumber; j++ {
-						currStick[j-startMonomerNumber] = carbonSkeleton[j]
-					}
-					sticks = append(sticks, currStick)
-					startMonomerNumber = invalidMonomerNumber
 				}
+				lenOfStick := endMonomerNumber - startMonomerNumber + 1
+				if lenOfStick/2 < 2 {
+					startMonomerNumber = invalidMonomerNumber
+					continue
+				}
+				currStick := make(_CristallizedStick, lenOfStick)
+				for j := startMonomerNumber; j <= endMonomerNumber; j++ {
+					currStick[j-startMonomerNumber] = carbonSkeleton[j]
+				}
+				sticks = append(sticks, currStick)
+				startMonomerNumber = i
+				endMonomerNumber = i + offset
+				initDirection = directionVector
 			}
 		}
 	}
 	return sticks
 }
 
-func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
+func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType base.MendeleevTableElement, filename string) {
 	for _, stick := range sticks {
 		for _, monInStick := range stick {
 			monInStick.MonomerType = monomerType
 		}
 	}
+	if len(filename) == 0 {
+		return
+	}
 	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
-		file, err := os.Create("cristall.data")
+		file, err := os.Create(filename)
 		if err == nil {
 			defer file.Close()
 			file.WriteString(s)
@@ -353,6 +421,7 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
+	fmt.Fprintln(analyzer.outputFile, "Orientation")
 	director := analyzer.getDirector(sticks)
 	S := 0.0
 	for _, stick := range sticks {
@@ -364,27 +433,62 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 	S = S / float64(len(sticks))
 	fmt.Println(S)
 	fmt.Println(math.Acos(math.Sqrt(S)))
-	S = (3.0*(S/float64(len(sticks))) - 1.0) / 2.0
+	S = (3.0*S - 1.0) / 2.0
 	fmt.Fprintf(analyzer.outputFile, "S = %f", S)
 }
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
-	// director := base.IdentityVectorF()
-	// for _, stick := range sticks {
-	// 	stickDirection := stick.GetDirection()
-	// 	director.AddF(&stickDirection)
-	// }
-	// return director
-	director := slices.MaxFunc(sticks, func(s1, s2 _CristallizedStick) int {
-		if len(s1) < len(s2) {
-			return -1
-		} else if len(s1) == len(s2) {
-			return 0
-		} else {
-			return 1
-		}
+	director := base.IdentityVectorF()
+	for _, stick := range sticks {
+		stickDirection := stick.GetDirection()
+		director.AddF(&stickDirection)
+	}
+	return director
+}
+
+func (analyzer *_CristallinityAnalyzer) calculateS() error {
+	vectors := make([]base.Vector3DF, 0)
+	offset := analyzer.offset
+	spacedim := globaldata.GetGlobalData().SpaceDimention
+	field := datatypes.NewRealField([3][2]float64{
+		{spacedim[base.AxisX].Lower, spacedim[base.AxisX].Higher},
+		{spacedim[base.AxisY].Lower, spacedim[base.AxisY].Higher},
+		{spacedim[base.AxisZ].Lower, spacedim[base.AxisZ].Higher},
 	})
-	return director.GetDirection()
+	sticks := make([]datatypes.IPolymer, len(analyzer.carbonSkeleton))
+	for j, carbonSkeleton := range analyzer.carbonSkeleton {
+		pol := datatypes.NewRealPolymer(field, int64(j))
+		pol.AddMonomer(field.GetMonomerByCoords(carbonSkeleton[0].Coords()))
+		for i := 0; i < len(carbonSkeleton)-offset; i += offset {
+			prev := carbonSkeleton[i]
+			curr := carbonSkeleton[i+offset]
+			pol.AddMonomer(field.GetMonomerByCoords(curr.Coords()))
+			directionVector := base.SubtractVecF(curr.Coords(), prev.Coords())
+			vectors = append(vectors, directionVector)
+		}
+		sticks[j] = pol
+	}
+	newGlobula := views.NewGlobulaView(sticks, views.GlobulaGlobulaType)
+	if s, err := savers.SaveToLammps(newGlobula); err == nil {
+		file, _ := os.Create("cristall_vectors.data")
+		defer file.Close()
+		file.WriteString(s)
+	} else {
+		fmt.Printf("%v", err)
+	}
+	meanCosTheta := 0.0
+	for i := 0; i < len(vectors)-1; i++ {
+		for j := i + 1; j < len(vectors); j++ {
+			cosTheta := base.GetCos(vectors[i], vectors[j])
+			meanCosTheta += cosTheta * cosTheta
+		}
+	}
+	n := float64(len(vectors))
+	meanCosTheta = meanCosTheta / (n * (n - 1) / 2.0)
+	fmt.Fprintf(analyzer.outputFile, "meanCosTheta = %f\n", meanCosTheta)
+	meanCosTheta = (3*meanCosTheta - 1) / 2
+	fmt.Fprintf(analyzer.outputFile, "S = %f\n", meanCosTheta)
+	return nil
 }
 
 func validateInputParams(offset int, outputFilename string, level ScaleLevel) error {
@@ -412,13 +516,23 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 		return
 	}
 	defer analyzer.outputFile.Close()
-	sticks := analyzer.findCristallizedParts()
-	if len(sticks) == 0 {
-		printer.PrintflnWarning("Отсутствуют кристаллические домены")
-		return
+	if err := analyzer.calculateS(); err != nil {
+		fmt.Printf("%v\n", err)
 	}
-	analyzer.analyzeOrientations(sticks)
-	// analyzer.debugSticks(sticks, base.Hydrogen)
+	sticks := make([]_CristallizedStick, len(analyzer.carbonSkeleton))
+	for i, skeleton := range analyzer.carbonSkeleton {
+		sticks[i] = make(_CristallizedStick, len(skeleton))
+		copy(sticks[i], skeleton)
+	}
+	analyzer.debugSticks(sticks, base.Oxygen, "cristall.data")
+	// analyzer.debugSticks(sticks, base.Carbon, "")
+	// sticks1 := analyzer.findCristallizedParts()
+	// if len(sticks1) == 0 {
+	// 	printer.PrintflnWarning("Отсутствуют кристаллические домены")
+	// 	return
+	// }
+	// analyzer.analyzeOrientations(sticks1)
+	// analyzer.debugSticks(sticks1, base.Oxygen, "cristall_orientation.data")
 	// domains := analyzer.joinSticksToDomains(sticks)
 	// analyzer.analyzeDomains(domains)
 }
