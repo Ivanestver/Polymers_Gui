@@ -228,16 +228,18 @@ type _CristallinityAnalyzer struct {
 	offset         int
 	outputFile     *os.File
 	level          ScaleLevel
+	baseStick      []*datatypes.Monomer
 }
 
-func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) (*_CristallinityAnalyzer, error) {
+func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElement base.MendeleevTableElement) (*_CristallinityAnalyzer, error) {
 	analyzer := &_CristallinityAnalyzer{
 		globula:        globula,
 		carbonSkeleton: make([]_CarbonSkeleton, 0),
 		offset:         offset,
 		level:          level,
+		baseStick:      nil,
 	}
-	builder := makeCarbonSkeletonBuilder(globula)
+	builder := makeCarbonSkeletonBuilder(globula, level)
 	if skeletons, err := builder.Build(); err != nil {
 		return nil, err
 	} else {
@@ -248,33 +250,51 @@ func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFil
 	} else {
 		return nil, err
 	}
+	analyzer.baseStick = defineBaseStick(globula, baseElement)
 	return analyzer, nil
 }
 
-func (analyzer *_CristallinityAnalyzer) defineSkeleton(carbonSkeleton *_CarbonSkeleton, fCurrMon, fPrevMon func(s *_CarbonSkeleton) *datatypes.Monomer, fAdd func(s *_CarbonSkeleton, newMon *datatypes.Monomer)) error {
-	// Assume startPoint and directingMonomer are already in the skeleton
-	// Where to move
-	canMove := true
-	for canMove {
-		currMonomer := fCurrMon(carbonSkeleton)
-		if currMonomer == nil {
-			return errors.New("атом в углеродном скелете не может быть пустым местом")
-		}
-		canMove = false
-		for _, sibling := range currMonomer.GetSiblings() {
-			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
-				continue
+func defineBaseStick(globula *views.GlobulaView, baseElement base.MendeleevTableElement) []*datatypes.Monomer {
+	if baseElement == base.MendeleevTableElementUndefined {
+		return nil
+	}
+
+	baseStick := make([]*datatypes.Monomer, 0)
+	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
+		polymer := globula.GetPolymerByIdx(polNumber)
+		if polymer.GetMonomerByIdx(0).MonomerType == baseElement {
+			for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
+				baseStick = append(baseStick, polymer.GetMonomerByIdx(monNumber))
 			}
-			if sibling == fPrevMon(carbonSkeleton) {
-				continue
-			}
-			fAdd(carbonSkeleton, sibling)
-			canMove = true
-			break
 		}
 	}
-	return nil
+	return baseStick
 }
+
+// func (analyzer *_CristallinityAnalyzer) defineSkeleton(carbonSkeleton *_CarbonSkeleton, fCurrMon, fPrevMon func(s *_CarbonSkeleton) *datatypes.Monomer, fAdd func(s *_CarbonSkeleton, newMon *datatypes.Monomer)) error {
+// 	// Assume startPoint and directingMonomer are already in the skeleton
+// 	// Where to move
+// 	canMove := true
+// 	for canMove {
+// 		currMonomer := fCurrMon(carbonSkeleton)
+// 		if currMonomer == nil {
+// 			return errors.New("атом в углеродном скелете не может быть пустым местом")
+// 		}
+// 		canMove = false
+// 		for _, sibling := range currMonomer.GetSiblings() {
+// 			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
+// 				continue
+// 			}
+// 			if sibling == fPrevMon(carbonSkeleton) {
+// 				continue
+// 			}
+// 			fAdd(carbonSkeleton, sibling)
+// 			canMove = true
+// 			break
+// 		}
+// 	}
+// 	return nil
+// }
 
 func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedStick {
 	sticks := make([]_CristallizedStick, 0)
@@ -438,12 +458,18 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 }
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
+	if analyzer.baseStick == nil {
 	director := base.IdentityVectorF()
 	for _, stick := range sticks {
 		stickDirection := stick.GetDirection()
 		director.AddF(&stickDirection)
 	}
 	return director
+	} else {
+		return base.SubtractVecF(
+			analyzer.baseStick[len(analyzer.baseStick)-1].Coords(),
+			analyzer.baseStick[0].Coords())
+	}
 }
 
 func (analyzer *_CristallinityAnalyzer) calculateS() error {
@@ -510,7 +536,7 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 		printer.PrintlnError(err.Error())
 		return
 	}
-	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename, level)
+	analyzer, err := makeCristallinityAnalyzer(globula, offset, outputFilename, level, baseElem)
 	if err != nil {
 		printer.PrintflnError("%v", err)
 		return

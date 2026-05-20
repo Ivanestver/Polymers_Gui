@@ -668,6 +668,10 @@ func cristallinity() (Command, interface{}) {
 	m := make(map[string]interface{})
 	m["level"] = token
 
+	token, err = getNextToken()
+	if err != nil {
+		return CommandCristallinity, m
+	}
 	offset, err := strconv.Atoi(token)
 	if err != nil {
 		return CommandCristallinity, m
@@ -679,6 +683,22 @@ func cristallinity() (Command, interface{}) {
 		return CommandCristallinity, m
 	}
 	m["output_filename"] = token
+
+	token, err = getNextToken()
+	if err != nil {
+		return CommandCristallinity, m
+	}
+	topPercent, err := strconv.Atoi(token)
+	if err != nil {
+		return CommandCristallinity, m
+	}
+	m["top_percent"] = topPercent
+
+	token, err = getParameterAsString()
+	if err != nil {
+		return CommandCristallinity, m
+	}
+	m["base_elem"] = base.RecognizeElement(token)
 
 	return CommandCristallinity, m
 }

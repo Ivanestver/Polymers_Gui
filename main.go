@@ -319,6 +319,8 @@ func main() {
 			offset := 2
 			outputFileName := "cristallized.log"
 			level := "atomistic"
+			baseElem := base.MendeleevTableElementUndefined
+			topPercent := 0.1
 			if d, ok := data.(map[string]interface{}); ok {
 				if offsetInf, ok := d["offset"]; ok {
 					if offsetFromData, ok := offsetInf.(int); ok {
@@ -335,8 +337,18 @@ func main() {
 						level = levelFromData
 					}
 				}
+				if baseElemInf, ok := d["base_elem"]; ok {
+					if baseElemFromData, ok := baseElemInf.(base.MendeleevTableElement); ok {
+						baseElem = baseElemFromData
+					}
+				}
+				if topPercentInf, ok := d["top_percent"]; ok {
+					if topPercentFromData, ok := topPercentInf.(int); ok {
+						topPercent = float64(topPercentFromData) / 100.0
+					}
+				}
 			}
-			cristallinity.Analyze(globula, offset, outputFileName, level)
+			cristallinity.Analyze(globula, offset, outputFileName, level, baseElem, topPercent)
 
 		case interp.CommandTrajectories:
 			data := data.(map[string]string)
