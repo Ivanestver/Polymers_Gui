@@ -12,6 +12,8 @@ import (
 	"polymers/savers"
 	"polymers/views"
 	"slices"
+
+	"gonum.org/v1/gonum/mat"
 )
 
 type ScaleLevel = string // Атомистический, молекулярный и т.д.
@@ -49,6 +51,19 @@ func (stick *_CristallizedStick) GetLengthTo(other *_CristallizedStick) float64 
 	return vecMultiplication.Len() / direction1.Len()
 }
 
+func (stick *_CristallizedStick) GetVectorSkeleton() []base.Vector3DF {
+	vectors := make([]base.Vector3DF, 0)
+	for i := 1; i < len(*stick); i++ {
+		vectors = append(vectors,
+			base.SubtractVecF(
+				(*stick)[i].Coords(),
+				(*stick)[i-1].Coords(),
+			),
+		)
+	}
+	return vectors
+}
+
 type _CristallizedDomain []_CristallizedStick
 
 func areCodirectional(v1, v2 base.Vector3DF) bool {
@@ -69,9 +84,10 @@ type _CristallinityCarbonSkeletonBuilder struct {
 	carbons map[int64]*datatypes.Monomer
 }
 
-func makeCarbonSkeletonBuilder(globula *views.GlobulaView) *_CristallinityCarbonSkeletonBuilder {
+func makeCarbonSkeletonBuilder(globula *views.GlobulaView, level ScaleLevel) *_CristallinityCarbonSkeletonBuilder {
 	return &_CristallinityCarbonSkeletonBuilder{
 		globula: globula,
+		level:   level,
 		carbons: map[int64]*datatypes.Monomer{},
 	}
 }
@@ -517,6 +533,74 @@ func (analyzer *_CristallinityAnalyzer) calculateS() error {
 	return nil
 }
 
+func (analyzer *_CristallinityAnalyzer) getVectors() []base.Vector3DF {
+	vectors := make([]base.Vector3DF, 0)
+	offset := analyzer.offset
+	for _, carbonSkeleton := range analyzer.carbonSkeleton {
+		for i := 0; i < len(carbonSkeleton)-offset; i += offset {
+			prev := carbonSkeleton[i]
+			curr := carbonSkeleton[i+offset]
+			directionVector := base.SubtractVecF(curr.Coords(), prev.Coords())
+			vectors = append(vectors, directionVector.Normalized())
+		}
+	}
+	return vectors
+}
+
+func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(vectors []base.Vector3DF) error {
+	n := float64(len(vectors))
+	outerProduct := mat.NewSymDense(int(base.AxisCount), nil)
+	for _, v := range vectors {
+		ux := v[base.AxisX]
+		uy := v[base.AxisY]
+		uz := v[base.AxisZ]
+		data := outerProduct.RawSymmetric().Data
+		data[0] += ux * ux
+		data[1] += ux * uy
+		data[2] += ux * uz
+		data[3] += uy * ux
+		data[4] += uy * uy
+		data[5] += uy * uz
+		data[6] += uz * ux
+		data[7] += uz * uy
+		data[8] += uz * uz
+	}
+
+	outerProduct.ScaleSym(1.0/n, outerProduct)
+	for i := range int(base.AxisCount) {
+		val := outerProduct.At(i, i)
+		outerProduct.SetSym(i, i, val-1.0/3)
+	}
+
+	var eig mat.EigenSym
+	if ok := eig.Factorize(outerProduct, true); !ok {
+		return errors.New("не удалось разложить матрицу")
+	}
+
+	values := eig.Values(nil)
+
+	maxIdx := 0
+	for i := 1; i < len(values); i++ {
+		if values[i] > values[maxIdx] {
+			maxIdx = i
+			break
+		}
+	}
+	S := 1.5 * values[maxIdx]
+	var eVecs mat.Dense
+	eig.VectorsTo(&eVecs)
+	director := base.Vector3DF{
+		eVecs.At(0, maxIdx),
+		eVecs.At(1, maxIdx),
+		eVecs.At(2, maxIdx),
+	}
+
+	fmt.Fprintln(analyzer.outputFile, "Orientation")
+	fmt.Fprintf(analyzer.outputFile, "S = %.4f\n", S)
+	fmt.Fprintf(analyzer.outputFile, "director = %v", director)
+	return nil
+}
+
 func validateInputParams(offset int, outputFilename string, level ScaleLevel) error {
 	if offset < 1 {
 		return errors.New("offset должен быть больше 0")
@@ -530,7 +614,21 @@ func validateInputParams(offset int, outputFilename string, level ScaleLevel) er
 	return nil
 }
 
-func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel) {
+func (analyzer *_CristallinityAnalyzer) toVectorsFlat(sticks []_CristallizedStick) []base.Vector3DF {
+	vectors := make([]base.Vector3DF, 0)
+	for _, stick := range sticks {
+		for i := analyzer.offset; i < len(stick); i += analyzer.offset {
+			v := base.SubtractVecF(
+				stick[i].Coords(),
+				stick[i-analyzer.offset].Coords(),
+			)
+			vectors = append(vectors, v)
+		}
+	}
+	return vectors
+}
+
+func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64) {
 	printer := outputformat.GetPrint()
 	if err := validateInputParams(offset, outputFilename, level); err != nil {
 		printer.PrintlnError(err.Error())
@@ -542,23 +640,37 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 		return
 	}
 	defer analyzer.outputFile.Close()
-	if err := analyzer.calculateS(); err != nil {
-		fmt.Printf("%v\n", err)
-	}
-	sticks := make([]_CristallizedStick, len(analyzer.carbonSkeleton))
-	for i, skeleton := range analyzer.carbonSkeleton {
-		sticks[i] = make(_CristallizedStick, len(skeleton))
-		copy(sticks[i], skeleton)
-	}
-	analyzer.debugSticks(sticks, base.Oxygen, "cristall.data")
-	// analyzer.debugSticks(sticks, base.Carbon, "")
-	// sticks1 := analyzer.findCristallizedParts()
-	// if len(sticks1) == 0 {
-	// 	printer.PrintflnWarning("Отсутствуют кристаллические домены")
-	// 	return
+	// if err := analyzer.calculateS(); err != nil {
+	// 	fmt.Printf("%v\n", err)
 	// }
-	// analyzer.analyzeOrientations(sticks1)
-	// analyzer.debugSticks(sticks1, base.Oxygen, "cristall_orientation.data")
+	// sticks := make([]_CristallizedStick, len(analyzer.carbonSkeleton))
+	// for i, skeleton := range analyzer.carbonSkeleton {
+	// 	sticks[i] = make(_CristallizedStick, len(skeleton))
+	// 	copy(sticks[i], skeleton)
+	// }
+	// analyzer.debugSticks(sticks, base.Oxygen, "cristall.data")
+	// analyzer.debugSticks(sticks, base.Carbon, "")
+	sticks1 := analyzer.findCristallizedParts()
+	if len(sticks1) == 0 {
+		printer.PrintflnWarning("Отсутствуют кристаллические домены")
+		return
+	}
+	slices.SortFunc(sticks1, func(cs1, cs2 _CristallizedStick) int {
+		if len(cs1) < len(cs2) {
+			return 1
+		} else if len(cs1) == len(cs2) {
+			return 0
+		} else {
+			return -1
+		}
+	})
+	partOf := int(float64(len(sticks1)) * topPercent)
+	sticks1 = sticks1[:partOf]
+	analyzer.analyzeOrientations(sticks1)
+	analyzer.debugSticks(sticks1, base.Fluorine, "cristall_orientation.data")
 	// domains := analyzer.joinSticksToDomains(sticks)
 	// analyzer.analyzeDomains(domains)
+	// vectors := analyzer.getVectors()
+	// vectors := analyzer.toVectorsFlat(sticks1)
+	// analyzer.analyzeOrientationViaTensor(vectors)
 }
