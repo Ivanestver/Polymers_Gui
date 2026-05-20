@@ -245,6 +245,7 @@ type _CristallinityAnalyzer struct {
 	outputFile     *os.File
 	level          ScaleLevel
 	baseStick      []*datatypes.Monomer
+	printer        outputformat.IPrint
 }
 
 func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElement base.MendeleevTableElement) (*_CristallinityAnalyzer, error) {
@@ -263,6 +264,7 @@ func makeCristallinityAnalyzer(globula *views.GlobulaView, offset int, outputFil
 	}
 	if file, err := os.Create(outputFilename); err == nil {
 		analyzer.outputFile = file
+		analyzer.printer = outputformat.NewFilePrint(file)
 	} else {
 		return nil, err
 	}
@@ -453,11 +455,11 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 		}
 	}
 
-	fmt.Fprintf(file, "Степень кристалличности: %f\n", float64(domainMonomersCount)/float64(analyzer.globula.GetAtomsCount()))
+	analyzer.printer.Printfln("Степень кристалличности: %f\n", float64(domainMonomersCount)/float64(analyzer.globula.GetAtomsCount()))
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
-	fmt.Fprintln(analyzer.outputFile, "Orientation")
+	analyzer.printer.Println("Orientation")
 	director := analyzer.getDirector(sticks)
 	director = director.Normalized()
 	S := 0.0
@@ -465,14 +467,11 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 		stickDirection := stick.GetDirection()
 		stickDirection = stickDirection.Normalized()
 		cosTheta := base.GetCos(stickDirection, director)
-		fmt.Println(cosTheta)
 		S += cosTheta * cosTheta
 	}
 	S = S / float64(len(sticks))
-	fmt.Println(S)
-	fmt.Println(math.Acos(math.Sqrt(S)))
 	S = (3.0*S - 1.0) / 2.0
-	fmt.Fprintf(analyzer.outputFile, "S = %f", S)
+	analyzer.printer.Printfln("S = %f", S)
 }
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
@@ -517,8 +516,6 @@ func (analyzer *_CristallinityAnalyzer) calculateS() error {
 		file, _ := os.Create("cristall_vectors.data")
 		defer file.Close()
 		file.WriteString(s)
-	} else {
-		fmt.Printf("%v", err)
 	}
 	meanCosTheta := 0.0
 	for i := 0; i < len(vectors)-1; i++ {
@@ -529,9 +526,9 @@ func (analyzer *_CristallinityAnalyzer) calculateS() error {
 	}
 	n := float64(len(vectors))
 	meanCosTheta = meanCosTheta / (n * (n - 1) / 2.0)
-	fmt.Fprintf(analyzer.outputFile, "meanCosTheta = %f\n", meanCosTheta)
+	analyzer.printer.Printfln("meanCosTheta = %f\n", meanCosTheta)
 	meanCosTheta = (3*meanCosTheta - 1) / 2
-	fmt.Fprintf(analyzer.outputFile, "S = %f\n", meanCosTheta)
+	analyzer.printer.Printfln("S = %f\n", meanCosTheta)
 	return nil
 }
 
@@ -597,9 +594,9 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(vectors []ba
 		eVecs.At(2, maxIdx),
 	}
 
-	fmt.Fprintln(analyzer.outputFile, "Orientation")
-	fmt.Fprintf(analyzer.outputFile, "S = %.4f\n", S)
-	fmt.Fprintf(analyzer.outputFile, "director = %v", director)
+	analyzer.printer.Println("Orientation")
+	analyzer.printer.Printfln("S = %.4f\n", S)
+	analyzer.printer.Printfln("director = %v", director)
 	return nil
 }
 
