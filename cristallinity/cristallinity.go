@@ -337,7 +337,7 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedS
 					}
 				}
 				lenOfStick := endMonomerNumber - startMonomerNumber + 1
-				if lenOfStick/2 < 2 {
+				if int(math.Ceil(float64(lenOfStick)/2)) < 2 {
 					startMonomerNumber = invalidMonomerNumber
 					continue
 				}
@@ -459,9 +459,11 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
 	fmt.Fprintln(analyzer.outputFile, "Orientation")
 	director := analyzer.getDirector(sticks)
+	director = director.Normalized()
 	S := 0.0
 	for _, stick := range sticks {
 		stickDirection := stick.GetDirection()
+		stickDirection = stickDirection.Normalized()
 		cosTheta := base.GetCos(stickDirection, director)
 		fmt.Println(cosTheta)
 		S += cosTheta * cosTheta
@@ -475,12 +477,12 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
 	if analyzer.baseStick == nil {
-	director := base.IdentityVectorF()
-	for _, stick := range sticks {
-		stickDirection := stick.GetDirection()
-		director.AddF(&stickDirection)
-	}
-	return director
+		director := base.IdentityVectorF()
+		for _, stick := range sticks {
+			stickDirection := stick.GetDirection()
+			director.AddF(&stickDirection)
+		}
+		return director
 	} else {
 		return base.SubtractVecF(
 			analyzer.baseStick[len(analyzer.baseStick)-1].Coords(),
@@ -506,7 +508,7 @@ func (analyzer *_CristallinityAnalyzer) calculateS() error {
 			curr := carbonSkeleton[i+offset]
 			pol.AddMonomer(field.GetMonomerByCoords(curr.Coords()))
 			directionVector := base.SubtractVecF(curr.Coords(), prev.Coords())
-			vectors = append(vectors, directionVector)
+			vectors = append(vectors, directionVector.Normalized())
 		}
 		sticks[j] = pol
 	}

@@ -328,7 +328,7 @@ func main() {
 					}
 				}
 				if outputFilenameInf, ok := d["output_filename"]; ok {
-					if outputFilenameFromData, ok := outputFilenameInf.(string); ok {
+					if outputFilenameFromData, ok := outputFilenameInf.(string); ok && len(outputFilenameFromData) > 0 {
 						outputFileName = outputFilenameFromData
 					}
 				}
