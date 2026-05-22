@@ -582,7 +582,6 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(vectors []ba
 	for i := 1; i < len(values); i++ {
 		if values[i] > values[maxIdx] {
 			maxIdx = i
-			break
 		}
 	}
 	S := 1.5 * values[maxIdx]
@@ -666,7 +665,15 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 	partOf := int(float64(len(sticks1)) * topPercent)
 	sticks1 = sticks1[:partOf]
 	analyzer.analyzeOrientations(sticks1)
-	analyzer.debugSticks(sticks1, base.Fluorine, "cristall_orientation.data")
+	analyzer.analyzeOrientationViaTensor(func() []base.Vector3DF {
+		vectors := make([]base.Vector3DF, len(sticks1))
+		for i, stick := range sticks1 {
+			vectors[i] = stick.GetDirection()
+			vectors[i] = vectors[i].Normalized()
+		}
+		return vectors
+	}())
+	//analyzer.debugSticks(sticks1, base.Fluorine, "cristall_orientation.data")
 	// domains := analyzer.joinSticksToDomains(sticks)
 	// analyzer.analyzeDomains(domains)
 	// vectors := analyzer.getVectors()
