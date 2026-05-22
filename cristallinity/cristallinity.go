@@ -626,6 +626,28 @@ func (analyzer *_CristallinityAnalyzer) toVectorsFlat(sticks []_CristallizedStic
 	return vectors
 }
 
+func (analyzer *_CristallinityAnalyzer) debugSticksStartEnd(sticks []_CristallizedStick) {
+	spacedim := globaldata.GetGlobalData().SpaceDimention
+	field := datatypes.NewRealField([3][2]float64{
+		{spacedim[base.AxisX].Lower, spacedim[base.AxisX].Higher},
+		{spacedim[base.AxisY].Lower, spacedim[base.AxisY].Higher},
+		{spacedim[base.AxisZ].Lower, spacedim[base.AxisZ].Higher},
+	})
+	polymers := make([]datatypes.IPolymer, len(sticks))
+	for i, stick := range sticks {
+		pol := datatypes.NewRealPolymer(field, int64(i))
+		pol.AddMonomer(field.GetMonomerByCoords(stick[0].Coords()))
+		pol.AddMonomer(field.GetMonomerByCoords(stick[len(stick)-1].Coords()))
+		polymers[i] = pol
+	}
+	newGlobula := views.NewGlobulaView(polymers, views.GlobulaGlobulaType)
+	if s, err := savers.SaveToLammps(newGlobula); err == nil {
+		file, _ := os.Create("cristall_vectors_molecular.data")
+		defer file.Close()
+		file.WriteString(s)
+	}
+}
+
 func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64) {
 	printer := outputformat.GetPrint()
 	if err := validateInputParams(offset, outputFilename, level); err != nil {
