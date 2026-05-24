@@ -448,10 +448,9 @@ func processPattern(data map[string]string) (*views.GlobulaView, error) {
 		return nil, errors.New("couldn't retrieve pattern")
 	}
 
-	if patternlib.AnyLetterIsUndefined(pattern, globula) {
-		printer.PrintlnError("Please, define the missing decryptions to continue")
-		return nil, errors.New("please, define the missing decryptions to continue")
-	}
+	// if patternlib.AnyLetterIsUndefined(pattern, globula) {
+	// 	return nil, errors.New("please, define the missing decryptions to continue")
+	// }
 	patternlib.ApplyAsGlobula(globula, pattern)
 
 	return globula, nil
