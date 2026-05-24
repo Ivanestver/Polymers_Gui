@@ -108,7 +108,7 @@ func writeMonomer(config *_Config, parts []string, line string) {
 		return
 	}
 	substitution := make(_Subtitution, variants)
-	for i := 0; i < variants; i++ {
+	for i := range variants {
 		substitution[i] = getMoleculeFromFile(parts[2+i])
 	}
 	config.Substitutions[label] = &substitution

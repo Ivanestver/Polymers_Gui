@@ -43,7 +43,7 @@ func AnyLetterIsUndefined(pattern string, globula *views.GlobulaView) bool {
 	printer := outputformat.GetPrint()
 	hasMonomerWithElement := func(l string) bool {
 		polymersCount := globula.Len()
-		for i := 0; i < polymersCount; i++ {
+		for i := range polymersCount {
 			polymer := globula.GetPolymerByIdx(i)
 			for j := 0; j < polymer.Len(); j++ {
 				monomer := polymer.GetMonomerByIdx(j)
