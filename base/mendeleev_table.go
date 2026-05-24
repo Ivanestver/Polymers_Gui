@@ -13,6 +13,7 @@ const (
 	Oxygen                         MendeleevTableElement = "O"
 	Nitrogen                       MendeleevTableElement = "N"
 	Fluorine                       MendeleevTableElement = "F"
+	Sulfur                         MendeleevTableElement = "S"
 )
 
 func GetMendeleevTable() [118]MendeleevTableElement {
@@ -22,6 +23,7 @@ func GetMendeleevTable() [118]MendeleevTableElement {
 	table[6] = Nitrogen
 	table[7] = Oxygen
 	table[8] = Fluorine
+	table[16] = Sulfur
 	return table
 }
 
