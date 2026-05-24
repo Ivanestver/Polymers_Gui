@@ -444,10 +444,10 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
-	analyzer.analyzeCristallinity(domains, analyzer.outputFile)
+	analyzer.analyzeCristallinity(domains)
 }
 
-func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_CristallizedDomain, file *os.File) {
+func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_CristallizedDomain) {
 	domainMonomersCount := 0
 	for _, domain := range domains {
 		for _, stick := range domain {
@@ -459,7 +459,7 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
-	analyzer.printer.Println("Orientation")
+	analyzer.printer.Println("Ориентация по формуле <3*cosTheta-1>/2")
 	director := analyzer.getDirector(sticks)
 	director = director.Normalized()
 	S := 0.0
@@ -593,7 +593,7 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(vectors []ba
 		eVecs.At(2, maxIdx),
 	}
 
-	analyzer.printer.Println("Orientation")
+	analyzer.printer.Println("Ориентация с помощью формулы с тензором")
 	analyzer.printer.Printfln("S = %.4f\n", S)
 	analyzer.printer.Printfln("director = %v", director)
 	return nil

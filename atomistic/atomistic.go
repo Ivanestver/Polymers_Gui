@@ -64,6 +64,9 @@ func createConfig(configFileName string) (*_Config, error) {
 	scanner := bufio.NewScanner(file)
 	config := _NewConfig()
 	for scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
 		line := scanner.Text()
 		if len(line) == 0 {
 			printer.PrintlnWarning("Line is empty")
