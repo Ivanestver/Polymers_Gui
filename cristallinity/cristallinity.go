@@ -43,12 +43,15 @@ func (stick *_CristallizedStick) GetCenterOfMasses() base.Vector3DF {
 }
 
 func (stick *_CristallizedStick) GetLengthTo(other *_CristallizedStick) float64 {
-	v1 := stick.GetCenterOfMasses()
-	direction1 := stick.GetDirection()
-	v2 := other.GetCenterOfMasses()
-	vVector := base.SubtractVecF(v1, v2)
-	vecMultiplication := base.VectorProduct(vVector, direction1)
-	return vecMultiplication.Len() / direction1.Len()
+	d1 := stick.GetDirection()
+	d2 := other.GetDirection()
+	vectorMul := base.VectorProduct(d1, d2)
+	vectorMulLength := vectorMul.Len()
+	massCenter1 := stick.GetCenterOfMasses()
+	massCenter2 := other.GetCenterOfMasses()
+	vecConn := base.SubtractVecF(massCenter1, massCenter2)
+	nominator := base.DotProduct(vecConn, vectorMul)
+	return nominator / vectorMulLength
 }
 
 func (stick *_CristallizedStick) GetVectorSkeleton() []base.Vector3DF {
