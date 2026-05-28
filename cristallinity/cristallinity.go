@@ -753,11 +753,14 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	})
 	firstTop := int(math.Ceil(float64(len(domains)) * topPercent))
 	domains = domains[:firstTop]
-	analyzer.debugSticks(func() []_CristallizedStick {
+	sticks = func() []_CristallizedStick {
 		sticks := make([]_CristallizedStick, 0)
 		for _, domain := range domains {
 			sticks = append(sticks, domain...)
 		}
 		return sticks
-	}(), base.Oxygen, "domains.dataj")
+	}()
+	analyzer.debugSticks(sticks, base.Oxygen, "domains.dataj")
+	analyzer.analyzeOrientations(sticks)
+	analyzer.analyzeOrientationViaTensor(sticks)
 }
