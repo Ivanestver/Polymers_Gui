@@ -381,49 +381,91 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 }
 
 func (analyzer *_CristallinityAnalyzer) joinSticksToDomains(sticks []_CristallizedStick) []_CristallizedDomain {
-	sets := make([]base.UnorderedSet[int], len(sticks))
-	for i := range sets {
-		sets[i] = base.UnorderedSet[int]{}
-		sets[i].Insert(i)
+	sets := make(map[int]base.UnorderedSet[int])
+	for i := range sticks {
+		s := base.UnorderedSet[int]{}
+		s.Insert(i)
+		sets[i] = s
 	}
 	for {
-		sets1 := make([]base.UnorderedSet[int], 0)
-		used := base.UnorderedSet[int]{}
-		for i := 0; i < len(sets); i++ {
-			if used.Contains(i) {
-				continue
+		noMoreJoins := true
+		joinMap := make(map[int]base.UnorderedSet[int])
+		keys := make([]int, 0)
+		for i := range sets {
+			keys = append(keys, i)
+		}
+		slices.SortFunc(keys, func(a1, a2 int) int {
+			if a1 < a2 {
+				return -1
+			} else if a1 == a2 {
+				return 0
+			} else {
+				return 1
 			}
-			for j := 0; j < len(sets); j++ {
-				if used.Contains(j) || i == j {
+		})
+		for i := 0; i < len(keys); i++ {
+			key := keys[i]
+			if _, ok := joinMap[key]; ok {
+				continue
+			} else {
+				joinMap[key] = sets[key]
+			}
+			for j := i + 1; j < len(keys); j++ {
+				keyNext := keys[j]
+				s := joinMap[key]
+				if s.Contains(keyNext) {
 					continue
 				}
-				sticks1 := sets[i]
-				sticks2 := sets[j]
+				sticks1 := sets[key]
+				sticks2 := sets[keyNext]
 				if domainsAreClose(sticks1, sticks2, sticks) {
-					used.Insert(i)
-					used.Insert(j)
-					set1 := base.UnorderedSet[int]{}
-					for s := range sticks1 {
-						set1.Insert(s)
-					}
-					for s := range sticks2 {
-						set1.Insert(s)
-					}
-					sets1 = append(sets1, set1)
+					s.Insert(keyNext)
+					noMoreJoins = false
 				}
 			}
 		}
-		if len(sets) == len(sets1) || len(sets1) == 0 {
+		if noMoreJoins {
 			break
 		}
-		sets = sets1
+		used := base.UnorderedSet[int]{}
+		sets = make(map[int]base.UnorderedSet[int])
+		for k := 0; k < len(keys); k++ {
+			key := keys[k]
+			if used.Contains(key) {
+				continue
+			}
+			stack := base.Stack{key}
+			usedInCluster := base.UnorderedSet[int]{}
+			newCluster := base.UnorderedSet[int]{}
+			for !stack.IsEmpty() {
+				in, ok := stack.Pop()
+				if !ok {
+					continue
+				}
+				curr := in.(int)
+				newCluster.Insert(curr)
+				if usedInCluster.Contains(curr) {
+					continue
+				}
+				if s, ok := joinMap[curr]; ok {
+					used.Insert(curr)
+					usedInCluster.Insert(curr)
+					for next := range s {
+						stack.Push(next)
+					}
+				}
+			}
+			sets[key] = newCluster
+		}
 	}
 	domains := make([]_CristallizedDomain, len(sets))
-	for i, s := range sets {
+	i := 0
+	for _, s := range sets {
 		domains[i] = _CristallizedDomain{}
 		for value := range s {
 			domains[i] = append(domains[i], sticks[value])
 		}
+		i++
 	}
 	return domains
 }
