@@ -756,7 +756,7 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	sticks = func() []_CristallizedStick {
 		sticks := make([]_CristallizedStick, 0)
 		for _, domain := range domains {
-			sticks = append(sticks, domain...)
+			sticks = append(sticks, domain[0])
 		}
 		return sticks
 	}()
