@@ -317,7 +317,7 @@ func defineBaseStick(globula *views.GlobulaView, baseElement base.MendeleevTable
 // 	return nil
 // }
 
-func (analyzer *_CristallinityAnalyzer) findCristallizedParts() []_CristallizedStick {
+func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_CristallizedStick {
 	sticks := make([]_CristallizedStick, 0)
 	offset := analyzer.offset
 	for _, carbonSkeleton := range analyzer.carbonSkeleton {
@@ -705,22 +705,16 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 		return
 	}
 	defer analyzer.outputFile.Close()
-	// if err := analyzer.calculateS(); err != nil {
-	// 	fmt.Printf("%v\n", err)
-	// }
-	// sticks := make([]_CristallizedStick, len(analyzer.carbonSkeleton))
-	// for i, skeleton := range analyzer.carbonSkeleton {
-	// 	sticks[i] = make(_CristallizedStick, len(skeleton))
-	// 	copy(sticks[i], skeleton)
-	// }
-	// analyzer.debugSticks(sticks, base.Oxygen, "cristall.data")
-	// analyzer.debugSticks(sticks, base.Carbon, "")
-	sticks1 := analyzer.findCristallizedParts()
-	if len(sticks1) == 0 {
-		printer.PrintflnWarning("Отсутствуют кристаллические домены")
+	analyzeJoinDomains(analyzer, topPercent)
+}
+
+func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
+	sticks := analyzer.findCristallizedSticks()
+	if len(sticks) == 0 {
+		analyzer.printer.PrintflnWarning("Отсутствуют кристаллические домены")
 		return
 	}
-	slices.SortFunc(sticks1, func(cs1, cs2 _CristallizedStick) int {
+	slices.SortFunc(sticks, func(cs1, cs2 _CristallizedStick) int {
 		if len(cs1) < len(cs2) {
 			return 1
 		} else if len(cs1) == len(cs2) {
@@ -729,21 +723,40 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 			return -1
 		}
 	})
-	partOf := int(float64(len(sticks1)) * topPercent)
-	sticks1 = sticks1[:partOf]
-	analyzer.analyzeOrientations(sticks1)
+	partOf := int(float64(len(sticks)) * topPercent)
+	sticks = sticks[:partOf]
+	analyzer.analyzeOrientations(sticks)
 	analyzer.analyzeOrientationViaTensor(func() []base.Vector3DF {
-		vectors := make([]base.Vector3DF, len(sticks1))
-		for i, stick := range sticks1 {
+		vectors := make([]base.Vector3DF, len(sticks))
+		for i, stick := range sticks {
 			vectors[i] = stick.GetDirection()
 			vectors[i] = vectors[i].Normalized()
 		}
 		return vectors
 	}())
-	//analyzer.debugSticks(sticks1, base.Fluorine, "cristall_orientation.data")
-	// domains := analyzer.joinSticksToDomains(sticks)
-	// analyzer.analyzeDomains(domains)
-	// vectors := analyzer.getVectors()
-	// vectors := analyzer.toVectorsFlat(sticks1)
-	// analyzer.analyzeOrientationViaTensor(vectors)
+}
+
+func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
+	sticks := analyzer.findCristallizedSticks()
+	domains := analyzer.joinSticksToDomains(sticks)
+	slices.SortFunc(domains, func(d1, d2 _CristallizedDomain) int {
+		lenD1 := len(d1)
+		lenD2 := len(d2)
+		if lenD1 < lenD2 {
+			return 1
+		} else if lenD1 == lenD2 {
+			return 0
+		} else {
+			return -1
+		}
+	})
+	firstTop := int(math.Ceil(float64(len(domains)) * topPercent))
+	domains = domains[:firstTop]
+	analyzer.debugSticks(func() []_CristallizedStick {
+		sticks := make([]_CristallizedStick, 0)
+		for _, domain := range domains {
+			sticks = append(sticks, domain...)
+		}
+		return sticks
+	}(), base.Oxygen, "domains.dataj")
 }
