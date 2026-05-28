@@ -591,7 +591,15 @@ func (analyzer *_CristallinityAnalyzer) getVectors() []base.Vector3DF {
 	return vectors
 }
 
-func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(vectors []base.Vector3DF) error {
+func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(sticks []_CristallizedStick) error {
+	vectors := func() []base.Vector3DF {
+		vectors := make([]base.Vector3DF, len(sticks))
+		for i, stick := range sticks {
+			vectors[i] = stick.GetDirection()
+			vectors[i] = vectors[i].Normalized()
+		}
+		return vectors
+	}()
 	n := float64(len(vectors))
 	outerProduct := mat.NewSymDense(int(base.AxisCount), nil)
 	for _, v := range vectors {
@@ -726,14 +734,7 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	partOf := int(float64(len(sticks)) * topPercent)
 	sticks = sticks[:partOf]
 	analyzer.analyzeOrientations(sticks)
-	analyzer.analyzeOrientationViaTensor(func() []base.Vector3DF {
-		vectors := make([]base.Vector3DF, len(sticks))
-		for i, stick := range sticks {
-			vectors[i] = stick.GetDirection()
-			vectors[i] = vectors[i].Normalized()
-		}
-		return vectors
-	}())
+	analyzer.analyzeOrientationViaTensor(sticks)
 }
 
 func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
