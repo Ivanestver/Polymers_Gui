@@ -763,7 +763,6 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 		}
 		return sticks
 	}()
-	analyzer.debugSticks(sticks, base.Oxygen, "domains.dataj")
 	analyzer.analyzeOrientations(sticks)
 	analyzer.analyzeOrientationViaTensor(sticks)
 }
