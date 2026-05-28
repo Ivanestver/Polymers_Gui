@@ -440,10 +440,10 @@ func domainsAreClose(sticks1, sticks2 base.UnorderedSet[int], sticks []_Cristall
 }
 
 func areClose(stick1, stick2 _CristallizedStick) bool {
-	return areColinear(
-		stick1.GetDirection(),
-		stick2.GetDirection(),
-	) && stick1.GetLengthTo(&stick2) < 1.44
+	d1 := stick1.GetDirection()
+	d2 := stick2.GetDirection()
+	cosTheta := math.Abs(base.GetCos(d1, d2))
+	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) < 2
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
