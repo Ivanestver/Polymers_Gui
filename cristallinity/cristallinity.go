@@ -713,6 +713,9 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 		return
 	}
 	defer analyzer.outputFile.Close()
+	analyzer.printer.Println("Алгоритм, основанный на кристаллических направляющих")
+	analyzeWithPercent(analyzer, topPercent)
+	analyzer.printer.Println("Алгоритм, основанный на объединении кристаллических доменов")
 	analyzeJoinDomains(analyzer, topPercent)
 }
 
