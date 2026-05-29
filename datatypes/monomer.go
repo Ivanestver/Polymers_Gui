@@ -6,6 +6,12 @@ import (
 	"polymers/outputformat"
 )
 
+type MonomerProperty uint16
+
+const (
+	MonomerPropertyCristallized MonomerProperty = iota
+)
+
 type Monomer struct {
 	coords      base.Vector3DF
 	MonomerType base.MendeleevTableElement
@@ -13,6 +19,7 @@ type Monomer struct {
 	NextMonomer *Monomer
 	sides       map[Side]*Connection
 	Number      int64
+	properties  base.UnorderedSet[MonomerProperty]
 }
 
 func NewMonomer(coords base.Vector3DF, monomerType base.MendeleevTableElement) *Monomer {
@@ -222,4 +229,18 @@ func (monomer *Monomer) ToJSON() MonomerJSON {
 	}
 	obj.Number = monomer.Number
 	return obj
+}
+
+func (monomer *Monomer) HasProperty(property MonomerProperty) bool {
+	return monomer.properties.Contains(property)
+}
+
+func (monomer *Monomer) SetProperty(property MonomerProperty) {
+	monomer.properties.Insert(property)
+}
+
+func (monomer *Monomer) RemoveProperty(property MonomerProperty) {
+	if monomer.HasProperty(property) {
+		monomer.properties.Remove(property)
+	}
 }
