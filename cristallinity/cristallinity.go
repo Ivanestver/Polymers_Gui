@@ -361,14 +361,10 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_Cristallized
 }
 
 func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType base.MendeleevTableElement, filename string) {
-	for _, stick := range sticks {
-		for _, monInStick := range stick {
-			monInStick.MonomerType = monomerType
-		}
-	}
 	if len(filename) == 0 {
 		return
 	}
+	analyzer.applyCristallinity(sticks, monomerType)
 	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
 		file, err := os.Create(filename)
 		if err == nil {
@@ -376,6 +372,17 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 			file.WriteString(s)
 		} else {
 			panic(err.Error())
+		}
+	}
+}
+
+func (analyzer *_CristallinityAnalyzer) applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
+	for _, stick := range sticks {
+		for _, monInStick := range stick {
+			if monomerType != base.MendeleevTableElementUndefined {
+				monInStick.MonomerType = monomerType
+			}
+			monInStick.SetProperty(datatypes.MonomerPropertyCristallized)
 		}
 	}
 }
@@ -737,7 +744,10 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	partOf := int(float64(len(sticks)) * topPercent)
 	sticks = sticks[:partOf]
 	analyzer.analyzeOrientations(sticks)
-	analyzer.analyzeOrientationViaTensor(sticks)
+	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
+		analyzer.printer.PrintflnError("При подсчёте S методом направляющих: %v", err)
+	}
+	analyzer.applyCristallinity(sticks, base.MendeleevTableElementUndefined)
 }
 
 func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
@@ -764,5 +774,7 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 		return sticks
 	}()
 	analyzer.analyzeOrientations(sticks)
-	analyzer.analyzeOrientationViaTensor(sticks)
+	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
+		analyzer.printer.PrintflnError("При подсчёте S методом доменов: %v", err)
+	}
 }
