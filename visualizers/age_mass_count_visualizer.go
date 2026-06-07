@@ -196,7 +196,7 @@ func (visualizer *sAgeMassCountVisualizer) showMasses(masses []int, outputName s
 	distribution := visualizer.makeDistributions(masses)
 	bar := charts.NewBar()
 	xValues, yValues := getXYValues(&distribution)
-	bar.SetXAxis(xValues).AddSeries("Placeholder", yValues)
+	bar.SetXAxis(xValues).AddSeries("Количество цепей", yValues)
 	outputName += ".html"
 	fmt.Println("Save into the file " + outputName)
 	f, _ := os.Create(outputName)
