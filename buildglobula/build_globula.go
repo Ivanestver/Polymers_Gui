@@ -171,9 +171,9 @@ func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *d
 	for i := 0; i < currConfig.Len(); i++ {
 		mon := currConfig.GetMonomerByIdx(i)
 		newMon := mon.Copy()
-		configCopy.AddMonomer(newMon)
+		configCopy.AddMonomerNoConnection(newMon)
 	}
-	configCopy.AddMonomer(continuation)
+	configCopy.AddMonomerNoConnection(continuation)
 	return configCopy
 }
 

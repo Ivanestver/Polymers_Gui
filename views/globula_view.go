@@ -798,7 +798,7 @@ func (globula *GlobulaView) showTheoreticalAgeStatistics() string {
 	ageRatioPercent := 25
 	ageRatio := float64(ageRatioPercent) * 0.01
 	atomsCount := globula.GetAtomsCount()
-	outputformat.GetPrint().Readln(&ageRatioPercent)
+	//outputformat.GetPrint().Readln(&ageRatioPercent)
 	builder := strings.Builder{}
 
 	builder.WriteString("3. Ожидаемая степень старения: ")

@@ -30,6 +30,7 @@ func NewMonomer(coords base.Vector3DF, monomerType base.MendeleevTableElement) *
 	newMonomer.NextMonomer = nil
 	newMonomer.Number = -1
 	newMonomer.sides = make(map[Side]*Connection)
+	newMonomer.properties = make(base.UnorderedSet[MonomerProperty])
 	return newMonomer
 }
 
@@ -53,7 +54,7 @@ func (monomer *Monomer) GetSibling(side Side) (*Monomer, error) {
 func (monomer *Monomer) GetSiblings() []*Monomer {
 	siblings := make([]*Monomer, 0)
 	for _, con := range monomer.sides {
-		if con == nil {
+		if con == nil || con.ConnType == ConnectionTypeUndefined {
 			continue
 		}
 		sibling, err := con.GetOtherSide(monomer)

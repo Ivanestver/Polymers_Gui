@@ -334,16 +334,16 @@ func age() (Command, interface{}) {
 	if finished() {
 		return CommandUndefined, string("Wrong usage")
 	}
-	token, err := getNextToken()
+	doCrosslinks, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err
 	}
 
-	if token != "true" && token != "false" {
+	if doCrosslinks != "true" && doCrosslinks != "false" {
 		return CommandUndefined, string("Error: make_crosslinks parameter must be either \"true\" or \"false\"")
 	}
 
-	token, err = getNextToken()
+	token, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err
 	}
@@ -379,7 +379,7 @@ func age() (Command, interface{}) {
 	}
 
 	m["count"] = groupCount
-	m["make_crosslinks"] = (token == "true")
+	m["make_crosslinks"] = (doCrosslinks == "true")
 	m["alg_type"] = ageAlgType
 	return CommandAge, m
 }

@@ -374,6 +374,7 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 			panic(err.Error())
 		}
 	}
+	analyzer.applyCristallinity(sticks, base.Carbon)
 }
 
 func (analyzer *_CristallinityAnalyzer) applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
@@ -492,7 +493,7 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 	d1 := stick1.GetDirection()
 	d2 := stick2.GetDirection()
 	cosTheta := math.Abs(base.GetCos(d1, d2))
-	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) < 2
+	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) <= 1
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
@@ -747,7 +748,10 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
 		analyzer.printer.PrintflnError("При подсчёте S методом направляющих: %v", err)
 	}
-	analyzer.applyCristallinity(sticks, base.MendeleevTableElementUndefined)
+	//analyzer.applyCristallinity(sticks, base.MendeleevTableElementUndefined)
+	filename := "cristall_sticks.data"
+	analyzer.debugSticks(sticks, base.Oxygen, filename)
+	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }
 
 func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
@@ -764,7 +768,7 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 			return -1
 		}
 	})
-	firstTop := int(math.Ceil(float64(len(domains)) * topPercent))
+	firstTop := min(len(domains), 2)
 	domains = domains[:firstTop]
 	sticks = func() []_CristallizedStick {
 		sticks := make([]_CristallizedStick, 0)
@@ -777,4 +781,14 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
 		analyzer.printer.PrintflnError("При подсчёте S методом доменов: %v", err)
 	}
+	sticks = func() []_CristallizedStick {
+		sticks := make([]_CristallizedStick, 0)
+		for _, domain := range domains {
+			sticks = append(sticks, domain...)
+		}
+		return sticks
+	}()
+	filename := "cristall_domains.data"
+	analyzer.debugSticks(sticks, base.Oxygen, filename)
+	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }
