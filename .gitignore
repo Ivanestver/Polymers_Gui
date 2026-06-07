@@ -16,3 +16,15 @@ slices/
 *.zip
 *.rar
 *.png
+*.dpd
+*.log
+*.class2
+*.msi
+*.lammpstrj
+*.mol
+*.mol2
+*.docx
+*.bat
+*.pdb
+*.bak
+*.dump
