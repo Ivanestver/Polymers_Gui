@@ -71,15 +71,15 @@ func readAtomsSection(scanner *bufio.Scanner) ([]dt.Atom, error) {
 		if err != nil {
 			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
-		pointX, err := strconv.Atoi(parts[ATOM_POINT_X])
+		pointX, err := strconv.ParseFloat(parts[ATOM_POINT_X], 64)
 		if err != nil {
 			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
-		pointY, err := strconv.Atoi(parts[ATOM_POINT_Y])
+		pointY, err := strconv.ParseFloat(parts[ATOM_POINT_Y], 64)
 		if err != nil {
 			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
-		pointZ, err := strconv.Atoi(parts[ATOM_POINT_Z])
+		pointZ, err := strconv.ParseFloat(parts[ATOM_POINT_Z], 64)
 		if err != nil {
 			return []dt.Atom{}, errors.New("(In Atoms): " + err.Error())
 		}
