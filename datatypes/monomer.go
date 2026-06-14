@@ -159,7 +159,7 @@ func (monomer *Monomer) DeepCopy(field *Field) *Monomer {
 	return newMon
 }
 
-func (monomer *Monomer) DeepCopyFrom(other *Monomer, field *Field) {
+func (monomer *Monomer) DeepCopyFrom(other *Monomer, field IField) {
 	if monomer.coords != other.coords {
 		return
 	}
