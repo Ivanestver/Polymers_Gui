@@ -14,14 +14,16 @@ import (
 )
 
 type _TrajectoriesApplier struct {
-	globula    *views.GlobulaView
-	fileReader *bufio.Scanner
-	monomers   map[int64]*datatypes.Monomer
+	globula        *views.GlobulaView
+	trajectoriesID int
+	fileReader     *bufio.Scanner
+	monomers       map[int64]*datatypes.Monomer
 }
 
-func newTrajectoriesApplier(globula *views.GlobulaView, trajectoriesFilename string) (*_TrajectoriesApplier, error) {
+func newTrajectoriesApplier(globula *views.GlobulaView, trajectiriesID int, trajectoriesFilename string) (*_TrajectoriesApplier, error) {
 	applier := &_TrajectoriesApplier{
-		globula: globula,
+		globula:        globula,
+		trajectoriesID: trajectiriesID,
 	}
 	file, err := os.Open(trajectoriesFilename)
 	if err != nil {
@@ -170,7 +172,7 @@ func (applier *_TrajectoriesApplier) saveTimestep(timestep int) error {
 	if s, err := savers.SaveToLammps(applier.globula); err != nil {
 		return err
 	} else {
-		filename := "timestep_" + strconv.Itoa(timestep) + ".dump"
+		filename := "timestep_" + strconv.Itoa(applier.trajectoriesID) + "_" + strconv.Itoa(timestep) + ".dump"
 		file, err := os.Create(filename)
 		if err != nil {
 			return err
@@ -183,8 +185,8 @@ func (applier *_TrajectoriesApplier) saveTimestep(timestep int) error {
 	return nil
 }
 
-func ApplyTrajectories(globula *views.GlobulaView, trajectoriesFilename string) error {
-	applier, err := newTrajectoriesApplier(globula, trajectoriesFilename)
+func ApplyTrajectories(globula *views.GlobulaView, trajectoryID int, trajectoriesFilename string) error {
+	applier, err := newTrajectoriesApplier(globula, trajectoryID, trajectoriesFilename)
 	if err != nil {
 		return err
 	}
