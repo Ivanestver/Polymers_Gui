@@ -111,3 +111,17 @@ func (realField *RealField) GetMaxMonomersByAxis(axis base.Axis) []*Monomer {
 	}
 	return minMonomers
 }
+
+func (realField *RealField) DeepCopy() IField {
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
+	newRealField := NewRealField([3][2]float64{
+		{spaceDimention[base.AxisX].Lower, spaceDimention[base.AxisX].Higher},
+		{spaceDimention[base.AxisY].Lower, spaceDimention[base.AxisY].Higher},
+		{spaceDimention[base.AxisZ].Lower, spaceDimention[base.AxisZ].Higher},
+	})
+	for _, mon := range realField.monomers {
+		newMon := &Monomer{}
+		newMon.DeepCopyFrom(mon, newRealField)
+	}
+	return newRealField
+}

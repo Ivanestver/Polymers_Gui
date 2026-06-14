@@ -172,7 +172,7 @@ func (field *Field) DefineStartMonomer() *Monomer {
 // 	})
 // }
 
-func (field *Field) DeepCopy() *Field {
+func (field *Field) DeepCopy() IField {
 	newField := NewField(field.sphereRadius)
 	for coords, mon := range field.monomers {
 		newField.monomers[coords].DeepCopyFrom(mon, newField)

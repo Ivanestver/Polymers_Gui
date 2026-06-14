@@ -21,6 +21,7 @@ type IField interface {
 	GetMonomersWithin(lower, higher base.Vector3DF) []*Monomer
 	GetMinMonomersByAxis(axis base.Axis) []*Monomer
 	GetMaxMonomersByAxis(axis base.Axis) []*Monomer
+	DeepCopy() IField
 }
 
 func CreateField(fieldType FieldType, args ...any) IField {
