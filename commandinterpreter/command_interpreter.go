@@ -704,11 +704,16 @@ func cristallinity() (Command, interface{}) {
 }
 
 func trajectories() (Command, interface{}) {
+	files := make([]string, 0)
 	token, err := getParameterAsString()
-	if err != nil {
-		return CommandUndefined, err.Error()
+	for err == nil {
+		files = append(files, token)
+		token, err = getParameterAsString()
 	}
-	m := make(map[string]string)
-	m["traj_filename"] = token
+	if len(files) == 0 {
+		return CommandUndefined, "необходимо указать хотя бы один файл траекторий"
+	}
+	m := make(map[string][]string)
+	m["traj_filename"] = files
 	return CommandTrajectories, m
 }

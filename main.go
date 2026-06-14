@@ -351,14 +351,17 @@ func main() {
 			cristallinity.Analyze(globula, offset, outputFileName, level, baseElem, topPercent)
 
 		case interp.CommandTrajectories:
-			data := data.(map[string]string)
-			trajectoriesFilename, ok := data["traj_filename"]
+			data := data.(map[string][]string)
+			trajectoriesFilenames, ok := data["traj_filename"]
 			if !ok {
 				printer.PrintlnError("отсутствует входной файл траекторий")
 				continue
 			}
-			if err := trajectories.ApplyTrajectories(globula, trajectoriesFilename); err != nil {
-				printer.PrintflnError("%v", err)
+			currGlobula := globula.DeepCopy()
+			for id, trajectoriesFilename := range trajectoriesFilenames {
+				if err := trajectories.ApplyTrajectories(currGlobula, id, trajectoriesFilename); err != nil {
+					printer.PrintflnError("%v", err)
+				}
 			}
 
 		default:
