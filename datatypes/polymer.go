@@ -72,7 +72,7 @@ func (polymer *Polymer) DeepCopy(args ...any) IPolymer {
 	newPolymer := new(Polymer)
 	newPolymer.polymerNumber = polymer.polymerNumber
 	if field == nil {
-		newPolymer.field = polymer.field.DeepCopy()
+		newPolymer.field = polymer.field.DeepCopy().(*Field)
 	} else {
 		newPolymer.field = field
 	}
