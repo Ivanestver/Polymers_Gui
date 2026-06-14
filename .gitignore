@@ -20,3 +20,7 @@ polymers_tool
 *.msi
 *.m
 *dump*
+*.ascii
+*.trj
+*.xtd
+*.xsd
