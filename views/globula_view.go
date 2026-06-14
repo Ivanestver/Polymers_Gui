@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"math/rand"
 	"polymers/base"
@@ -919,4 +920,18 @@ func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error
 		return err
 	}
 	return nil
+}
+
+func (globula *GlobulaView) DeepCopy() *GlobulaView {
+	newGlobula := &GlobulaView{}
+	newGlobula.polymers = make([]*PolymerView, len(globula.polymers))
+	if len(globula.polymers) > 0 {
+		firstPolymer := globula.polymers[0]
+		field := firstPolymer.GetUnderlinedField().DeepCopy()
+		for i, pol := range globula.polymers {
+			newGlobula.polymers[i] = pol.DeepCopy(field)
+		}
+	}
+	maps.Copy(newGlobula.globulaProperties, globula.globulaProperties)
+	return newGlobula
 }
