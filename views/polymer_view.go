@@ -68,19 +68,15 @@ func (polymerView *PolymerView) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (polymerView *PolymerView) DeepCopy(field *datatypes.Field) *PolymerView {
+func (polymerView *PolymerView) DeepCopy(field datatypes.IField) *PolymerView {
 	newPolymerView := new(PolymerView)
 	newPolymerView.name = polymerView.name
-	newPolymerView.polymer = polymerView.polymer.DeepCopy(field).(*datatypes.Polymer)
+	newPolymerView.polymer = polymerView.polymer.DeepCopy(field)
 	return newPolymerView
 }
 
 func (polymerView *PolymerView) GetUnderlinedField() datatypes.IField {
-	if polymerView.polymer.GetFieldType() == datatypes.FieldTypeLattice {
-		return polymerView.polymer.(*datatypes.Polymer).GetField()
-	} else {
-		return polymerView.polymer.(*datatypes.RealPolymer).GetField()
-	}
+	return polymerView.polymer.GetField()
 }
 
 func (polymerView *PolymerView) TrunkTo(newSize int) {
