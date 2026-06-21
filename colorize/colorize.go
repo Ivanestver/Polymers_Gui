@@ -10,7 +10,7 @@ func Colorize(globula *views.GlobulaView) error {
 	for polNumber := range globula.Len() {
 		polymer := globula.GetPolymerByIdx(polNumber)
 		monomerType := table[polNumber]
-		for monNumber := range globula.Len() {
+		for monNumber := range polymer.Len() {
 			monomer := polymer.GetMonomerByIdx(monNumber)
 			monomer.MonomerType = monomerType
 		}

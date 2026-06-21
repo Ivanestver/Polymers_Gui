@@ -198,6 +198,7 @@ func s() (Command, any) {
 		CommandSpaceSTR:            space,
 		CommandCristallinitySTR:    cristallinity,
 		CommandTrajectoriesSTR:     trajectories,
+		CommandColorizeSTR:         colorize,
 	}[token]; ok {
 		return f()
 	} else {
