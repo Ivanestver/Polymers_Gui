@@ -932,6 +932,7 @@ func (globula *GlobulaView) DeepCopy() *GlobulaView {
 			newGlobula.polymers[i] = pol.DeepCopy(field)
 		}
 	}
+	newGlobula.globulaProperties = make(map[GlobulaProperty]bool)
 	maps.Copy(newGlobula.globulaProperties, globula.globulaProperties)
 	return newGlobula
 }
