@@ -1,5 +1,3 @@
-github.com/Ivanestver/lammps-file-parser v0.0.0-20260524151849-ff308debb54c h1:U06QZgkqZOJTw01KM9Ajl+gA6qPiem+c31lRXXmLtts=
-github.com/Ivanestver/lammps-file-parser v0.0.0-20260524151849-ff308debb54c/go.mod h1:QR9CwKEr0mehmi6RB4vdpEmU8EMA3sWpYhiUjC3R6kE=
 github.com/gookit/assert v0.1.1 h1:lh3GcawXe/p+cU7ESTZ5Ui3Sm/x8JWpIis4/1aF0mY0=
 github.com/gookit/assert v0.1.1/go.mod h1:jS5bmIVQZTIwk42uXl4lyj4iaaxx32tqH16CFj0VX2E=
 github.com/gookit/color v1.6.1 h1:KoTnDxJPRgrL0SoX0f8rCFg2zI0t4E3GZZBMo2nN8LU=

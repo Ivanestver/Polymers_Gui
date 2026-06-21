@@ -2,7 +2,7 @@ module polymers
 
 go 1.25.6
 
-//replace github.com/Ivanestver/lammps-file-parser => /home/ivan/projects/lammps-file-parser
+replace github.com/Ivanestver/lammps-file-parser => /home/ivan/projects/lammps-file-parser
 
 require (
 	github.com/Ivanestver/lammps-file-parser v0.0.0-20260524151849-ff308debb54c
