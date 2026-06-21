@@ -511,8 +511,7 @@ func (analyzer *_CristallinityAnalyzer) analyzeCristallinity(domains []_Cristall
 	analyzer.printer.Printfln("Степень кристалличности: %f\n", float64(domainMonomersCount)/float64(analyzer.globula.GetAtomsCount()))
 }
 
-func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_CristallizedStick) {
-	analyzer.printer.Println("Ориентация по формуле <3*cosTheta-1>/2")
+func (analyzer *_CristallinityAnalyzer) analyzeOrientationsAsMeanCos(sticks []_CristallizedStick) float64 {
 	director := analyzer.getDirector(sticks)
 	director = director.Normalized()
 	S := 0.0
@@ -523,8 +522,7 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientations(sticks []_Cristalliz
 		S += cosTheta * cosTheta
 	}
 	S = S / float64(len(sticks))
-	S = (3.0*S - 1.0) / 2.0
-	analyzer.printer.Printfln("S = %f", S)
+	return (3.0*S - 1.0) / 2.0
 }
 
 func (analyzer *_CristallinityAnalyzer) getDirector(sticks []_CristallizedStick) base.Vector3DF {
@@ -599,7 +597,8 @@ func (analyzer *_CristallinityAnalyzer) getVectors() []base.Vector3DF {
 	return vectors
 }
 
-func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(sticks []_CristallizedStick) error {
+func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(sticks []_CristallizedStick) (S float64, director base.Vector3DF, err error) {
+	err = nil
 	vectors := func() []base.Vector3DF {
 		vectors := make([]base.Vector3DF, len(sticks))
 		for i, stick := range sticks {
@@ -634,7 +633,8 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(sticks []_Cr
 
 	var eig mat.EigenSym
 	if ok := eig.Factorize(outerProduct, true); !ok {
-		return errors.New("не удалось разложить матрицу")
+		err = errors.New("не удалось разложить матрицу")
+		return
 	}
 
 	values := eig.Values(nil)
@@ -645,19 +645,19 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationViaTensor(sticks []_Cr
 			maxIdx = i
 		}
 	}
-	S := 1.5 * values[maxIdx]
+	S = 1.5 * values[maxIdx]
 	var eVecs mat.Dense
 	eig.VectorsTo(&eVecs)
-	director := base.Vector3DF{
+	director = base.Vector3DF{
 		eVecs.At(0, maxIdx),
 		eVecs.At(1, maxIdx),
 		eVecs.At(2, maxIdx),
 	}
 
-	analyzer.printer.Println("Ориентация с помощью формулы с тензором")
-	analyzer.printer.Printfln("S = %.4f\n", S)
-	analyzer.printer.Printfln("director = %v", director)
-	return nil
+	// analyzer.printer.Println("Ориентация с помощью формулы с тензором")
+	// analyzer.printer.Printfln("S = %.4f\n", S)
+	// analyzer.printer.Printfln("director = %v", director)
+	return
 }
 
 func validateInputParams(offset int, outputFilename string, level ScaleLevel) error {
@@ -709,7 +709,7 @@ func (analyzer *_CristallinityAnalyzer) debugSticksStartEnd(sticks []_Cristalliz
 	}
 }
 
-func Analyze(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64) {
+func AnalyzeToFile(globula *views.GlobulaView, offset int, outputFilename string, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64) {
 	printer := outputformat.GetPrint()
 	if err := validateInputParams(offset, outputFilename, level); err != nil {
 		printer.PrintlnError(err.Error())
@@ -724,7 +724,42 @@ func Analyze(globula *views.GlobulaView, offset int, outputFilename string, leve
 	analyzer.printer.Println("Алгоритм, основанный на кристаллических направляющих")
 	analyzeWithPercent(analyzer, topPercent)
 	analyzer.printer.Println("Алгоритм, основанный на объединении кристаллических доменов")
-	analyzeJoinDomains(analyzer, topPercent)
+	analyzeJoinDomains(analyzer)
+}
+
+func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64, logFileName string) (SMeanCos, STensor float64, e error) {
+	if err := validateInputParams(offset, "placeholder", level); err != nil {
+		e = err
+		return
+	}
+	analyzer, err := makeCristallinityAnalyzer(globula, offset, logFileName, level, baseElem)
+	if err != nil {
+		e = err
+		return
+	}
+	sticks := analyzer.findCristallizedSticks()
+	if len(sticks) == 0 {
+		e = errors.New("отсутствуют кристаллические домены")
+		return
+	}
+	slices.SortFunc(sticks, func(cs1, cs2 _CristallizedStick) int {
+		if len(cs1) < len(cs2) {
+			return 1
+		} else if len(cs1) == len(cs2) {
+			return 0
+		} else {
+			return -1
+		}
+	})
+	partOf := int(float64(len(sticks)) * topPercent)
+	sticks = sticks[:partOf]
+	SMeanCos = analyzer.analyzeOrientationsAsMeanCos(sticks)
+	if S, _, err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
+		e = err
+	} else {
+		STensor = S
+	}
+	return
 }
 
 func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
@@ -744,9 +779,15 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	})
 	partOf := int(float64(len(sticks)) * topPercent)
 	sticks = sticks[:partOf]
-	analyzer.analyzeOrientations(sticks)
-	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
+	analyzer.printer.Println("Ориентация по формуле <3*cosTheta-1>/2")
+	SMeanCos := analyzer.analyzeOrientationsAsMeanCos(sticks)
+	analyzer.printer.Printfln("S = %f", SMeanCos)
+	if S, director, err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
 		analyzer.printer.PrintflnError("При подсчёте S методом направляющих: %v", err)
+	} else {
+		analyzer.printer.Println("Ориентация с помощью формулы с тензором")
+		analyzer.printer.Printfln("S = %.4f\n", S)
+		analyzer.printer.Printfln("director = %v", director)
 	}
 	//analyzer.applyCristallinity(sticks, base.MendeleevTableElementUndefined)
 	filename := "cristall_sticks.data"
@@ -754,7 +795,7 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }
 
-func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
+func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
 	sticks := analyzer.findCristallizedSticks()
 	domains := analyzer.joinSticksToDomains(sticks)
 	slices.SortFunc(domains, func(d1, d2 _CristallizedDomain) int {
@@ -777,9 +818,15 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer, topPercent float64) {
 		}
 		return sticks
 	}()
-	analyzer.analyzeOrientations(sticks)
-	if err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
+	analyzer.printer.Println("Ориентация по формуле <3*cosTheta-1>/2")
+	SMeanCos := analyzer.analyzeOrientationsAsMeanCos(sticks)
+	analyzer.printer.Printfln("S = %f", SMeanCos)
+	if S, director, err := analyzer.analyzeOrientationViaTensor(sticks); err != nil {
 		analyzer.printer.PrintflnError("При подсчёте S методом доменов: %v", err)
+	} else {
+		analyzer.printer.Println("Ориентация с помощью формулы с тензором")
+		analyzer.printer.Printfln("S = %.4f\n", S)
+		analyzer.printer.Printfln("director = %v", director)
 	}
 	sticks = func() []_CristallizedStick {
 		sticks := make([]_CristallizedStick, 0)
