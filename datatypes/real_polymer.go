@@ -41,7 +41,21 @@ func (realPolymer *RealPolymer) Copy() IPolymer {
 }
 
 func (realPolymer *RealPolymer) DeepCopy(args ...any) IPolymer {
-	return nil
+	field := args[0].(*RealField)
+	newPolymer := new(RealPolymer)
+	newPolymer.number = realPolymer.number
+	if field == nil {
+		newPolymer.field = realPolymer.field.DeepCopy().(*RealField)
+	} else {
+		newPolymer.field = field
+	}
+
+	newPolymer.monomers = make([]*Monomer, len(realPolymer.monomers))
+	for i, mon := range realPolymer.monomers {
+		newPolymer.monomers[i] = newPolymer.field.GetMonomerByCoords(mon.coords)
+	}
+
+	return newPolymer
 }
 
 func (realPolymer *RealPolymer) AddMonomer(monomer *Monomer) {
