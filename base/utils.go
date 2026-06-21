@@ -3,6 +3,7 @@ package base
 import (
 	"cmp"
 	"math"
+	"strings"
 )
 
 func EcludianDistance(c1, c2 Vector3D) float64 {
@@ -193,4 +194,14 @@ func PointInSpace(coords, lower, higher *Vector3DF) bool {
 			(coords[axis] < higher[axis] || CompareFloat(higher[axis], coords[axis]))
 	}
 	return isInSpace
+}
+
+func ReduceSpacesToSingle(s string) string {
+	newS := s
+	temp := strings.ReplaceAll(newS, "  ", " ")
+	for len(temp) < len(newS) {
+		newS = temp
+		temp = strings.ReplaceAll(newS, "  ", " ")
+	}
+	return newS
 }
