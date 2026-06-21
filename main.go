@@ -151,15 +151,13 @@ func main() {
 			m := data.(map[string]interface{})
 			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.CommandShowGlobula:
-			if globula != nil {
-				PrintGlobulaInfo(globula)
-			} else {
-				printer.PrintlnError("There is no globula called")
+			if globulaDoesntExist() {
+				continue
 			}
+				PrintGlobulaInfo(globula)
 		case interp.CommandSaveGlobula:
-			if globula == nil {
-				printer.PrintlnError("There is no globula called")
-				break
+			if globulaDoesntExist() {
+				continue
 			}
 			filename := data.(string)
 			content, _ := savers.SaveToLammps(globula)
@@ -171,6 +169,9 @@ func main() {
 			defer f.Close()
 			f.Write([]byte(content))
 		case interp.CommandHighlightClustersAll:
+			if globulaDoesntExist() {
+				continue
+			}
 			printer.Println("Start highlighting clusters")
 			xClusters, yClusters, zClusters := globula.CommonClusters()
 			if xClusters != nil {
@@ -184,14 +185,13 @@ func main() {
 			}
 
 		case interp.CommandAge:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string]interface{})
 			groupsCountStr := data["count"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
-			if globula == nil {
-				printer.PrintlnError("There is no globula")
-				break
-			}
 			groupsCount := 0
 			if groupsCountStr[len(groupsCountStr)-1] == '%' {
 				percent, _ := strconv.ParseFloat(groupsCountStr[:len(groupsCountStr)-1], 64)
@@ -226,18 +226,33 @@ func main() {
 			}
 
 		case interp.CommandReset:
+			if globulaDoesntExist() {
+				continue
+			}
 			globula.Reset()
 
 		case interp.CommandResetFull:
+			if globulaDoesntExist() {
+				continue
+			}
 			globula.FullReset()
 
 		case interp.CommandHighlightBorders:
+			if globulaDoesntExist() {
+				continue
+			}
 			globula.HighlightBorders()
 
 		case interp.CommandWaterize:
+			if globulaDoesntExist() {
+				continue
+			}
 			globula.Waterize()
 
 		case interp.CommandTrunk:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string]interface{})
 			newSize, ok := data["new_size"]
 			if ok {
@@ -247,6 +262,9 @@ func main() {
 			}
 
 		case interp.CommandPattern:
+			if globulaDoesntExist() {
+				continue
+			}
 			if _, err := processPattern(data.(map[string]string)); err != nil {
 				printer.PrintlnError(err.Error())
 			}
@@ -262,6 +280,9 @@ func main() {
 			commands = getCommandsFromScript(filename, "")
 
 		case interp.CommandCommonStats:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string]string)
 			text := globula.GetStatistics()
 			f, err := os.Create(data["filename"])
@@ -273,8 +294,11 @@ func main() {
 			f.Write([]byte(text))
 
 		case interp.CommandAtomistic:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string]string)
-			if config, ok := data["config"]; ok && globula != nil {
+			if config, ok := data["config"]; ok {
 				atomistic.MakeAtomistic(globula, config)
 			} else {
 				printer.PrintflnError("Build a globula first")
@@ -302,6 +326,9 @@ func main() {
 				printer.PrintflnError("When loading: %s", err.Error())
 			}
 		case interp.CommandCycles:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string]interface{})
 			steps := 1
 			if stepsInterface, ok := data["steps"]; ok {
@@ -316,8 +343,7 @@ func main() {
 			cycles.Analyze(globula, axises, steps)
 
 		case interp.CommandCristallinity:
-			if globula == nil {
-				printer.PrintlnError("Сначала необходимо построить глобулу")
+			if globulaDoesntExist() {
 				continue
 			}
 			offset := 2
@@ -355,6 +381,9 @@ func main() {
 			cristallinity.AnalyzeToFile(globula, offset, outputFileName, level, baseElem, topPercent)
 
 		case interp.CommandTrajectories:
+			if globulaDoesntExist() {
+				continue
+			}
 			data := data.(map[string][]string)
 			trajectoriesFilenames, ok := data["traj_filename"]
 			if !ok {
