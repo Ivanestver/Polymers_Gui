@@ -316,6 +316,10 @@ func main() {
 			cycles.Analyze(globula, axises, steps)
 
 		case interp.CommandCristallinity:
+			if globula == nil {
+				printer.PrintlnError("Сначала необходимо построить глобулу")
+				continue
+			}
 			offset := 2
 			outputFileName := "cristallized.log"
 			level := "atomistic"
@@ -348,7 +352,7 @@ func main() {
 					}
 				}
 			}
-			cristallinity.Analyze(globula, offset, outputFileName, level, baseElem, topPercent)
+			cristallinity.AnalyzeToFile(globula, offset, outputFileName, level, baseElem, topPercent)
 
 		case interp.CommandTrajectories:
 			data := data.(map[string][]string)
@@ -358,10 +362,8 @@ func main() {
 				continue
 			}
 			currGlobula := globula.DeepCopy()
-			for id, trajectoriesFilename := range trajectoriesFilenames {
-				if err := trajectories.ApplyTrajectories(currGlobula, id, trajectoriesFilename); err != nil {
-					printer.PrintflnError("%v", err)
-				}
+			if err := trajectories.ApplyTrajectories(currGlobula, trajectoriesFilenames); err != nil {
+				printer.PrintflnError("%v", err)
 			}
 
 		default:
