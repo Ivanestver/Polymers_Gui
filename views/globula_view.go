@@ -110,14 +110,14 @@ func (globula *GlobulaView) FullReset() {
 }
 
 // func (globula *GlobulaView) ToJson() ([]byte, error) {
-// 	pols_countMap := make(map[string]interface{})
+// 	pols_countMap := make(map[string]any)
 // 	pols_countMap["value"] = len(globula.polymers)
 // 	pols_countMap["name"] = "Количество полимеров"
 
-// 	pols_map := make(map[string]interface{})
+// 	pols_map := make(map[string]any)
 // 	pols_map["value"] = make([]string, len(globula.polymers))
 
-// 	var jsonDict map[string]interface{}
+// 	var jsonDict map[string]any
 // 	jsonDict["polymers_count"] = pols_countMap
 // 	return nil, nil
 // }

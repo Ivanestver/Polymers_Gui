@@ -1,12 +1,12 @@
 package base
 
-type Stack []interface{}
+type Stack []any
 
-func (s *Stack) Push(item interface{}) {
+func (s *Stack) Push(item any) {
 	*s = append(*s, item)
 }
 
-func (s *Stack) Pop() (interface{}, bool) {
+func (s *Stack) Pop() (any, bool) {
 	if s.IsEmpty() {
 		return nil, false // Or handle error appropriately
 	}
@@ -16,7 +16,7 @@ func (s *Stack) Pop() (interface{}, bool) {
 	return element, true
 }
 
-func (s *Stack) Peek() (interface{}, bool) {
+func (s *Stack) Peek() (any, bool) {
 	if s.IsEmpty() {
 		return nil, false // Or handle error appropriately
 	}
@@ -24,7 +24,7 @@ func (s *Stack) Peek() (interface{}, bool) {
 	return (*s)[index], true
 }
 
-func (s *Stack) PeekNotSafe() interface{} {
+func (s *Stack) PeekNotSafe() any {
 	return (*s)[len(*s)-1]
 }
 

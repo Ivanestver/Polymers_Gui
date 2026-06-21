@@ -165,20 +165,20 @@ func getUndefinedCommand(token string) (Command, string) {
 	return CommandUndefined, "Undefined parameter '" + token + "'"
 }
 
-func Interpret(program string) (Command, interface{}) {
+func Interpret(program string) (Command, any) {
 	reset()
 	currProgram = program
 	return s()
 }
 
-func s() (Command, interface{}) {
+func s() (Command, any) {
 	token, error := getNextToken()
 	if error != nil {
 		return CommandUndefined, error.Error()
 	}
 
-	if f, ok := map[string]func() (Command, interface{}){
-		CommandHelpSTR:             func() (Command, interface{}) { return CommandHelp, nil },
+	if f, ok := map[string]func() (Command, any){
+		CommandHelpSTR:             func() (Command, any) { return CommandHelp, nil },
 		CommandPatternSTR:          pattern,
 		CommandBuildSTR:            build,
 		CommandShowSTR:             show,
@@ -187,7 +187,7 @@ func s() (Command, interface{}) {
 		CommandAgeSTR:              age,
 		CommandHighlightBordersSTR: borders,
 		CommandResetSTR:            resetGlobula,
-		CommandExitSTR:             func() (Command, interface{}) { return CommandExit, nil },
+		CommandExitSTR:             func() (Command, any) { return CommandExit, nil },
 		CommandWaterizeSTR:         waterize,
 		CommandTrunkSTR:            trunk,
 		CommandScriptSTR:           script,
@@ -205,7 +205,7 @@ func s() (Command, interface{}) {
 	}
 }
 
-func pattern() (Command, interface{}) {
+func pattern() (Command, any) {
 	m := make(map[string]string)
 
 	t, err := getNextToken()
@@ -243,7 +243,7 @@ func pattern() (Command, interface{}) {
 	return CommandPattern, m
 }
 
-func build() (Command, interface{}) {
+func build() (Command, any) {
 	objective, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err.Error()
@@ -258,7 +258,7 @@ func build() (Command, interface{}) {
 		predefinedParams = append(predefinedParams, p)
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["params"] = predefinedParams
 
 	name, err := getParameterAsString()
@@ -285,7 +285,7 @@ func build() (Command, interface{}) {
 	return getUndefinedCommand(objective)
 }
 
-func show() (Command, interface{}) {
+func show() (Command, any) {
 	token, error := getNextToken()
 	if error != nil {
 		return CommandUndefined, error.Error()
@@ -298,11 +298,11 @@ func show() (Command, interface{}) {
 	return CommandUndefined, "Undefined parameter '" + token + "'"
 }
 
-func showGlobula() (Command, interface{}) {
+func showGlobula() (Command, any) {
 	return CommandShowGlobula, nil
 }
 
-func save() (Command, interface{}) {
+func save() (Command, any) {
 	filename, err := getParameterAsString()
 	if err != nil {
 		return CommandUndefined, err.Error()
@@ -310,7 +310,7 @@ func save() (Command, interface{}) {
 	return CommandSaveGlobula, filename
 }
 
-func clusters() (Command, interface{}) {
+func clusters() (Command, any) {
 	getNextToken() // skip all the empty spaces until " or the end
 	if finished() {
 		return CommandUndefined, "Wrong usage"
@@ -328,7 +328,7 @@ func clusters() (Command, interface{}) {
 	return CommandUndefined, "Wrong usage"
 }
 
-func age() (Command, interface{}) {
+func age() (Command, any) {
 	groupCount, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err
@@ -356,7 +356,7 @@ func age() (Command, interface{}) {
 		return CommandUndefined, err
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	// For Age Algorithm Type 3 and 4
 	if !finished() && (ageAlgType == 3 || ageAlgType == 4) {
 		ncut, err := getNextToken()
@@ -388,14 +388,14 @@ func age() (Command, interface{}) {
 	return CommandAge, m
 }
 
-func borders() (Command, interface{}) {
+func borders() (Command, any) {
 	return CommandHighlightBorders, nil
 }
 
-func resetGlobula() (Command, interface{}) {
+func resetGlobula() (Command, any) {
 	getNextToken() // skip empty spaces
 	if finished() {
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 		m["full"] = false
 		return CommandReset, m
 	}
@@ -406,7 +406,7 @@ func resetGlobula() (Command, interface{}) {
 	}
 
 	if token == CommandFullSTR {
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 		m["full"] = true
 		return CommandResetFull, m
 	}
@@ -414,12 +414,12 @@ func resetGlobula() (Command, interface{}) {
 	return CommandUndefined, string("Wrong usage")
 }
 
-func waterize() (Command, interface{}) {
+func waterize() (Command, any) {
 	return CommandWaterize, nil
 }
 
-func trunk() (Command, interface{}) {
-	m := make(map[string]interface{})
+func trunk() (Command, any) {
+	m := make(map[string]any)
 	if finished() { // No size has been provided, therefore, use the shortest
 		return CommandTrunk, m
 	}
@@ -438,7 +438,7 @@ func trunk() (Command, interface{}) {
 	return CommandTrunk, m
 }
 
-func script() (Command, interface{}) {
+func script() (Command, any) {
 	filename, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err.Error()
@@ -446,7 +446,7 @@ func script() (Command, interface{}) {
 	return CommandScript, filename
 }
 
-func commonStats() (Command, interface{}) {
+func commonStats() (Command, any) {
 	m := make(map[string]string)
 
 	filename, err := getParameterAsString()
@@ -537,7 +537,7 @@ func getPatternS4(raw string, curr *int, start int, dst *string) error {
 	}
 }
 
-func atomistic() (Command, interface{}) {
+func atomistic() (Command, any) {
 	m := make(map[string]string)
 
 	fileName, err := getParameterAsString()
@@ -548,7 +548,7 @@ func atomistic() (Command, interface{}) {
 	return CommandAtomistic, m
 }
 
-func load() (Command, interface{}) {
+func load() (Command, any) {
 	filetype, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, "no filetype specified"
@@ -575,8 +575,8 @@ func load() (Command, interface{}) {
 	return CommandLoader, m
 }
 
-func cycles() (Command, interface{}) {
-	m := make(map[string]interface{})
+func cycles() (Command, any) {
+	m := make(map[string]any)
 	token, err := getNextToken()
 	if err != nil {
 		return CommandCycles, m
@@ -603,7 +603,7 @@ func cycles() (Command, interface{}) {
 	return CommandCycles, m
 }
 
-func space() (Command, interface{}) {
+func space() (Command, any) {
 	token, err := getNextToken()
 	if err != nil {
 		return CommandUndefined, err
@@ -664,12 +664,12 @@ func space() (Command, interface{}) {
 	return CommandSpace, m
 }
 
-func cristallinity() (Command, interface{}) {
+func cristallinity() (Command, any) {
 	token, err := getNextToken()
 	if err != nil {
 		return CommandCristallinity, struct{}{}
 	}
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["level"] = token
 
 	token, err = getNextToken()
@@ -707,7 +707,7 @@ func cristallinity() (Command, interface{}) {
 	return CommandCristallinity, m
 }
 
-func trajectories() (Command, interface{}) {
+func trajectories() (Command, any) {
 	files := make([]string, 0)
 	token, err := getParameterAsString()
 	for len(token) > 0 && err == nil {
@@ -722,6 +722,6 @@ func trajectories() (Command, interface{}) {
 	return CommandTrajectories, m
 }
 
-func colorize() (Command, interface{}) {
+func colorize() (Command, any) {
 	return CommandColorize, nil
 }

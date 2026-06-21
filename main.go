@@ -149,7 +149,7 @@ func main() {
 			}
 			globaldata.SetSpaceDimention(spaceDimention)
 		case interp.CommandBuild:
-			m := data.(map[string]interface{})
+			m := data.(map[string]any)
 			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string), m["name"].(string))
 		case interp.CommandShowGlobula:
 			if globulaDoesntExist() {
@@ -189,7 +189,7 @@ func main() {
 			if globulaDoesntExist() {
 				continue
 			}
-			data := data.(map[string]interface{})
+			data := data.(map[string]any)
 			groupsCountStr := data["count"].(string)
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
@@ -254,7 +254,7 @@ func main() {
 			if globulaDoesntExist() {
 				continue
 			}
-			data := data.(map[string]interface{})
+			data := data.(map[string]any)
 			newSize, ok := data["new_size"]
 			if ok {
 				globula.MakeHomogenousAsCustom(newSize.(int))
@@ -330,7 +330,7 @@ func main() {
 			if globulaDoesntExist() {
 				continue
 			}
-			data := data.(map[string]interface{})
+			data := data.(map[string]any)
 			steps := 1
 			if stepsInterface, ok := data["steps"]; ok {
 				steps = stepsInterface.(int)
@@ -352,7 +352,7 @@ func main() {
 			level := "atomistic"
 			baseElem := base.MendeleevTableElementUndefined
 			topPercent := 0.1
-			if d, ok := data.(map[string]interface{}); ok {
+			if d, ok := data.(map[string]any); ok {
 				if offsetInf, ok := d["offset"]; ok {
 					if offsetFromData, ok := offsetInf.(int); ok {
 						offset = offsetFromData

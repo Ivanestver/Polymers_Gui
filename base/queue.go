@@ -1,12 +1,12 @@
 package base
 
-type Queue []interface{}
+type Queue []any
 
-func (s *Queue) Push(item interface{}) {
+func (s *Queue) Push(item any) {
 	*s = append(*s, item)
 }
 
-func (s *Queue) Pop() (interface{}, bool) {
+func (s *Queue) Pop() (any, bool) {
 	if s.IsEmpty() {
 		return nil, false // Or handle error appropriately
 	}
@@ -15,14 +15,14 @@ func (s *Queue) Pop() (interface{}, bool) {
 	return element, true
 }
 
-func (s *Queue) Peek() (interface{}, bool) {
+func (s *Queue) Peek() (any, bool) {
 	if s.IsEmpty() {
 		return nil, false // Or handle error appropriately
 	}
 	return (*s)[0], true
 }
 
-func (s *Queue) PeekNotSafe() interface{} {
+func (s *Queue) PeekNotSafe() any {
 	return (*s)[0]
 }
 
