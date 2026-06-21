@@ -6,6 +6,7 @@ import (
 	"polymers/base"
 	"polymers/buildglobula"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -92,7 +93,7 @@ func getNextToken() (string, error) {
 	if finished() {
 		return "", errors.New("incompleted command")
 	}
-	var token string
+	var token strings.Builder
 	char := rune(getCurrChar())
 	for char == ' ' {
 		moveForward()
@@ -109,8 +110,9 @@ func getNextToken() (string, error) {
 			char == '(' || char == ')' ||
 			char == '*' ||
 			char == ',' ||
-			char == '-' {
-			token += string(getCurrChar())
+			char == '-' ||
+			char == '/' {
+			token.WriteString(string(getCurrChar()))
 			moveForward()
 			if finished() {
 				break
@@ -125,7 +127,7 @@ func getNextToken() (string, error) {
 			break
 		}
 	}
-	return token, nil
+	return token.String(), nil
 }
 
 func getParameterAsString() (string, error) {
@@ -706,7 +708,7 @@ func cristallinity() (Command, interface{}) {
 func trajectories() (Command, interface{}) {
 	files := make([]string, 0)
 	token, err := getParameterAsString()
-	for err == nil {
+	for len(token) > 0 && err == nil {
 		files = append(files, token)
 		token, err = getParameterAsString()
 	}
