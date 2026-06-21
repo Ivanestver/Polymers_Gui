@@ -120,7 +120,7 @@ func (realField *RealField) DeepCopy() IField {
 		{spaceDimention[base.AxisZ].Lower, spaceDimention[base.AxisZ].Higher},
 	})
 	for _, mon := range realField.monomers {
-		newMon := &Monomer{}
+		newMon := newRealField.GetMonomerByCoords(mon.coords)
 		newMon.DeepCopyFrom(mon, newRealField)
 	}
 	return newRealField
