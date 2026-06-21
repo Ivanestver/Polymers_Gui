@@ -180,7 +180,7 @@ func (builder *_CristallinityCarbonSkeletonBuilder) defineAllCH2Carbons() {
 		polymer := builder.globula.GetPolymerByIdx(polymernNumber)
 		for monomerIdx := 0; monomerIdx < polymer.Len(); monomerIdx++ {
 			monomer := polymer.GetMonomerByIdx(monomerIdx)
-			if monomer.IsNotTypeOf(base.Carbon) {
+			if monomer.IsNotTypeOf(base.C) {
 				continue
 			}
 			siblings := monomer.GetSiblings()
@@ -189,7 +189,7 @@ func (builder *_CristallinityCarbonSkeletonBuilder) defineAllCH2Carbons() {
 				if sibling == nil {
 					continue
 				}
-				if sibling.IsTypeOf(base.Hydrogen) {
+				if sibling.IsTypeOf(base.H) {
 					HCount++
 				}
 			}
@@ -211,7 +211,7 @@ func (builder *_CristallinityCarbonSkeletonBuilder) defineSkeleton(carbonSkeleto
 		}
 		canMove = false
 		for _, sibling := range currMonomer.GetSiblings() {
-			if sibling == nil || sibling.IsNotTypeOf(base.Carbon) {
+			if sibling == nil || sibling.IsNotTypeOf(base.C) {
 				continue
 			}
 			if sibling == fPrevMon(carbonSkeleton) {
@@ -228,7 +228,7 @@ func (builder *_CristallinityCarbonSkeletonBuilder) defineSkeleton(carbonSkeleto
 func (builder *_CristallinityCarbonSkeletonBuilder) getDirectingMonomers(startMonomer *datatypes.Monomer) (backMonomer, forthMonomer *datatypes.Monomer) {
 	siblings := startMonomer.GetSiblings()
 	for _, sibling := range siblings {
-		if sibling.IsTypeOf(base.Carbon) {
+		if sibling.IsTypeOf(base.C) {
 			if backMonomer == nil {
 				backMonomer = sibling
 			} else if forthMonomer == nil {
@@ -374,7 +374,7 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 			panic(err.Error())
 		}
 	}
-	analyzer.applyCristallinity(sticks, base.Carbon)
+	analyzer.applyCristallinity(sticks, base.C)
 }
 
 func (analyzer *_CristallinityAnalyzer) applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
@@ -791,7 +791,7 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	}
 	//analyzer.applyCristallinity(sticks, base.MendeleevTableElementUndefined)
 	filename := "cristall_sticks.data"
-	analyzer.debugSticks(sticks, base.Oxygen, filename)
+	analyzer.debugSticks(sticks, base.O, filename)
 	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }
 
@@ -836,6 +836,6 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
 		return sticks
 	}()
 	filename := "cristall_domains.data"
-	analyzer.debugSticks(sticks, base.Oxygen, filename)
+	analyzer.debugSticks(sticks, base.O, filename)
 	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }

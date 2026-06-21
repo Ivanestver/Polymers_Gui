@@ -72,9 +72,12 @@ func (globula *GlobulaView) Is(prop GlobulaProperty) bool {
 
 func (globula *GlobulaView) Reset() {
 	for _, pol := range globula.polymers {
-		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = base.Carbon; return true })
+		ForEachMonomer(pol, func(mon *dt.Monomer) bool { mon.MonomerType = base.C; return true })
 	}
 	for gp := range globula.globulaProperties {
+		if gp == GlobulaGlobulaType || gp == GlobulaThreadType || gp == GlobulaSurfaceType {
+			continue
+		}
 		delete(globula.globulaProperties, gp)
 	}
 }
@@ -87,7 +90,7 @@ func (globula *GlobulaView) FullReset() {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			// Make monomer as usual
-			mon.MonomerType = base.Carbon
+			mon.MonomerType = base.C
 			// Break all the connections
 			for _, side := range dt.GetAllSides() {
 				sibling, err := mon.GetSibling(side)
@@ -366,10 +369,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 	// =================DEBUG=================
 
 	// 1. Break connections
-	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), base.Oxygen)
+	Cs_ := globula.breakConnections(int(float64(groupsCount)*0.26), base.O)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), base.Nitrogen)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), base.N)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -383,10 +386,10 @@ func (globula *GlobulaView) DoAging1(groupsCount int) {
 
 func (globula *GlobulaView) DoAging2(groupsCount int, doCrosslinks bool) {
 	// 1. Break connections
-	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), base.Nitrogen)
+	Bs_ := globula.breakConnections(int(float64(groupsCount)*0.44), base.N)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), base.Nitrogen)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), base.N)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	globula.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -412,12 +415,12 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C {
 			triesNumber++
 			continue
 		}
 		nextMonomer := poly.polymer.GetMonomerByIdx(nextMonomerNumber)
-		if nextMonomer.MonomerType != base.Carbon {
+		if nextMonomer.MonomerType != base.C {
 			triesNumber++
 			continue
 		}
@@ -425,17 +428,17 @@ func (globula *GlobulaView) breakConnections(groupsCount int, monomerTypeToGathe
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = base.Oxygen
-			nextMonomer.MonomerType = base.Nitrogen
-			if monomerTypeToGather == base.Oxygen {
+			chosenMonomer.MonomerType = base.O
+			nextMonomer.MonomerType = base.N
+			if monomerTypeToGather == base.O {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = base.Nitrogen
-			nextMonomer.MonomerType = base.Oxygen
-			if monomerTypeToGather == base.Nitrogen {
+			chosenMonomer.MonomerType = base.N
+			nextMonomer.MonomerType = base.O
+			if monomerTypeToGather == base.N {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
@@ -478,8 +481,8 @@ func (globula *GlobulaView) turnRandomBinsIntoC(groupsCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType == base.Carbon {
-			chosenMonomer.MonomerType = base.Nitrogen
+		if chosenMonomer.MonomerType == base.C {
+			chosenMonomer.MonomerType = base.N
 			i++
 			triesNumber = 0
 		} else {
@@ -494,7 +497,7 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		poly := globula.polymers[chosenPoly]
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C {
 			continue
 		}
 
@@ -502,10 +505,10 @@ func (globula *GlobulaView) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer
 		for i := 0; i < len(movementSides); i++ {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
-			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == base.Carbon {
+			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == base.C {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = base.Oxygen
-				nextMonomer.MonomerType = base.Oxygen
+				chosenMonomer.MonomerType = base.O
+				nextMonomer.MonomerType = base.O
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
@@ -525,7 +528,7 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C {
 			timesRepeated++
 			continue
 		}
@@ -536,12 +539,12 @@ func (globula *GlobulaView) createCrosslinks2(crosslinksCount int) {
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil &&
 				nextMonomer != nil &&
-				nextMonomer.MonomerType == base.Carbon &&
+				nextMonomer.MonomerType == base.C &&
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = base.Hydrogen
-				nextMonomer.MonomerType = base.Hydrogen
+				chosenMonomer.MonomerType = base.H
+				nextMonomer.MonomerType = base.H
 				currentCount += 1
 				timesRepeated = 0
 				break
@@ -566,7 +569,7 @@ func (globula *GlobulaView) DoAging3(ncut, OcontainingCount, ncross int) error {
 	// } else if err != nil {
 	// 	return err
 	// }
-	globula.breakConnections(OcontainingCount, base.Nitrogen)
+	globula.breakConnections(OcontainingCount, base.N)
 
 	// Then, distribute what's left
 	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
@@ -597,8 +600,8 @@ func (globula *GlobulaView) aging3DistributeCutMonomers(OcontainingCount int, ty
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != base.Carbon ||
-			nextChosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C ||
+			nextChosenMonomer.MonomerType != base.C {
 			trialsCount++
 			continue
 		}
@@ -624,14 +627,14 @@ func (globula *GlobulaView) aging3DistributeCrosslinks(ncross int) (warning, err
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != base.Carbon ||
-			nextChosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C ||
+			nextChosenMonomer.MonomerType != base.C {
 			trialsCount++
 			continue
 		}
 		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.ConnectionTypeCrosslinks)
-		chosenMonomer.MonomerType = base.Hydrogen
-		nextChosenMonomer.MonomerType = base.Hydrogen
+		chosenMonomer.MonomerType = base.H
+		nextChosenMonomer.MonomerType = base.H
 		ncross--
 		trialsCount = 0
 	}
@@ -650,7 +653,7 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 		chosenPolymer := globula.polymers[chosenPolymerNumber]
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len())
 		chosenMonomer := chosenPolymer.polymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.Carbon {
+		if chosenMonomer.MonomerType != base.C {
 			trialsCount++
 			continue
 		}
@@ -690,8 +693,8 @@ func (globula *GlobulaView) aging4DistributeCrosslinks(ncross int) (warning, err
 			} else {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
 			}
-			chosenMonomer.MonomerType = base.Hydrogen
-			nextMonomer.MonomerType = base.Hydrogen
+			chosenMonomer.MonomerType = base.H
+			nextMonomer.MonomerType = base.H
 			trialsCount = 0
 			break
 		}
@@ -845,16 +848,16 @@ func (globula *GlobulaView) showActualAgeStatistics() string {
 	for _, pol := range globula.polymers {
 		ForEachMonomer(pol, func(mon *dt.Monomer) bool {
 			if mon.NextMonomer != nil &&
-				((mon.MonomerType == base.Nitrogen || mon.MonomerType == base.Oxygen) &&
-					(mon.NextMonomer.MonomerType == base.Nitrogen ||
-						mon.NextMonomer.MonomerType == base.Oxygen)) {
+				((mon.MonomerType == base.N || mon.MonomerType == base.O) &&
+					(mon.NextMonomer.MonomerType == base.N ||
+						mon.NextMonomer.MonomerType == base.O)) {
 				cutsCount++
 			}
-			if mon.MonomerType == base.Nitrogen {
+			if mon.MonomerType == base.N {
 				CCount++
-			} else if mon.MonomerType == base.Oxygen {
+			} else if mon.MonomerType == base.O {
 				NCount++
-			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == base.Hydrogen {
+			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == base.H {
 				crossCount[mon.Number] = 1
 				for _, side := range dt.GetMovementSides() {
 					connectionType := mon.GetTypeOfConnectionWithSide(side)
@@ -908,7 +911,7 @@ func (globula *GlobulaView) DoAgingSurface(ncut, nOContaining, ncross int) error
 	}
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
-	globula.breakConnections(nOContaining, base.Nitrogen)
+	globula.breakConnections(nOContaining, base.N)
 
 	// Then, distribute what's left
 	globula.turnRandomBinsIntoC(ncut - nOContaining)

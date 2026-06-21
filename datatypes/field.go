@@ -66,12 +66,12 @@ func NewField(sphereRadius uint64) *Field {
 
 func (field *Field) MakeFilled(monomer *Monomer) {
 	if monomer.IsTypeOf(base.MendeleevTableElementUndefined) {
-		monomer.MonomerType = base.Carbon
+		monomer.MonomerType = base.C
 	}
 }
 
 func (field *Field) MakeFree(monomer *Monomer) {
-	monomer.MonomerType = base.Carbon
+	monomer.MonomerType = base.C
 }
 
 func (field *Field) IsFree(coords base.Vector3DF) bool {
@@ -183,7 +183,7 @@ func (field *Field) DeepCopy() IField {
 func (field *Field) Waterize() {
 	for _, mon := range field.monomers {
 		if mon.IsTypeOf(base.MendeleevTableElementUndefined) {
-			mon.MonomerType = base.Nitrogen
+			mon.MonomerType = base.N
 		}
 	}
 }

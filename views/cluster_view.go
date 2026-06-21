@@ -287,7 +287,7 @@ func NewClusterViewRaw(clusters []*Cluster, axis base.Axis) *ClusterView {
 func (clusterView *ClusterView) Colorize(reset bool) {
 	for _, cluster := range clusterView.clusters {
 		if reset {
-			cluster.SetTypeOfMonomers(base.Carbon)
+			cluster.SetTypeOfMonomers(base.C)
 		} else {
 			cluster.SetTypeOfMonomers(dt.GetAxisColor(clusterView.axis))
 		}

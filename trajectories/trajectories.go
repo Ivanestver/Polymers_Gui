@@ -193,7 +193,7 @@ func (applier *_TrajectoriesApplier) setNewCoords(line string) error {
 }
 
 func (applier *_TrajectoriesApplier) calculateS(timestamp int, file *os.File) error {
-	SMeanCos, STensor, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.Carbon, 0.05, "s_process.log")
+	SMeanCos, STensor, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 0.05, "s_process.log")
 	if err != nil {
 		return err
 	}

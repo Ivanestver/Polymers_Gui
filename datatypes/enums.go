@@ -93,9 +93,9 @@ func GetReversedSide(side Side) Side {
 
 func GetAxisColor(axis base.Axis) base.MendeleevTableElement {
 	return map[base.Axis]base.MendeleevTableElement{
-		base.AxisX: base.Nitrogen,
-		base.AxisY: base.Oxygen,
-		base.AxisZ: base.Fluorine,
+		base.AxisX: base.N,
+		base.AxisY: base.O,
+		base.AxisZ: base.F,
 	}[axis]
 }
 
