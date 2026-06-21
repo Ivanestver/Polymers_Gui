@@ -11,6 +11,7 @@ import (
 	"polymers/atomistic"
 	"polymers/base"
 	"polymers/buildglobula"
+	"polymers/colorize"
 	interp "polymers/commandinterpreter"
 	"polymers/cristallinity"
 	"polymers/cycles"
@@ -154,7 +155,7 @@ func main() {
 			if globulaDoesntExist() {
 				continue
 			}
-				PrintGlobulaInfo(globula)
+			PrintGlobulaInfo(globula)
 		case interp.CommandSaveGlobula:
 			if globulaDoesntExist() {
 				continue
@@ -392,6 +393,14 @@ func main() {
 			}
 			currGlobula := globula.DeepCopy()
 			if err := trajectories.ApplyTrajectories(currGlobula, trajectoriesFilenames); err != nil {
+				printer.PrintflnError("%v", err)
+			}
+
+		case interp.CommandColorize:
+			if globulaDoesntExist() {
+				continue
+			}
+			if err := colorize.Colorize(globula); err != nil {
 				printer.PrintflnError("%v", err)
 			}
 
