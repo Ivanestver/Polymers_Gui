@@ -444,6 +444,11 @@ func getCommandsFromScript(filename string, mode string) []string {
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		printer.PrintlnError(err.Error())
+		return commands
+	}
+
 	return commands
 }
 
