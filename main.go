@@ -465,3 +465,12 @@ func processPattern(data map[string]string) (*views.GlobulaView, error) {
 
 	return globula, nil
 }
+
+func globulaDoesntExist() bool {
+	if globula == nil {
+		printer.PrintlnError("Отсутствует наночастица")
+		return false
+	} else {
+		return true
+	}
+}
