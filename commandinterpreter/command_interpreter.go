@@ -40,6 +40,7 @@ const (
 	CommandCristallinitySTR    = "cristallinity"
 	CommandCommentSTR          = '#'
 	CommandTrajectoriesSTR     = "traj"
+	CommandColorizeSTR         = "colorize"
 )
 
 type Command = int
@@ -68,6 +69,7 @@ const (
 	CommandSpace
 	CommandCristallinity
 	CommandTrajectories
+	CommandColorize
 )
 
 var currProgram string
@@ -718,4 +720,8 @@ func trajectories() (Command, interface{}) {
 	m := make(map[string][]string)
 	m["traj_filename"] = files
 	return CommandTrajectories, m
+}
+
+func colorize() (Command, interface{}) {
+	return CommandColorize, nil
 }
