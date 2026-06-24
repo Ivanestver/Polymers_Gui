@@ -74,6 +74,18 @@ func (realPolymer *RealPolymer) AddMonomer(monomer *Monomer) {
 	MakeConnection(lastMonomer, monomer, ConnectionTypeOne)
 }
 
+func (realPolymer *RealPolymer) AddMonomerNoConnection(monomer *Monomer) {
+	if monomer == nil {
+		return
+	}
+
+	if realPolymer.Len() == 0 {
+		realPolymer.monomers = append(realPolymer.monomers, monomer)
+		return
+	}
+	realPolymer.monomers = append(realPolymer.monomers, monomer)
+}
+
 func (realPolymer *RealPolymer) GetMonomerByIdx(idx int) *Monomer {
 	if idx < 0 || idx >= realPolymer.Len() {
 		return nil
