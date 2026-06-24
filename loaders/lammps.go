@@ -85,7 +85,7 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 			panic(fmt.Sprintf("Неизвестный элемент: %s", atomTypeStruct.AtomLabel))
 		}
 		a.MonomerType = mendeleevTableElement
-		polymer.AddMonomer(a)
+		polymer.AddMonomerNoConnection(a)
 	}
 
 	for _, bond := range lammpsStruct.Bonds {
@@ -100,6 +100,18 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 
 	polymers := make([]datatypes.IPolymer, len(polymersMap))
 	for i, polymer := range polymersMap {
+		for monNumber := 1; monNumber < polymer.Len(); monNumber++ {
+			mon1 := polymer.GetMonomerByIdx(monNumber - 1)
+			mon2 := polymer.GetMonomerByIdx(monNumber)
+			side := mon1.GetSideOfSibling(mon2)
+			if side != datatypes.SideUndefined {
+				mon1.NextMonomer = mon2
+				mon2.PrevMonomer = mon1
+			} else {
+				a := 1
+				a = a
+			}
+		}
 		polymers[i] = polymer
 	}
 	return polymers, nil
