@@ -67,7 +67,8 @@ func RecognizeElement(str string) MendeleevTableElement {
 	}
 	s = strings.ToUpper(s)
 	for _, elem := range GetMendeleevTable() {
-		if elem != MendeleevTableElementUndefined && strings.HasPrefix(s, string(elem)) {
+		elemUpper := elem
+		if elemUpper != MendeleevTableElementUndefined && strings.HasPrefix(s, strings.ToUpper(string(elemUpper))) {
 			return elem
 		}
 	}
