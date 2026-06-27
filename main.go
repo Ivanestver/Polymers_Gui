@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"polymers/age"
 	"polymers/atomistic"
 	"polymers/base"
 	"polymers/buildglobula"
@@ -194,6 +195,7 @@ func main() {
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
 			groupsCount := 0
+			ageAlg := age.NewAgeAlg(globula)
 			if groupsCountStr[len(groupsCountStr)-1] == '%' {
 				percent, _ := strconv.ParseFloat(groupsCountStr[:len(groupsCountStr)-1], 64)
 				groupsCount = int(float64(globula.GetAtomsCount()) * float64(percent) / 100)
@@ -201,9 +203,9 @@ func main() {
 				groupsCount, _ = strconv.Atoi(groupsCountStr)
 			}
 			if algType == 1 {
-				globula.DoAging1(groupsCount)
+				ageAlg.DoAging1(groupsCount)
 			} else if algType == 2 {
-				globula.DoAging2(groupsCount, doCrosslinks)
+				ageAlg.DoAging2(groupsCount, doCrosslinks)
 			} else if algType == 3 || algType == 4 {
 				ncut, err := strconv.Atoi(data["ncut"].(string))
 				if err != nil {
@@ -220,9 +222,9 @@ func main() {
 				}
 				switch algType {
 				case 3:
-					globula.DoAging3(ncut, nOContaining, ncross)
+					ageAlg.DoAging3(ncut, nOContaining, ncross)
 				case 4:
-					globula.DoAgingSurface(ncut, nOContaining, ncross)
+					ageAlg.DoAgingSurface(ncut, nOContaining, ncross)
 				}
 			}
 
