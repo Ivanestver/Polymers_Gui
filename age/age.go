@@ -213,7 +213,7 @@ func (alg *_AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 		}
 
 		movementSides := dt.GetMovementSides()
-		for i := 0; i < len(movementSides); i++ {
+		for range movementSides {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == unagedElement {
@@ -245,7 +245,7 @@ func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 		}
 
 		movementSides := dt.GetMovementSides()
-		for i := 0; i < len(movementSides); i++ {
+		for range movementSides {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil &&
@@ -371,7 +371,7 @@ func (alg *_AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) 
 			continue
 		}
 		movementSides := dt.GetMovementSides()
-		for i := 0; i < len(movementSides); i++ {
+		for range movementSides {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, _ := chosenMonomer.GetSibling(chosenSide)
 			getBorderMonomer := func(side dt.Side, startMonomer *dt.Monomer) *dt.Monomer {
