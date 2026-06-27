@@ -344,7 +344,7 @@ func (analyzer *CyclesAnalyzer) analyzePaths() {
 			})
 			for _, startNode := range minClusters {
 				visited := make(map[int]struct{})
-				queue := base.Queue{startNode}
+				queue := base.Queue[int]{startNode}
 				parents := make(map[int]*base.UnorderedSet[int])
 				lengths := make(map[int]int)
 				for _, node := range analyzer.graph.GetAvailableNodes() {
