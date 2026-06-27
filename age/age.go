@@ -12,6 +12,13 @@ import (
 	"strconv"
 )
 
+const (
+	unagedElement           = base.O
+	vynilElement            = base.C
+	oxygenContainingElement = base.N
+	crosslinkedElement      = base.S
+)
+
 const crosslinksCount = 0.5
 
 type _AgeAlg struct {
@@ -71,10 +78,10 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	alg := _NewAgeAlg(globula)
 
 	// 1. Break connections
-	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), base.O)
+	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), oxygenContainingElement)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), base.N)
+	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), vynilElement)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -90,10 +97,10 @@ func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool) {
 
 	alg := _NewAgeAlg(globula)
 	// 1. Break connections
-	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), base.N)
+	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), vynilElement)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), base.N)
+	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), vynilElement)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -119,12 +126,12 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement {
 			triesNumber++
 			continue
 		}
 		nextMonomer := poly.GetMonomerByIdx(nextMonomerNumber)
-		if nextMonomer.MonomerType != base.C {
+		if nextMonomer.MonomerType != unagedElement {
 			triesNumber++
 			continue
 		}
@@ -132,17 +139,17 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = base.O
-			nextMonomer.MonomerType = base.N
-			if monomerTypeToGather == base.O {
+			chosenMonomer.MonomerType = oxygenContainingElement
+			nextMonomer.MonomerType = vynilElement
+			if monomerTypeToGather == oxygenContainingElement {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
-			chosenMonomer.MonomerType = base.N
-			nextMonomer.MonomerType = base.O
-			if monomerTypeToGather == base.N {
+			chosenMonomer.MonomerType = vynilElement
+			nextMonomer.MonomerType = oxygenContainingElement
+			if monomerTypeToGather == vynilElement {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
@@ -185,8 +192,8 @@ func (alg *_AgeAlg) turnRandomBinsIntoC(groupsCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType == base.C {
-			chosenMonomer.MonomerType = base.N
+		if chosenMonomer.MonomerType == unagedElement {
+			chosenMonomer.MonomerType = vynilElement
 			i++
 			triesNumber = 0
 		} else {
@@ -201,7 +208,7 @@ func (alg *_AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 		poly := alg.globula.GetPolymerByIdx(chosenPoly)
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement {
 			continue
 		}
 
@@ -209,10 +216,10 @@ func (alg *_AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 		for i := 0; i < len(movementSides); i++ {
 			chosenSide := movementSides[rand.Intn(len(movementSides))]
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
-			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == base.C {
+			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == unagedElement {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = base.O
-				nextMonomer.MonomerType = base.O
+				chosenMonomer.MonomerType = oxygenContainingElement
+				nextMonomer.MonomerType = oxygenContainingElement
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
@@ -232,7 +239,7 @@ func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement {
 			timesRepeated++
 			continue
 		}
@@ -243,12 +250,12 @@ func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil &&
 				nextMonomer != nil &&
-				nextMonomer.MonomerType == base.C &&
+				nextMonomer.MonomerType == unagedElement &&
 				(!dt.MonomersAreEqual(chosenMonomer.NextMonomer, nextMonomer) &&
 					!dt.MonomersAreEqual(chosenMonomer.PrevMonomer, nextMonomer)) {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = base.H
-				nextMonomer.MonomerType = base.H
+				chosenMonomer.MonomerType = crosslinkedElement
+				nextMonomer.MonomerType = crosslinkedElement
 				currentCount += 1
 				timesRepeated = 0
 				break
@@ -275,7 +282,7 @@ func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) er
 	// } else if err != nil {
 	// 	return err
 	// }
-	alg.breakConnections(OcontainingCount, base.N)
+	alg.breakConnections(OcontainingCount, vynilElement)
 
 	// Then, distribute what's left
 	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
@@ -306,8 +313,8 @@ func (alg *_AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, 
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != base.C ||
-			nextChosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement ||
+			nextChosenMonomer.MonomerType != unagedElement {
 			trialsCount++
 			continue
 		}
@@ -333,14 +340,14 @@ func (alg *_AgeAlg) aging3DistributeCrosslinks(ncross int) (warning, err error) 
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
 		chosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber)
 		nextChosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != base.C ||
-			nextChosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement ||
+			nextChosenMonomer.MonomerType != unagedElement {
 			trialsCount++
 			continue
 		}
 		dt.MakeConnection(chosenMonomer, nextChosenMonomer, dt.ConnectionTypeCrosslinks)
-		chosenMonomer.MonomerType = base.H
-		nextChosenMonomer.MonomerType = base.H
+		chosenMonomer.MonomerType = crosslinkedElement
+		nextChosenMonomer.MonomerType = crosslinkedElement
 		ncross--
 		trialsCount = 0
 	}
@@ -359,7 +366,7 @@ func (alg *_AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) 
 		chosenPolymer := alg.globula.GetPolymerByIdx(chosenPolymerNumber)
 		chosenMonomerNumber := rand.Intn(chosenPolymer.Len())
 		chosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber)
-		if chosenMonomer.MonomerType != base.C {
+		if chosenMonomer.MonomerType != unagedElement {
 			trialsCount++
 			continue
 		}
@@ -399,8 +406,8 @@ func (alg *_AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) 
 			} else {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
 			}
-			chosenMonomer.MonomerType = base.H
-			nextMonomer.MonomerType = base.H
+			chosenMonomer.MonomerType = crosslinkedElement
+			nextMonomer.MonomerType = crosslinkedElement
 			trialsCount = 0
 			break
 		}
@@ -419,7 +426,7 @@ func DoAgingSurface(globula *views.GlobulaView, ncut, nOContaining, ncross int) 
 	alg := _NewAgeAlg(globula)
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
-	alg.breakConnections(nOContaining, base.N)
+	alg.breakConnections(nOContaining, vynilElement)
 
 	// Then, distribute what's left
 	alg.turnRandomBinsIntoC(ncut - nOContaining)
@@ -431,4 +438,13 @@ func DoAgingSurface(globula *views.GlobulaView, ncut, nOContaining, ncross int) 
 		return err
 	}
 	return nil
+}
+
+func (alg *_AgeAlg) prepareGlobulaForAging() {
+	for polNumber := range alg.globula.Len() {
+		polymer := alg.globula.GetPolymerByIdx(polNumber)
+		for monNumber := range polymer.Len() {
+			polymer.GetMonomerByIdx(monNumber).MonomerType = unagedElement
+		}
+	}
 }
