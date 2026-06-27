@@ -195,7 +195,6 @@ func main() {
 			doCrosslinks := data["make_crosslinks"].(bool)
 			algType := data["alg_type"].(int)
 			groupsCount := 0
-			ageAlg := age.NewAgeAlg(globula)
 			if groupsCountStr[len(groupsCountStr)-1] == '%' {
 				percent, _ := strconv.ParseFloat(groupsCountStr[:len(groupsCountStr)-1], 64)
 				groupsCount = int(float64(globula.GetAtomsCount()) * float64(percent) / 100)
@@ -203,9 +202,9 @@ func main() {
 				groupsCount, _ = strconv.Atoi(groupsCountStr)
 			}
 			if algType == 1 {
-				ageAlg.DoAging1(groupsCount)
+				age.DoAging1(globula, groupsCount)
 			} else if algType == 2 {
-				ageAlg.DoAging2(groupsCount, doCrosslinks)
+				age.DoAging2(globula, groupsCount, doCrosslinks)
 			} else if algType == 3 || algType == 4 {
 				ncut, err := strconv.Atoi(data["ncut"].(string))
 				if err != nil {
@@ -222,9 +221,9 @@ func main() {
 				}
 				switch algType {
 				case 3:
-					ageAlg.DoAging3(ncut, nOContaining, ncross)
+					age.DoAging3(globula, ncut, nOContaining, ncross)
 				case 4:
-					ageAlg.DoAgingSurface(ncut, nOContaining, ncross)
+					age.DoAgingSurface(globula, ncut, nOContaining, ncross)
 				}
 			}
 

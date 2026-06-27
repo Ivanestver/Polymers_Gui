@@ -14,17 +14,17 @@ import (
 
 const crosslinksCount = 0.5
 
-type AgeAlg struct {
+type _AgeAlg struct {
 	globula *views.GlobulaView
 }
 
-func NewAgeAlg(globula *views.GlobulaView) *AgeAlg {
-	return &AgeAlg{
+func _NewAgeAlg(globula *views.GlobulaView) *_AgeAlg {
+	return &_AgeAlg{
 		globula: globula,
 	}
 }
 
-func (alg *AgeAlg) DoAging1(groupsCount int) {
+func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	/*
 		The aging process consists of 4 stages:
 		1. Break connections and randomly assign the new ends as B and C so that we have 26% of B and 26% of C
@@ -68,6 +68,8 @@ func (alg *AgeAlg) DoAging1(groupsCount int) {
 	// }
 	// =================DEBUG=================
 
+	alg := _NewAgeAlg(globula)
+
 	// 1. Break connections
 	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), base.O)
 
@@ -84,7 +86,9 @@ func (alg *AgeAlg) DoAging1(groupsCount int) {
 	alg.globula.SetProperty(views.GlobulaAged)
 }
 
-func (alg *AgeAlg) DoAging2(groupsCount int, doCrosslinks bool) {
+func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool) {
+
+	alg := _NewAgeAlg(globula)
 	// 1. Break connections
 	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), base.N)
 
@@ -103,7 +107,7 @@ func (alg *AgeAlg) DoAging2(groupsCount int, doCrosslinks bool) {
 	alg.globula.SetProperty(views.GlobulaAged)
 }
 
-func (alg *AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.MendeleevTableElement) []*dt.Monomer {
+func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.MendeleevTableElement) []*dt.Monomer {
 	Bs := make([]*dt.Monomer, 0)
 	triesNumber := 0
 	for len(Bs) != groupsCount && triesNumber < groupsCount {
@@ -169,7 +173,7 @@ func turnIntoAnotherGroup(Bs *[]*dt.Monomer, groupsCount int, monomerTypeToTurn 
 	}
 }
 
-func (alg *AgeAlg) turnRandomBinsIntoC(groupsCount int) {
+func (alg *_AgeAlg) turnRandomBinsIntoC(groupsCount int) {
 	i := 0
 	triesNumber := 0
 	for i < groupsCount && triesNumber < groupsCount {
@@ -191,7 +195,7 @@ func (alg *AgeAlg) turnRandomBinsIntoC(groupsCount int) {
 	}
 }
 
-func (alg *AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
+func (alg *_AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 	for len(*Bs) != groupsCount {
 		chosenPoly := rand.Intn(alg.globula.Len()) // Take a random poly
 		poly := alg.globula.GetPolymerByIdx(chosenPoly)
@@ -216,7 +220,7 @@ func (alg *AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 	}
 }
 
-func (alg *AgeAlg) createCrosslinks2(crosslinksCount int) {
+func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 	currentCount := 0
 	timesRepeated := 0
 	const maxTimesRepeated = 1000
@@ -256,10 +260,12 @@ func (alg *AgeAlg) createCrosslinks2(crosslinksCount int) {
 	}
 }
 
-func (alg *AgeAlg) DoAging3(ncut, OcontainingCount, ncross int) error {
+func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) error {
 	if ncut < OcontainingCount {
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
+
+	alg := _NewAgeAlg(globula)
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	// if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
@@ -290,7 +296,7 @@ func (alg *AgeAlg) DoAging3(ncut, OcontainingCount, ncross int) error {
 	return nil
 }
 
-func (alg *AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext base.MendeleevTableElement) (warning, err error) {
+func (alg *_AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext base.MendeleevTableElement) (warning, err error) {
 	warning = nil
 	err = nil
 	trialsCount := 0
@@ -317,7 +323,7 @@ func (alg *AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, t
 	return nil, nil
 }
 
-func (alg *AgeAlg) aging3DistributeCrosslinks(ncross int) (warning, err error) {
+func (alg *_AgeAlg) aging3DistributeCrosslinks(ncross int) (warning, err error) {
 	warning = nil
 	err = nil
 	trialsCount := 0
@@ -344,7 +350,7 @@ func (alg *AgeAlg) aging3DistributeCrosslinks(ncross int) (warning, err error) {
 	return nil, nil
 }
 
-func (alg *AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) {
+func (alg *_AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) {
 	warning = nil
 	err = nil
 	trialsCount := 0
@@ -405,10 +411,12 @@ func (alg *AgeAlg) aging4DistributeCrosslinks(ncross int) (warning, err error) {
 	return nil, nil
 }
 
-func (alg *AgeAlg) DoAgingSurface(ncut, nOContaining, ncross int) error {
+func DoAgingSurface(globula *views.GlobulaView, ncut, nOContaining, ncross int) error {
 	if ncut < nOContaining {
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
+
+	alg := _NewAgeAlg(globula)
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	alg.breakConnections(nOContaining, base.N)
