@@ -79,6 +79,14 @@ func (vector *Vector3DF) Normalized() Vector3DF {
 	return MultiplyByConstantF(vector, 1.0/vector.Len())
 }
 
+func (vector *Vector3DF) ToPoint() Point3DF {
+	return Point3DF{
+		X: vector[AxisX],
+		Y: vector[AxisY],
+		Z: vector[AxisZ],
+	}
+}
+
 func Vector3DToVector3DF(vector3D *Vector3D) Vector3DF {
 	return Vector3DF{
 		float64(vector3D[AxisX]),
