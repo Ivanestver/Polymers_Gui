@@ -178,7 +178,7 @@ func (applier *_TrajectoriesApplierOld) makeStep(numberOfAtoms int, box _BoxBoun
 }
 
 func (applier *_TrajectoriesApplierOld) calculateS(file *os.File) error {
-	_, S, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 15.0, "")
+	_, S, _, _, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 15.0, "")
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func (applier *_TrajectoriesApplier) apply() error {
 		return err
 	}
 	defer fileForS.Close()
-	fileForS.WriteString("timestamp;SMeanCos;STensor\n")
+	fileForS.WriteString("timestamp;SMeanCos;STensor;SMeanCosCarbonToCarbon;STensorCarbonToCarbon\n")
 	for _, filename := range applier.trajectoriesFileNames {
 		file, err := os.Open(filename)
 		if err != nil {
@@ -193,14 +193,16 @@ func (applier *_TrajectoriesApplier) setNewCoords(line string) error {
 }
 
 func (applier *_TrajectoriesApplier) calculateS(timestamp int, file *os.File) error {
-	SMeanCos, STensor, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 0.05, "s_process.log")
+	SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 0.05, "s_process.log")
 	if err != nil {
 		return err
 	}
-	if _, err = fmt.Fprintf(file, "%d;%s;%s\n",
+	if _, err = fmt.Fprintf(file, "%d;%s;%s;%s;%s\n",
 		timestamp,
 		strconv.FormatFloat(SMeanCos, 'f', 3, 64),
 		strconv.FormatFloat(STensor, 'f', 3, 64),
+		strconv.FormatFloat(SMeanCosCarbonToCarbon, 'f', 3, 64),
+		strconv.FormatFloat(STensorCarbonToCarbon, 'f', 3, 64),
 	); err != nil {
 		return err
 	}
