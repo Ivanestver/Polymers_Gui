@@ -26,9 +26,11 @@ type _AgeAlg struct {
 }
 
 func _NewAgeAlg(globula *views.GlobulaView) *_AgeAlg {
-	return &_AgeAlg{
+	alg := &_AgeAlg{
 		globula: globula,
 	}
+	alg.prepareGlobulaForAging()
+	return alg
 }
 
 func DoAging1(globula *views.GlobulaView, groupsCount int) {
