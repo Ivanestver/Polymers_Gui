@@ -20,9 +20,11 @@ type _TrajectoriesApplier struct {
 	fileReader            *bufio.Scanner
 	monomers              map[int64]*datatypes.Monomer
 	currentTimestep       int
+	outputFilename        string
+	percent               float64
 }
 
-func newTrajectoriesApplier(globula *views.GlobulaView, trajectoriesFilenames []string) (*_TrajectoriesApplier, error) {
+func newTrajectoriesApplier(globula *views.GlobulaView, trajectoriesFilenames []string, outputFilename string, percent int) (*_TrajectoriesApplier, error) {
 	applier := &_TrajectoriesApplier{
 		globula:               globula,
 		trajectoriesFileNames: trajectoriesFilenames,
@@ -36,6 +38,8 @@ func newTrajectoriesApplier(globula *views.GlobulaView, trajectoriesFilenames []
 		}
 	}
 	applier.currentTimestep = 0
+	applier.outputFilename = outputFilename
+	applier.percent = float64(percent) / 100.0
 	return applier, nil
 }
 
@@ -192,8 +196,9 @@ func (applier *_TrajectoriesApplier) setNewCoords(line string) error {
 	}
 }
 
-func (applier *_TrajectoriesApplier) calculateS(timestamp int, file *os.File) error {
-	SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, 0.05, "s_process.log")
+func (applier *_TrajectoriesApplier) calculateS(timestep int, file *os.File) error {
+	debugFilename := applier.outputFilename + "/timesteps/debug_timestamp_" + strconv.Itoa(timestep) + ".dump"
+	SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, cristallinityRate, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.C, applier.percent, "s_process.log", &debugFilename)
 	if err != nil {
 		return err
 	}
@@ -226,8 +231,8 @@ func (applier *_TrajectoriesApplier) saveTimestep(timestep int) error {
 	return nil
 }
 
-func ApplyTrajectories(globula *views.GlobulaView, trajectoriesFilenames []string) error {
-	applier, err := newTrajectoriesApplier(globula, trajectoriesFilenames)
+func ApplyTrajectories(globula *views.GlobulaView, trajectoriesFilenames []string, outputFilename string, percent int) error {
+	applier, err := newTrajectoriesApplier(globula, trajectoriesFilenames, outputFilename, percent)
 	if err != nil {
 		return err
 	}
