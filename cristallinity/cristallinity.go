@@ -49,9 +49,9 @@ func (stick *_CristallizedStick) GetLengthTo(other *_CristallizedStick) float64 
 	vectorMulLength := vectorMul.Len()
 	massCenter1 := stick.GetCenterOfMasses()
 	massCenter2 := other.GetCenterOfMasses()
-	vecConn := base.SubtractVecF(massCenter1, massCenter2)
+	vecConn := base.SubtractVecF(massCenter2, massCenter1)
 	nominator := base.DotProduct(vecConn, vectorMul)
-	return nominator / vectorMulLength
+	return math.Abs(nominator) / vectorMulLength
 }
 
 func (stick *_CristallizedStick) GetVectorSkeleton() []base.Vector3DF {
@@ -519,7 +519,7 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 	d1 := stick1.GetDirection()
 	d2 := stick2.GetDirection()
 	cosTheta := math.Abs(base.GetCos(d1, d2))
-	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) <= 1
+	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) <= 5.0
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
