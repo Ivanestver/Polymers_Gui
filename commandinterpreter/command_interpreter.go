@@ -709,6 +709,9 @@ func cristallinity() (Command, any) {
 }
 
 func trajectories() (Command, any) {
+	outputFilename, err := getParameterAsString()
+	percentStr, err := getNextToken()
+	percent, err := strconv.Atoi(percentStr)
 	files := make([]string, 0)
 	token, err := getParameterAsString()
 	for len(token) > 0 && err == nil {
@@ -718,7 +721,9 @@ func trajectories() (Command, any) {
 	if len(files) == 0 {
 		return CommandUndefined, "необходимо указать хотя бы один файл траекторий"
 	}
-	m := make(map[string][]string)
+	m := make(map[string]any)
+	m["output_filename"] = outputFilename
+	m["percent"] = percent
 	m["traj_filename"] = files
 	return CommandTrajectories, m
 }

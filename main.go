@@ -386,14 +386,16 @@ func main() {
 			if globulaDoesntExist() {
 				continue
 			}
-			data := data.(map[string][]string)
+			data := data.(map[string]any)
+			outputFilename := data["output_filename"]
+			percent := data["percent"]
 			trajectoriesFilenames, ok := data["traj_filename"]
 			if !ok {
 				printer.PrintlnError("отсутствует входной файл траекторий")
 				continue
 			}
 			currGlobula := globula.DeepCopy()
-			if err := trajectories.ApplyTrajectories(currGlobula, trajectoriesFilenames); err != nil {
+			if err := trajectories.ApplyTrajectories(currGlobula, trajectoriesFilenames.([]string), outputFilename.(string), percent.(int)); err != nil {
 				printer.PrintflnError("%v", err)
 			}
 
