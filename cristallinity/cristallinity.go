@@ -360,12 +360,15 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_Cristallized
 	return sticks
 }
 
-func DebugSticks(globula *views.GlobulaView, sticks []_CristallizedStick, monomerType base.MendeleevTableElement, filename string) {
+func DebugDomains(globula *views.GlobulaView, domains []_CristallizedDomain, monomerTypes []base.MendeleevTableElement, filename string) {
 	if len(filename) == 0 {
 		return
 	}
-	applyCristallinity(sticks, monomerType)
-	if s, err := savers.SaveToLammps(globula); err == nil {
+	newGlobula, newDomains := getDebugGlobula(globula, domains)
+	for i, domain := range newDomains {
+		applyCristallinity(domain, monomerTypes[i])
+	}
+	if s, err := savers.SaveToLammps(newGlobula); err == nil {
 		file, err := os.Create(filename)
 		if err == nil {
 			defer file.Close()
@@ -374,7 +377,29 @@ func DebugSticks(globula *views.GlobulaView, sticks []_CristallizedStick, monome
 			panic(err.Error())
 		}
 	}
-	applyCristallinity(sticks, base.C)
+}
+
+func getDebugGlobula(globula *views.GlobulaView, domains []_CristallizedDomain) (*views.GlobulaView, []_CristallizedDomain) {
+	newField := globula.GetPolymerByIdx(0).GetUnderlinedField().CopyFieldOnly()
+	newDomains := make([]_CristallizedDomain, len(domains))
+	newPolymers := make([]datatypes.IPolymer, 0)
+	for domainNumber, domain := range domains {
+		newDomain := make(_CristallizedDomain, len(domain))
+		for stickNumber, stick := range domain {
+			newStick := make(_CristallizedStick, len(stick))
+			newPolymer := datatypes.NewIPolymer(newField.GetType(), newField, int64(domainNumber))
+			for monNumber, mon := range stick {
+				newMon := newField.GetMonomerByCoords(mon.Coords())
+				newPolymer.AddMonomer(newMon)
+				newStick[monNumber] = newMon
+			}
+			newPolymers = append(newPolymers, newPolymer)
+			newDomain[stickNumber] = newStick
+		}
+		newDomains[domainNumber] = newDomain
+	}
+	newGlobula := views.NewGlobulaView(newPolymers, views.GlobulaGlobulaType)
+	return newGlobula, newDomains
 }
 
 func applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
@@ -754,7 +779,8 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 		e = errors.New("отсутствуют кристаллические домены")
 		return
 	}
-	slices.SortFunc(sticks, func(cs1, cs2 _CristallizedStick) int {
+	domains := analyzer.joinSticksToDomains(sticks)
+	slices.SortFunc(domains, func(cs1, cs2 _CristallizedDomain) int {
 		if len(cs1) < len(cs2) {
 			return 1
 		} else if len(cs1) == len(cs2) {
@@ -763,8 +789,12 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 			return -1
 		}
 	})
-	partOf := int(float64(len(sticks)) * topPercent)
-	sticks = sticks[:partOf]
+	partOf := int(float64(len(domains)) * topPercent)
+	domains = domains[:partOf]
+	sticks = make([]_CristallizedStick, 0)
+	for _, domain := range domains {
+		sticks = append(sticks, domain...)
+	}
 	if SCos, STen, SCosCarbon, STenCarbon, err := analyzer.analyzeOrientationsAllSticks(sticks); err == nil {
 		SMeanCos = SCos
 		STensor = STen
@@ -779,7 +809,12 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 		e = err
 	}
 	if debugFilename != nil {
-		DebugSticks(globula, sticks, base.S, *debugFilename)
+		table := base.GetMendeleevTable()
+		elements := make([]base.MendeleevTableElement, len(domains))
+		for i := range domains {
+			elements[i] = table[i]
+		}
+		DebugDomains(globula, domains, elements, *debugFilename)
 	}
 	return
 }
@@ -859,7 +894,7 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	sticks = sticks[:partOf]
 	analyzer.analyzeOrientationSticks(sticks)
 	filename := "cristall_sticks.data"
-	DebugSticks(analyzer.globula, sticks, base.S, filename)
+	DebugDomains(analyzer.globula, []_CristallizedDomain{sticks}, []base.MendeleevTableElement{base.S}, filename)
 }
 
 func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
@@ -894,7 +929,7 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
 		return sticks
 	}()
 	filename := "cristall_sticks.data"
-	DebugSticks(analyzer.globula, sticks, base.S, filename)
+	DebugDomains(analyzer.globula, []_CristallizedDomain{sticks}, []base.MendeleevTableElement{base.S}, filename)
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeOrientationSticks(sticks []_CristallizedStick) {
