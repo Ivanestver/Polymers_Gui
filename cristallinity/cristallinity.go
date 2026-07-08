@@ -113,17 +113,16 @@ func (builder *_CristallinityCarbonSkeletonBuilder) Build() ([]_CarbonSkeleton, 
 		return nil, errors.New("отсутствуют мономеры -CH2-")
 	}
 	carbonSkeletons := make([]_CarbonSkeleton, 0)
-	keys := make([]int64, 0)
+	keys := base.NewSmartSet[int64]()
 	for key := range builder.carbons {
-		keys = append(keys, key)
+		keys.Add(key)
 	}
-	slices.Sort(keys)
-	for len(keys) > 0 {
+	for !keys.IsEmpty() {
 		// 2. Go back and forth to recover the carbon skeleton
-		key := keys[0]
+		key := keys.Get(0)
 		CH2Carbon := builder.carbons[key]
 		delete(builder.carbons, key)
-		keys = keys[1:]
+		keys.Remove(key)
 		carbonSkeleton := make(_CarbonSkeleton, 0)
 		carbonSkeleton = append(carbonSkeleton, CH2Carbon)
 		backMonomer, forthMonomer := builder.getDirectingMonomers(CH2Carbon)
@@ -133,6 +132,8 @@ func (builder *_CristallinityCarbonSkeletonBuilder) Build() ([]_CarbonSkeleton, 
 		if backMonomer != nil {
 			// 2.1. Go back
 			carbonSkeleton = append([]*datatypes.Monomer{backMonomer}, carbonSkeleton...)
+			delete(builder.carbons, backMonomer.Number)
+			keys.Remove(backMonomer.Number)
 			if err := builder.defineSkeleton(&carbonSkeleton,
 				func(s *_CarbonSkeleton) *datatypes.Monomer {
 					return (*s)[0]
@@ -143,9 +144,7 @@ func (builder *_CristallinityCarbonSkeletonBuilder) Build() ([]_CarbonSkeleton, 
 				func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
 					*s = append([]*datatypes.Monomer{newMon}, (*s)...)
 					delete(builder.carbons, newMon.Number)
-					if idx := slices.Index(keys, newMon.Number); idx != -1 {
-						keys = append(keys[:idx], keys[idx+1:]...)
-					}
+					keys.Remove(newMon.Number)
 				}); err != nil {
 				return nil, err
 			}
@@ -153,18 +152,19 @@ func (builder *_CristallinityCarbonSkeletonBuilder) Build() ([]_CarbonSkeleton, 
 		if forthMonomer != nil {
 			// 2.2. Go forth
 			carbonSkeleton = append(carbonSkeleton, forthMonomer)
-			if err := builder.defineSkeleton(&carbonSkeleton, func(s *_CarbonSkeleton) *datatypes.Monomer {
-				return (*s)[len(*s)-1]
-			},
+			delete(builder.carbons, forthMonomer.Number)
+			keys.Remove(forthMonomer.Number)
+			if err := builder.defineSkeleton(&carbonSkeleton,
+				func(s *_CarbonSkeleton) *datatypes.Monomer {
+					return (*s)[len(*s)-1]
+				},
 				func(s *_CarbonSkeleton) *datatypes.Monomer {
 					return (*s)[len(*s)-2]
 				},
 				func(s *_CarbonSkeleton, newMon *datatypes.Monomer) {
 					*s = append(*s, newMon)
 					delete(builder.carbons, newMon.Number)
-					if idx := slices.Index(keys, newMon.Number); idx != -1 {
-						keys = append(keys[:idx], keys[idx+1:]...)
-					}
+					keys.Remove(newMon.Number)
 				}); err != nil {
 				return nil, err
 			}
