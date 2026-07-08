@@ -914,3 +914,31 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationVectors(vectors []base
 	filename := "cristall_sticks.data"
 	analyzer.printer.Printfln("Результаты сохранены в %s", filename)
 }
+
+func (analyzer *_CristallinityAnalyzer) getCristallinityRate(sticks []_CristallizedStick) (rate float64, err error) {
+	rate = 0.0
+	if len(sticks) == 0 {
+		err = errors.New("Не найдено кристаллических доменов")
+		return
+	}
+	countOfCInSticks := 0.0
+	countOfC := 0.0
+	for _, stick := range sticks {
+		countOfCInSticks += float64(len(stick))
+	}
+	for polNumber := range analyzer.globula.Len() {
+		polymer := analyzer.globula.GetPolymerByIdx(polNumber)
+		for monNumber := range polymer.Len() {
+			monomer := polymer.GetMonomerByIdx(monNumber)
+			if monomer.IsTypeOf(base.C) {
+				countOfC += 1.0
+			}
+		}
+	}
+	if base.CompareFloat(countOfC, 0.0) {
+		err = errors.New("В наночастице отсутствуют атомы углерода")
+	} else {
+		rate = countOfCInSticks / countOfC
+	}
+	return
+}
