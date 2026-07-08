@@ -492,14 +492,15 @@ func (analyzer *_CristallinityAnalyzer) joinSticksToDomains(sticks []_Cristalliz
 			sets[key] = newCluster
 		}
 	}
-	domains := make([]_CristallizedDomain, len(sets))
-	i := 0
+	domains := make([]_CristallizedDomain, 0)
 	for _, s := range sets {
-		domains[i] = _CristallizedDomain{}
-		for value := range s {
-			domains[i] = append(domains[i], sticks[value])
+		if len(s) > 1 {
+			domain := make(_CristallizedDomain, 0)
+			for value := range s {
+				domain = append(domain, sticks[value])
+			}
+			domains = append(domains, domain)
 		}
-		i++
 	}
 	return domains
 }
