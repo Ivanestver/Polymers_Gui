@@ -44,12 +44,12 @@ func newTrajectoriesApplier(globula *views.GlobulaView, trajectoriesFilenames []
 }
 
 func (applier *_TrajectoriesApplier) apply() error {
-	fileForS, err := os.Create("s.csv")
+	fileForS, err := os.Create(applier.outputFilename + "/s.csv")
 	if err != nil {
 		return err
 	}
 	defer fileForS.Close()
-	fileForS.WriteString("timestamp;SMeanCos;STensor;SMeanCosCarbonToCarbon;STensorCarbonToCarbon\n")
+	fileForS.WriteString("Timestep;Cos (stick);Tensor (stick);Cos (C-to-C);Tensor (C-to-C);CristallinityRate\n")
 	for _, filename := range applier.trajectoriesFileNames {
 		file, err := os.Open(filename)
 		if err != nil {
@@ -202,12 +202,13 @@ func (applier *_TrajectoriesApplier) calculateS(timestep int, file *os.File) err
 	if err != nil {
 		return err
 	}
-	if _, err = fmt.Fprintf(file, "%d;%s;%s;%s;%s\n",
-		timestamp,
+	if _, err = fmt.Fprintf(file, "%d;%s;%s;%s;%s;%s\n",
+		timestep,
 		strconv.FormatFloat(SMeanCos, 'f', 3, 64),
 		strconv.FormatFloat(STensor, 'f', 3, 64),
 		strconv.FormatFloat(SMeanCosCarbonToCarbon, 'f', 3, 64),
 		strconv.FormatFloat(STensorCarbonToCarbon, 'f', 3, 64),
+		strconv.FormatFloat(cristallinityRate, 'f', 3, 64),
 	); err != nil {
 		return err
 	}
@@ -218,7 +219,10 @@ func (applier *_TrajectoriesApplier) saveTimestep(timestep int) error {
 	if s, err := savers.SaveToLammps(applier.globula); err != nil {
 		return err
 	} else {
-		filename := "timestamp_" + strconv.Itoa(timestep) + ".dump"
+		if err := os.Mkdir(applier.outputFilename+"/timesteps", os.ModeDir); err != nil && !errors.Is(err, os.ErrExist) {
+			return err
+		}
+		filename := applier.outputFilename + "/timesteps/timestamp_" + strconv.Itoa(timestep) + ".dump"
 		file, err := os.Create(filename)
 		if err != nil {
 			return err
