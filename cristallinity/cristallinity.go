@@ -351,8 +351,9 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_Cristallized
 					currStick[j-startMonomerNumber] = carbonSkeleton[j]
 				}
 				sticks = append(sticks, currStick)
+				i += 1
 				startMonomerNumber = i
-				endMonomerNumber = i + offset
+				endMonomerNumber = startMonomerNumber + offset
 				initDirection = directionVector
 			}
 		}
