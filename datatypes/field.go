@@ -177,11 +177,15 @@ func (field *Field) DefineStartMonomer() *Monomer {
 // }
 
 func (field *Field) DeepCopy() IField {
-	newField := NewField(field.sphereRadius)
+	newField := field.CopyFieldOnly().(*Field)
 	for coords, mon := range field.monomers {
 		newField.monomers[coords].DeepCopyFrom(mon, newField)
 	}
 	return newField
+}
+
+func (field *Field) CopyFieldOnly() IField {
+	return NewField(field.sphereRadius)
 }
 
 func (field *Field) Waterize() {

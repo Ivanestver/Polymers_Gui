@@ -23,6 +23,7 @@ type IField interface {
 	GetMinMonomersByAxis(axis base.Axis) []*Monomer
 	GetMaxMonomersByAxis(axis base.Axis) []*Monomer
 	DeepCopy() IField
+	CopyFieldOnly() IField
 }
 
 func CreateField(fieldType FieldType, args ...any) IField {
