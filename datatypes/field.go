@@ -64,6 +64,10 @@ func NewField(sphereRadius uint64) *Field {
 	return newField
 }
 
+func (field *Field) GetType() FieldType {
+	return FieldTypeLattice
+}
+
 func (field *Field) MakeFilled(monomer *Monomer) {
 	if monomer.IsTypeOf(base.MendeleevTableElementUndefined) {
 		monomer.MonomerType = base.C

@@ -13,6 +13,7 @@ const (
 )
 
 type IField interface {
+	GetType() FieldType
 	MakeFilled(monomer *Monomer)
 	MakeFree(monomer *Monomer)
 	IsFree(coords base.Vector3DF) bool

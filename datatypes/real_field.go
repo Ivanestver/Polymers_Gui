@@ -21,6 +21,10 @@ func NewRealField(restrictions [3][2]float64) *RealField {
 	return realField
 }
 
+func (realField *RealField) GetType() FieldType {
+	return FieldTypeReal
+}
+
 func (realField *RealField) MakeFilled(monomer *Monomer) {
 	if globaldata.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
 		if _, ok := realField.monomers[monomer.coords]; !ok {
