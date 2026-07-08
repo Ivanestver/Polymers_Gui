@@ -56,6 +56,15 @@ func GetMendeleevTable() [118]MendeleevTableElement {
 	return table
 }
 
+func GetMendeleevTableReversed() map[MendeleevTableElement]int {
+	m := make(map[MendeleevTableElement]int)
+	table := GetMendeleevTable()
+	for i, e := range table {
+		m[e] = i
+	}
+	return m
+}
+
 func RecognizeElement(str string) MendeleevTableElement {
 	s := ""
 	if len(str) == 0 {
