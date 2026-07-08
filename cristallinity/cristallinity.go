@@ -739,7 +739,7 @@ func AnalyzeToFile(globula *views.GlobulaView, offset int, outputFilename string
 	analyzeJoinDomains(analyzer)
 }
 
-func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64, logFileName string) (SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon float64, e error) {
+func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, baseElem base.MendeleevTableElement, topPercent float64, logFileName string, debugFilename *string) (SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, cristallinityRate float64, e error) {
 	if err := validateInputParams(offset, "placeholder", level); err != nil {
 		e = err
 		return
@@ -772,6 +772,14 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 		STensorCarbonToCarbon = STenCarbon
 	} else {
 		e = err
+	}
+	if rate, err := analyzer.getCristallinityRate(sticks); err == nil {
+		cristallinityRate = rate
+	} else {
+		e = err
+	}
+	if debugFilename != nil {
+		DebugSticks(globula, sticks, base.S, *debugFilename)
 	}
 	return
 }
