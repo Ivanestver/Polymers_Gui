@@ -99,14 +99,24 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 		})
 	}
 	slices.SortFunc(lammpsStruct.AtomTypes, func(atomType1, atomType2 lammps_structs.AtomType) int {
-		if atomType1.AtomType < atomType2.AtomType {
+		if atomType1.AtomLabel < atomType2.AtomLabel {
 			return -1
-		} else if atomType1.AtomType == atomType2.AtomType {
+		} else if atomType1.AtomLabel == atomType2.AtomLabel {
 			return 0
 		} else {
 			return 1
 		}
 	})
+	for i := range lammpsStruct.AtomTypes {
+		lammpsStruct.AtomTypes[i].AtomType = i + 1
+		atomsTypes[base.MendeleevTableElement(lammpsStruct.AtomTypes[i].AtomLabel)] = lammps_structs.Pair[int, string]{
+			Item1: i + 1,
+			Item2: lammpsStruct.AtomTypes[i].AtomLabel,
+		}
+	}
+	for i := range lammpsStruct.Atoms {
+		lammpsStruct.Atoms[i].AtomType = atomsTypes[base.MendeleevTableElement(lammpsStruct.Atoms[i].Label)].Item1
+	}
 }
 
 func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[base.MendeleevTableElement]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
@@ -114,7 +124,7 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 		p, ok := atomsTypes[monomer.MonomerType]
 		if !ok {
 			atomsTypes[monomer.MonomerType] = lammps_structs.Pair[int, string]{
-				Item1: len(atomsTypes) + 1,
+				Item1: -1,
 				Item2: string(monomer.MonomerType),
 			}
 			p = atomsTypes[monomer.MonomerType]
@@ -123,7 +133,6 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 			Label:      p.Item2,
 			AtomID:     int(monomer.Number),
 			MoleculeID: polymerID,
-			AtomType:   p.Item1,
 			Q:          0.0,
 			AtomCoords: lammps_structs.AtomCoords{
 				X: monomer.Coords()[base.AxisX],
