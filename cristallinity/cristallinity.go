@@ -360,12 +360,12 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_Cristallized
 	return sticks
 }
 
-func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick, monomerType base.MendeleevTableElement, filename string) {
+func DebugSticks(globula *views.GlobulaView, sticks []_CristallizedStick, monomerType base.MendeleevTableElement, filename string) {
 	if len(filename) == 0 {
 		return
 	}
-	analyzer.applyCristallinity(sticks, monomerType)
-	if s, err := savers.SaveToLammps(analyzer.globula); err == nil {
+	applyCristallinity(sticks, monomerType)
+	if s, err := savers.SaveToLammps(globula); err == nil {
 		file, err := os.Create(filename)
 		if err == nil {
 			defer file.Close()
@@ -374,10 +374,10 @@ func (analyzer *_CristallinityAnalyzer) debugSticks(sticks []_CristallizedStick,
 			panic(err.Error())
 		}
 	}
-	analyzer.applyCristallinity(sticks, base.C)
+	applyCristallinity(sticks, base.C)
 }
 
-func (analyzer *_CristallinityAnalyzer) applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
+func applyCristallinity(sticks []_CristallizedStick, monomerType base.MendeleevTableElement) {
 	for _, stick := range sticks {
 		for _, monInStick := range stick {
 			if monomerType != base.MendeleevTableElementUndefined {
@@ -851,7 +851,7 @@ func analyzeWithPercent(analyzer *_CristallinityAnalyzer, topPercent float64) {
 	sticks = sticks[:partOf]
 	analyzer.analyzeOrientationSticks(sticks)
 	filename := "cristall_sticks.data"
-	analyzer.debugSticks(sticks, base.O, filename)
+	DebugSticks(analyzer.globula, sticks, base.S, filename)
 }
 
 func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
@@ -886,7 +886,7 @@ func analyzeJoinDomains(analyzer *_CristallinityAnalyzer) {
 		return sticks
 	}()
 	filename := "cristall_sticks.data"
-	analyzer.debugSticks(sticks, base.O, filename)
+	DebugSticks(analyzer.globula, sticks, base.S, filename)
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeOrientationSticks(sticks []_CristallizedStick) {
