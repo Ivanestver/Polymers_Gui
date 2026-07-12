@@ -342,7 +342,7 @@ func (analyzer *_CristallinityAnalyzer) findCristallizedSticks() []_Cristallized
 					}
 				}
 				lenOfStick := endMonomerNumber - startMonomerNumber + 1
-				if int(math.Ceil(float64(lenOfStick)/2)) < 2 {
+				if int(float64(lenOfStick)/float64(offset)) < 2 {
 					startMonomerNumber = invalidMonomerNumber
 					continue
 				}
