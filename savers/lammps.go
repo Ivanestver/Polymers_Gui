@@ -91,17 +91,18 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	}
 
 	// Write the atom types info gathered
+	table := base.GetMendeleevTableReversed()
 	for _, p := range atomsTypes {
 		lammpsStruct.AtomTypes = append(lammpsStruct.AtomTypes, lammps_structs.AtomType{
-			AtomType:  p.Item1,
+			AtomType:  table[base.MendeleevTableElement(p.Item2)],
 			AtomMass:  1.0,
 			AtomLabel: p.Item2,
 		})
 	}
 	slices.SortFunc(lammpsStruct.AtomTypes, func(atomType1, atomType2 lammps_structs.AtomType) int {
-		if atomType1.AtomLabel < atomType2.AtomLabel {
+		if atomType1.AtomType < atomType2.AtomType {
 			return -1
-		} else if atomType1.AtomLabel == atomType2.AtomLabel {
+		} else if atomType1.AtomType == atomType2.AtomType {
 			return 0
 		} else {
 			return 1
