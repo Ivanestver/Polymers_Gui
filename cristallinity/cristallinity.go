@@ -778,7 +778,7 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 	}
 	sticks := analyzer.findCristallizedSticks()
 	if len(sticks) == 0 {
-		e = errors.New("отсутствуют кристаллические домены")
+		fmt.Println("отсутствуют кристаллические домены")
 		return
 	}
 	domains := analyzer.joinSticksToDomains(sticks)
@@ -791,7 +791,11 @@ func AnalyzeToOutside(globula *views.GlobulaView, offset int, level ScaleLevel, 
 			return -1
 		}
 	})
-	partOf := int(float64(len(domains)) * topPercent)
+	if len(domains) == 0 {
+		fmt.Println("отсутствуют кристаллические домены")
+		return
+	}
+	partOf := max(int(float64(len(domains))*topPercent), 1)
 	domains = domains[:partOf]
 	sticks = make([]_CristallizedStick, 0)
 	for _, domain := range domains {
@@ -962,8 +966,9 @@ func (analyzer *_CristallinityAnalyzer) analyzeOrientationVectors(vectors []base
 
 func (analyzer *_CristallinityAnalyzer) getCristallinityRate(sticks []_CristallizedStick) (rate float64, err error) {
 	rate = 0.0
+	err = nil
 	if len(sticks) == 0 {
-		err = errors.New("Не найдено кристаллических доменов")
+		fmt.Println("Не найдено кристаллических доменов")
 		return
 	}
 	countOfCInSticks := 0.0
