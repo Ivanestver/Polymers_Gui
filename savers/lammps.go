@@ -99,6 +99,21 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 			AtomLabel: p.Item2,
 		})
 	}
+	/*
+		// !!!WARNING!!!
+		// This code is for debug cristallinity purposes only.
+		// Enable it and disable the previous cycle to avoid the problem with many ids for one element
+		for elem, t := range table {
+			if elem == base.MendeleevTableElementUndefined {
+				continue
+			}
+			lammpsStruct.AtomTypes = append(lammpsStruct.AtomTypes, lammps_structs.AtomType{
+				AtomType:  t,
+				AtomMass:  1.0,
+				AtomLabel: string(elem),
+			})
+		}
+	*/
 	slices.SortFunc(lammpsStruct.AtomTypes, func(atomType1, atomType2 lammps_structs.AtomType) int {
 		if atomType1.AtomType < atomType2.AtomType {
 			return -1
