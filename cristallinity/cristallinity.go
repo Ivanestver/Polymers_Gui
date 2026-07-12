@@ -71,12 +71,12 @@ type _CristallizedDomain []_CristallizedStick
 
 func areCodirectional(v1, v2 base.Vector3DF) bool {
 	cosOfVectors := base.GetCos(v1, v2)
-	return base.CompareFloatWithE(1.0, cosOfVectors, 0.1)
+	return cosOfVectors > 0.989
 }
 
 func areColinear(v1, v2 base.Vector3DF) bool {
 	cosOfVectors := math.Abs(base.GetCos(v1, v2))
-	return base.CompareFloatWithE(1.0, cosOfVectors, 0.1)
+	return cosOfVectors > 0.989
 }
 
 type _CarbonSkeleton []*datatypes.Monomer
