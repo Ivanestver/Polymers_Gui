@@ -520,7 +520,21 @@ func areClose(stick1, stick2 _CristallizedStick) bool {
 	d1 := stick1.GetDirection()
 	d2 := stick2.GetDirection()
 	cosTheta := math.Abs(base.GetCos(d1, d2))
-	return cosTheta > 0.99 && stick1.GetLengthTo(&stick2) <= 5.0
+	if cosTheta < 0.99 {
+		return false
+	}
+	d1Left := stick1[0].Coords()
+	d1Right := stick1[len(stick1)-1].Coords()
+	d2Left := stick2[0].Coords()
+	d2Right := stick2[len(stick2)-1].Coords()
+
+	d1Ld2L := base.SubtractVecF(d1Left, d2Left)
+	d1Ld2R := base.SubtractVecF(d1Left, d2Right)
+	d1Rd2L := base.SubtractVecF(d1Right, d2Left)
+	d1Rd2R := base.SubtractVecF(d1Right, d2Right)
+	minLength := min(d1Ld2L.Len(), d1Ld2R.Len(), d1Rd2L.Len(), d1Rd2R.Len())
+	const polyethyleneCutoffRadius float64 = 5.0
+	return minLength < polyethyleneCutoffRadius
 }
 
 func (analyzer *_CristallinityAnalyzer) analyzeDomains(domains []_CristallizedDomain) {
