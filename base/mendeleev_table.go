@@ -28,6 +28,22 @@ const (
 	Ar                             MendeleevTableElement = "Ar"
 	K                              MendeleevTableElement = "K"
 	Ca                             MendeleevTableElement = "Ca"
+	Sc                             MendeleevTableElement = "Sc"
+	Ti                             MendeleevTableElement = "Ti"
+	V                              MendeleevTableElement = "V"
+	Cr                             MendeleevTableElement = "Cr"
+	Mn                             MendeleevTableElement = "Mn"
+	Fe                             MendeleevTableElement = "Fe"
+	Co                             MendeleevTableElement = "Co"
+	Ni                             MendeleevTableElement = "Ni"
+	Cu                             MendeleevTableElement = "Cu"
+	Zn                             MendeleevTableElement = "Zn"
+	Ga                             MendeleevTableElement = "Ga"
+	Ge                             MendeleevTableElement = "Ge"
+	As                             MendeleevTableElement = "As"
+	Se                             MendeleevTableElement = "Se"
+	Br                             MendeleevTableElement = "Br"
+	Kr                             MendeleevTableElement = "Kr"
 )
 
 func GetMendeleevTable() [118]MendeleevTableElement {
@@ -46,13 +62,28 @@ func GetMendeleevTable() [118]MendeleevTableElement {
 	table[11] = Mg
 	table[12] = Al
 	table[13] = Si
-	table[14] = B
-	table[15] = P
-	table[16] = S
-	table[17] = Cl
-	table[18] = Ar
-	table[19] = K
-	table[20] = Ca
+	table[14] = P
+	table[15] = S
+	table[16] = Cl
+	table[17] = Ar
+	table[18] = K
+	table[19] = Ca
+	table[20] = Sc
+	table[21] = Ti
+	table[22] = V
+	table[23] = Cr
+	table[24] = Mn
+	table[25] = Fe
+	table[26] = Co
+	table[27] = Ni
+	table[28] = Cu
+	table[29] = Zn
+	table[30] = Ga
+	table[31] = Ge
+	table[32] = As
+	table[33] = Se
+	table[34] = Br
+	table[35] = Kr
 	return table
 }
 
