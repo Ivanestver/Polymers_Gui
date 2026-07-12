@@ -198,7 +198,7 @@ func (applier *_TrajectoriesApplier) setNewCoords(line string) error {
 
 func (applier *_TrajectoriesApplier) calculateS(timestep int, file *os.File) error {
 	debugFilename := applier.outputFilename + "/timesteps/debug_timestamp_" + strconv.Itoa(timestep) + ".dump"
-	SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, cristallinityRate, err := cristallinity.AnalyzeToOutside(applier.globula, 3, cristallinity.Atomistic, base.MendeleevTableElementUndefined, applier.percent, "s_process.log", &debugFilename)
+	SMeanCos, STensor, SMeanCosCarbonToCarbon, STensorCarbonToCarbon, cristallinityRate, err := cristallinity.AnalyzeToOutside(applier.globula, 2, cristallinity.Atomistic, base.MendeleevTableElementUndefined, applier.percent, "s_process.log", &debugFilename)
 	if err != nil {
 		return err
 	}
