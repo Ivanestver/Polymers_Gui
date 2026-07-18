@@ -34,6 +34,8 @@ func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {
 		return &BuildThreadAlgInputDataBuilder{}
 	case SurfaceBuildAlg:
 		return &SurfaceInputDataBuilder{}
+	case PatternBuildAlg:
+		return &PatternInputDataBuilder{}
 	default:
 		return nil
 	}
