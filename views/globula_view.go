@@ -22,6 +22,7 @@ const (
 	GlobulaGlobulaType
 	GlobulaThreadType
 	GlobulaSurfaceType
+	GlobulaPatternType
 )
 
 type GlobulaView struct {

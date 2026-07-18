@@ -282,6 +282,10 @@ func build() (Command, any) {
 		m["alg"] = buildglobula.SurfaceBuildAlg
 		return CommandBuild, m
 	}
+	if objective == CommandPatternSTR {
+		m["alg"] = buildglobula.PatternBuildAlg
+		return CommandBuild, m
+	}
 
 	return getUndefinedCommand(objective)
 }

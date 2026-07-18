@@ -11,6 +11,7 @@ const (
 	GlobulaBuildAlg AlgType = iota
 	ThreadBuildAlg
 	SurfaceBuildAlg
+	PatternBuildAlg
 )
 
 type ICalcAlg interface {
@@ -58,6 +59,13 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 		inp, ok := inputData.(*SurfaceAlgInputData)
 		if ok {
 			return &SurfaceCalcAlg{
+				inputData: inp,
+			}
+		}
+	case PatternBuildAlg:
+		inp, ok := inputData.(*PatternAlgInputData)
+		if ok {
+			return &PatternCalcAlg{
 				inputData: inp,
 			}
 		}
