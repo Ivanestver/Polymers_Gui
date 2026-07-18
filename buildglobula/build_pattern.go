@@ -3,6 +3,7 @@ package buildglobula
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"polymers/base"
 	"polymers/datatypes"
@@ -67,6 +68,7 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 	direction := base.AxisYVec
 	currPoint := base.AxisYVecReversed
 	scanner := bufio.NewScanner(file)
+	metElements := make(map[base.MendeleevTableElement]int)
 	for scanner.Scan() && scanner.Err() == nil {
 		line := scanner.Text()
 		if len(line) == 0 {
@@ -76,10 +78,15 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 			currPoint = base.AddVecF(currPoint, direction)
 			mon := field.GetMonomerByCoords(currPoint)
 			mon.MonomerType = base.MendeleevTableElement(string(beadType))
+			metElements[mon.MonomerType] += 1
 			polymers[0].AddMonomer(mon)
 		}
 		currPoint = base.AddVecF(base.AddVecF(currPoint, direction), base.AxisXVec)
 		direction.MultiplyByConstantF(-1.0)
+	}
+	fmt.Println("Распределение по встреченным буквам")
+	for element, count := range metElements {
+		fmt.Printf("%s: %d\n", element, count)
 	}
 	return polymers
 }
