@@ -10,6 +10,8 @@ import (
 	"polymers/globaldata"
 	"polymers/outputformat"
 	"polymers/views"
+	"strconv"
+	"unicode/utf8"
 )
 
 type PatternInputDataBuilder struct {
@@ -68,13 +70,15 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 	direction := base.AxisYVec
 	currPoint := base.AxisYVecReversed
 	scanner := bufio.NewScanner(file)
-	metElements := make(map[base.MendeleevTableElement]int)
+	metElements := make(map[base.MendeleevTableElement]float64)
+	allElementsCount := 0.0
 	for scanner.Scan() && scanner.Err() == nil {
 		line := scanner.Text()
 		if len(line) == 0 {
 			break
 		}
 		for _, beadType := range line {
+			allElementsCount += 1.0
 			currPoint = base.AddVecF(currPoint, direction)
 			mon := field.GetMonomerByCoords(currPoint)
 			mon.MonomerType = base.MendeleevTableElement(string(beadType))
@@ -84,9 +88,27 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 		currPoint = base.AddVecF(base.AddVecF(currPoint, direction), base.AxisXVec)
 		direction.MultiplyByConstantF(-1.0)
 	}
-	fmt.Println("Распределение по встреченным буквам")
+	fmt.Println("Распределение по встреченным буквам:")
+	fmt.Println("|-----------------------------------------|")
+	fmt.Println("|Элемент|Количество|Процентное соотношение|")
 	for element, count := range metElements {
-		fmt.Printf("%s: %d\n", element, count)
+		fmt.Printf("|%s|%s|%s|\n",
+			fillToLength(string(element), utf8.RuneCountInString("Элемент")),
+			fillToLength(strconv.Itoa(int(count)), utf8.RuneCountInString("Количество")),
+			fillToLength(strconv.FormatFloat(count/allElementsCount*100.0, 'f', 2, 64)+"%", utf8.RuneCountInString("Процентное соотношение")),
+		)
+		fmt.Println("|-----------------------------------------|")
 	}
 	return polymers
+}
+
+func fillToLength(s string, upToLength int) string {
+	if len(s) >= upToLength {
+		return s
+	}
+	newS := s
+	for i := len(newS); i < upToLength; i++ {
+		newS += " "
+	}
+	return newS
 }
