@@ -12,6 +12,9 @@ const (
 var AxisXVec = Vector3DF{1.0, 0.0, 0.0}
 var AxisYVec = Vector3DF{0.0, 1.0, 0.0}
 var AxisZVec = Vector3DF{0.0, 0.0, 1.0}
+var AxisXVecReversed = Vector3DF{-1.0, 0.0, 0.0}
+var AxisYVecReversed = Vector3DF{0.0, -1.0, 0.0}
+var AxisZVecReversed = Vector3DF{0.0, 0.0, -1.0}
 var AxisToVector map[Axis]Vector3DF = map[Axis]Vector3DF{
 	AxisX: AxisXVec,
 	AxisY: AxisYVec,
