@@ -1,1 +1,1 @@
-go build -v -o main.exe main.go
+go build -v -o polymer_tool.exe main.go
