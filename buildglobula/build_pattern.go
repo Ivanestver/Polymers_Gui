@@ -18,11 +18,11 @@ type PatternInputDataBuilder struct {
 }
 
 func (builder *PatternInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
-	if len(defaultParams) == 0 {
+	if len(particleName) == 0 {
 		return nil, errors.New("не задан файл с паттерном")
 	}
 	return &PatternAlgInputData{
-		patternFileName: defaultParams[0],
+		patternFileName: particleName,
 	}, nil
 }
 

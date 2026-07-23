@@ -251,12 +251,14 @@ func build() (Command, any) {
 	}
 
 	predefinedParams := make([]string, 0)
-	for !finished() {
-		p, err := getNextToken()
-		if err != nil {
-			continue
+	if objective != CommandPatternSTR {
+		for !finished() {
+			p, err := getNextToken()
+			if err != nil {
+				continue
+			}
+			predefinedParams = append(predefinedParams, p)
 		}
-		predefinedParams = append(predefinedParams, p)
 	}
 
 	m := make(map[string]any)
