@@ -407,6 +407,17 @@ func main() {
 				printer.PrintflnError("%v", err)
 			}
 
+		case interp.CommandSaveSettingsBox:
+			data := data.(map[string]float64)
+			savers.SetSettingsBox(
+				data["x_lower"],
+				data["x_higher"],
+				data["y_lower"],
+				data["y_higher"],
+				data["z_lower"],
+				data["z_higher"],
+			)
+
 		default:
 			printer.PrintlnError("'" + line[:len(line)-1] + "' is not supported")
 		}

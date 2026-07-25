@@ -41,6 +41,8 @@ const (
 	CommandCommentSTR          = '#'
 	CommandTrajectoriesSTR     = "traj"
 	CommandColorizeSTR         = "colorize"
+	CommandSaveSettingsSTR     = "save_settings"
+	CommandBoxSTR              = "box"
 )
 
 type Command = int
@@ -70,6 +72,7 @@ const (
 	CommandCristallinity
 	CommandTrajectories
 	CommandColorize
+	CommandSaveSettingsBox
 )
 
 var currProgram string
@@ -199,6 +202,7 @@ func s() (Command, any) {
 		CommandCristallinitySTR:    cristallinity,
 		CommandTrajectoriesSTR:     trajectories,
 		CommandColorizeSTR:         colorize,
+		CommandSaveSettingsSTR:     saveSettings,
 	}[token]; ok {
 		return f()
 	} else {
@@ -736,4 +740,27 @@ func trajectories() (Command, any) {
 
 func colorize() (Command, any) {
 	return CommandColorize, nil
+}
+
+func saveSettings() (Command, any) {
+	what, err := getNextToken()
+	if err != nil {
+		return CommandUndefined, err
+	}
+	if what == CommandBoxSTR {
+		m := make(map[string]float64)
+		for _, side := range []string{"x_lower", "x_higher", "y_lower", "y_higher", "z_lower", "z_higher"} {
+			restrictionToken, err := getNextToken()
+			if err != nil {
+				return CommandUndefined, err
+			}
+			if restriction, err := strconv.ParseFloat(restrictionToken, 64); err == nil {
+				m[side] = restriction
+			} else {
+				return CommandUndefined, err
+			}
+		}
+		return CommandSaveSettingsBox, m
+	}
+	return CommandUndefined, fmt.Errorf("неизвестный параметр %s", what)
 }
