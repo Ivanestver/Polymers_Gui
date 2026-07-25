@@ -95,7 +95,12 @@ func turnGlobulaIntoLammpsStruct(globula *views.GlobulaView) (*lammps_structs.La
 }
 
 func writeSpaceDimention(lammpsStruct *lammps_structs.LammpsStruct) {
-	spaceDimention := globaldata.GetGlobalData().SpaceDimention
+	var spaceDimention *globaldata.SpaceDimention = nil
+	if settings := getSaveSettings(); settings.SpaceDimention == nil {
+		spaceDimention = &globaldata.GetGlobalData().SpaceDimention
+	} else {
+		spaceDimention = settings.SpaceDimention
+	}
 	lammpsStruct.SpaceDimention[lammps_structs.DimentionTypeX] = [2]float64{spaceDimention[base.AxisX].Lower, spaceDimention[base.AxisX].Higher}
 	lammpsStruct.SpaceDimention[lammps_structs.DimentionTypeY] = [2]float64{spaceDimention[base.AxisY].Lower, spaceDimention[base.AxisY].Higher}
 	lammpsStruct.SpaceDimention[lammps_structs.DimentionTypeZ] = [2]float64{spaceDimention[base.AxisZ].Lower, spaceDimention[base.AxisZ].Higher}
