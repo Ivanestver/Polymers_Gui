@@ -12,6 +12,32 @@ import (
 	lammps_structs "github.com/Ivanestver/lammps-file-parser/structs"
 )
 
+type _LammpsSaveSettings struct {
+	SpaceDimention *globaldata.SpaceDimention
+}
+
+var settingsSingleton *_LammpsSaveSettings = nil
+
+func getSaveSettings() *_LammpsSaveSettings {
+	if settingsSingleton == nil {
+		settingsSingleton = &_LammpsSaveSettings{}
+	}
+	return settingsSingleton
+}
+
+func SetSettingsBox(XLower, XHigher, YLower, YHigher, ZLower, ZHigher float64) {
+	settings := getSaveSettings()
+	if settings.SpaceDimention == nil {
+		settings.SpaceDimention = &globaldata.SpaceDimention{}
+	}
+	settings.SpaceDimention[base.AxisX].Lower = XLower
+	settings.SpaceDimention[base.AxisX].Higher = XHigher
+	settings.SpaceDimention[base.AxisY].Lower = YLower
+	settings.SpaceDimention[base.AxisY].Higher = YHigher
+	settings.SpaceDimention[base.AxisZ].Lower = ZLower
+	settings.SpaceDimention[base.AxisZ].Higher = ZHigher
+}
+
 func addString(source *string, str string) {
 	*source += str + "\n"
 }
