@@ -23,11 +23,15 @@ func (builder *PatternInputDataBuilder) CreateInputData(algType AlgType, default
 	}
 	return &PatternAlgInputData{
 		patternFileName: particleName,
+		printStatistics: true,
+		polymersCount:   1,
 	}, nil
 }
 
 type PatternAlgInputData struct {
 	patternFileName string
+	printStatistics bool
+	polymersCount   int
 }
 
 func (inputData *PatternAlgInputData) GetGlobulaType() views.GlobulaProperty {
@@ -56,7 +60,6 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 		outputformat.GetPrint().PrintlnError(err.Error())
 		return nil
 	}
-	polymers := make([]*datatypes.Polymer, 1)
 	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	field := datatypes.NewField(uint64(
 		max(
@@ -66,7 +69,10 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 			spaceDimention[base.AxisY].Lower,
 			spaceDimention[base.AxisZ].Higher,
 			spaceDimention[base.AxisZ].Lower)))
-	polymers[0] = datatypes.NewPolymer(field, 0)
+	polymers := make([]*datatypes.Polymer, alg.inputData.polymersCount)
+	for i := range polymers {
+		polymers[i] = datatypes.NewPolymer(field, int64(i))
+	}
 	direction := base.AxisYVec
 	currPoint := base.AxisYVecReversed
 	scanner := bufio.NewScanner(file)
@@ -88,6 +94,17 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 		currPoint = base.AddVecF(base.AddVecF(currPoint, direction), base.AxisXVec)
 		direction.MultiplyByConstantF(-1.0)
 	}
+	if alg.inputData.printStatistics {
+		beautifulPrint(polymers, metElements)
+	}
+	return polymers
+}
+
+func beautifulPrint(polymers []*datatypes.Polymer, metElements map[base.MendeleevTableElement]float64) {
+	allElementsCount := 0.0
+	for _, p := range polymers {
+		allElementsCount += float64(p.Len())
+	}
 	fmt.Println("Распределение по встреченным буквам:")
 	fmt.Println("|-----------------------------------------|")
 	fmt.Println("|Элемент|Количество|Процентное соотношение|")
@@ -103,7 +120,6 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 	fmt.Printf("|Общее количество мономеров|%s|\n",
 		fillToLength(strconv.Itoa(int(allElementsCount)), utf8.RuneCountInString("--------------")))
 	fmt.Println("|-----------------------------------------|")
-	return polymers
 }
 
 func fillToLength(s string, upToLength int) string {
