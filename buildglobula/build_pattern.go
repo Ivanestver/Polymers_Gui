@@ -91,14 +91,18 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 	fmt.Println("Распределение по встреченным буквам:")
 	fmt.Println("|-----------------------------------------|")
 	fmt.Println("|Элемент|Количество|Процентное соотношение|")
+	fmt.Println("|-------|----------|----------------------|")
 	for element, count := range metElements {
 		fmt.Printf("|%s|%s|%s|\n",
 			fillToLength(string(element), utf8.RuneCountInString("Элемент")),
 			fillToLength(strconv.Itoa(int(count)), utf8.RuneCountInString("Количество")),
 			fillToLength(strconv.FormatFloat(count/allElementsCount*100.0, 'f', 2, 64)+"%", utf8.RuneCountInString("Процентное соотношение")),
 		)
-		fmt.Println("|-----------------------------------------|")
+		fmt.Println("|-------|----------|----------------------|")
 	}
+	fmt.Printf("|Общее количество мономеров|%s|\n",
+		fillToLength(strconv.Itoa(int(allElementsCount)), utf8.RuneCountInString("--------------")))
+	fmt.Println("|-----------------------------------------|")
 	return polymers
 }
 
