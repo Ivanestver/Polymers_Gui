@@ -14,7 +14,7 @@ func InvalidVector() Vector3D {
 	}
 }
 
-func (vector *Vector3D) IsInvalid() bool {
+func (vector Vector3D) IsInvalid() bool {
 	return vector[AxisX] == -1 && vector[AxisY] == -1 && vector[AxisZ] == -1
 }
 
@@ -30,7 +30,7 @@ func VectorsAreEqual(left, right *Vector3D) bool {
 		left[AxisZ] == right[AxisZ]
 }
 
-func (vector *Vector3D) Add(other *Vector3D) {
+func (vector Vector3D) Add(other *Vector3D) {
 	vector[AxisX] += other[AxisX]
 	vector[AxisY] += other[AxisY]
 	vector[AxisZ] += other[AxisZ]
@@ -50,36 +50,36 @@ type Point3DF struct {
 
 type Vector3DF [AxisCount]float64
 
-func (vector *Vector3DF) Len() float64 {
+func (vector Vector3DF) Len() float64 {
 	return math.Sqrt(
 		vector[AxisX]*vector[AxisX] +
 			vector[AxisY]*vector[AxisY] +
 			vector[AxisZ]*vector[AxisZ])
 }
 
-func (vector *Vector3DF) IsInvalid() bool {
+func (vector Vector3DF) IsInvalid() bool {
 	return math.IsNaN(vector[AxisX]) &&
 		math.IsNaN(vector[AxisY]) &&
 		math.IsNaN(vector[AxisZ])
 }
 
-func (vector *Vector3DF) AddF(other *Vector3DF) {
+func (vector Vector3DF) AddF(other *Vector3DF) {
 	vector[AxisX] += other[AxisX]
 	vector[AxisY] += other[AxisY]
 	vector[AxisZ] += other[AxisZ]
 }
 
-func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
+func (vector Vector3DF) MultiplyByConstantF(constant float64) {
 	vector[AxisX] *= constant
 	vector[AxisY] *= constant
 	vector[AxisZ] *= constant
 }
 
-func (vector *Vector3DF) Normalized() Vector3DF {
-	return MultiplyByConstantF(vector, 1.0/vector.Len())
+func (vector Vector3DF) Normalized() Vector3DF {
+	return MultiplyByConstantF(&vector, 1.0/vector.Len())
 }
 
-func (vector *Vector3DF) ToPoint() Point3DF {
+func (vector Vector3DF) ToPoint() Point3DF {
 	return Point3DF{
 		X: vector[AxisX],
 		Y: vector[AxisY],

@@ -27,7 +27,7 @@ func MakeQuaternionFromVector(w float64, v Vector3DF) Quaternion {
 	}
 }
 
-func (q *Quaternion) Conjugate() Quaternion {
+func (q Quaternion) Conjugate() Quaternion {
 	return Quaternion{
 		W: q.W,
 		V: Vector3DF{
@@ -38,7 +38,7 @@ func (q *Quaternion) Conjugate() Quaternion {
 	}
 }
 
-func (q *Quaternion) Len() float64 {
+func (q Quaternion) Len() float64 {
 	prod := 0.0
 	for i := range q.V {
 		prod += q.V[i] * q.V[i]

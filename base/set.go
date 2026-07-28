@@ -17,10 +17,10 @@ func (set *UnorderedSet[T]) Remove(i T) {
 	}
 }
 
-func (set *UnorderedSet[T]) IsEmpty() bool {
-	return len(*set) == 0
+func (set UnorderedSet[T]) IsEmpty() bool {
+	return len(set) == 0
 }
 
-func (set *UnorderedSet[T]) Size() int {
-	return len(*set)
+func (set UnorderedSet[T]) Size() int {
+	return len(set)
 }

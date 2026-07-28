@@ -14,15 +14,15 @@ func NewSmartSet[v comparable]() *SmartSet[v] {
 	}
 }
 
-func (s *SmartSet[v]) Size() int {
+func (s SmartSet[v]) Size() int {
 	return s.list.Len()
 }
 
-func (s *SmartSet[v]) IsEmpty() bool {
+func (s SmartSet[v]) IsEmpty() bool {
 	return s.Size() == 0
 }
 
-func (s *SmartSet[v]) Contains(val v) bool {
+func (s SmartSet[v]) Contains(val v) bool {
 	_, ok := s.registry[val]
 	return ok
 }
@@ -42,7 +42,7 @@ func (s *SmartSet[v]) Remove(val v) {
 	}
 }
 
-func (s *SmartSet[v]) Get(idx int) v {
+func (s SmartSet[v]) Get(idx int) v {
 	if 0 <= idx && idx < s.Size() {
 		elem := s.list.Front()
 		for range idx {

@@ -15,17 +15,17 @@ func (s *Queue[T]) Pop() (any, bool) {
 	return element, true
 }
 
-func (s *Queue[T]) Peek() (any, bool) {
+func (s Queue[T]) Peek() (any, bool) {
 	if s.IsEmpty() {
 		return nil, false // Or handle error appropriately
 	}
-	return (*s)[0], true
+	return s[0], true
 }
 
-func (s *Queue[T]) PeekNotSafe() any {
-	return (*s)[0]
+func (s Queue[T]) PeekNotSafe() any {
+	return s[0]
 }
 
-func (s *Queue[T]) IsEmpty() bool {
-	return len(*s) == 0
+func (s Queue[T]) IsEmpty() bool {
+	return len(s) == 0
 }
