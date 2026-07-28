@@ -96,9 +96,7 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	return inputData, nil
 }
 
-type BuildThreadAlg struct {
-	inputData BuildThreadAlgInputData
-}
+type BuildThreadAlg AbstractAlg[BuildThreadAlgInputData]
 
 func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	// define start monomers

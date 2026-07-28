@@ -87,9 +87,7 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	return inputData, nil
 }
 
-type CalcAlg struct {
-	inputData CalcAlgInputData
-}
+type CalcAlg AbstractAlg[CalcAlgInputData]
 
 func (alg *CalcAlg) Calc() []*datatypes.Polymer {
 	field := datatypes.NewField(uint64(alg.inputData.SphereRadius))

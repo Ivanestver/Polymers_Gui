@@ -17,11 +17,11 @@ import (
 type PatternInputDataBuilder struct {
 }
 
-func (builder *PatternInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder PatternInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	if len(particleName) == 0 {
 		return nil, errors.New("не задан файл с паттерном")
 	}
-	return &PatternAlgInputData{
+	return PatternAlgInputData{
 		patternFileName: particleName,
 		printStatistics: true,
 		polymersCount:   1,
@@ -34,13 +34,11 @@ type PatternAlgInputData struct {
 	polymersCount   int
 }
 
-func (inputData *PatternAlgInputData) GetGlobulaType() views.GlobulaProperty {
+func (inputData PatternAlgInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaPatternType
 }
 
-type PatternCalcAlg struct {
-	inputData *PatternAlgInputData
-}
+type PatternCalcAlg AbstractAlg[PatternAlgInputData]
 
 /*
 Y

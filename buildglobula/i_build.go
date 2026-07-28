@@ -26,16 +26,20 @@ type IInputDataBuilder interface {
 	CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error)
 }
 
+type AbstractAlg[T ICalcAlgInputData] struct {
+	inputData T
+}
+
 func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {
 	switch algType {
 	case GlobulaBuildAlg:
-		return &CalcAlgInputDataBuilder{}
+		return CalcAlgInputDataBuilder{}
 	case ThreadBuildAlg:
-		return &BuildThreadAlgInputDataBuilder{}
+		return BuildThreadAlgInputDataBuilder{}
 	case SurfaceBuildAlg:
-		return &SurfaceInputDataBuilder{}
+		return SurfaceInputDataBuilder{}
 	case PatternBuildAlg:
-		return &PatternInputDataBuilder{}
+		return PatternInputDataBuilder{}
 	default:
 		return nil
 	}
@@ -58,14 +62,14 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 			}
 		}
 	case SurfaceBuildAlg:
-		inp, ok := inputData.(*SurfaceAlgInputData)
+		inp, ok := inputData.(SurfaceAlgInputData)
 		if ok {
 			return &SurfaceCalcAlg{
 				inputData: inp,
 			}
 		}
 	case PatternBuildAlg:
-		inp, ok := inputData.(*PatternAlgInputData)
+		inp, ok := inputData.(PatternAlgInputData)
 		if ok {
 			return &PatternCalcAlg{
 				inputData: inp,
