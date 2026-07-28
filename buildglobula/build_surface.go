@@ -7,11 +7,11 @@ import (
 	"polymers/views"
 )
 
-type SurfaceAlgInputData struct {
+type SurfaceInputData struct {
 	Xlength, Ylength, Zlength int
 }
 
-func (inputData SurfaceAlgInputData) GetGlobulaType() views.GlobulaProperty {
+func (inputData SurfaceInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaSurfaceType
 }
 
@@ -20,17 +20,17 @@ type SurfaceInputDataBuilder struct {
 
 func (builder SurfaceInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	params := append([]string{"0", "0", "0"}, defaultParams...)
-	threadBuilder := BuildThreadAlgInputDataBuilder{}
+	threadBuilder := ThreadInputDataBuilder{}
 	inputData, err := threadBuilder.CreateInputData(algType, params, particleName)
-	threadInputData := inputData.(BuildThreadAlgInputData)
-	return SurfaceAlgInputData{
+	threadInputData := inputData.(ThreadInputData)
+	return SurfaceInputData{
 		Xlength: int(threadInputData.ThreadRadius) * 2,
 		Ylength: int(threadInputData.ThreadLength),
 		Zlength: threadInputData.MaxPolymersCount,
 	}, err
 }
 
-type SurfaceCalcAlg AbstractAlg[SurfaceAlgInputData]
+type SurfaceCalcAlg AbstractAlg[SurfaceInputData]
 
 func (alg *SurfaceCalcAlg) Calc() []*datatypes.Polymer {
 	xDiv2 := alg.inputData.Xlength / 2
@@ -38,8 +38,8 @@ func (alg *SurfaceCalcAlg) Calc() []*datatypes.Polymer {
 	radius := math.Sqrt(
 		float64(xDiv2)*float64(xDiv2) +
 			float64(yDiv2)*float64(yDiv2))
-	threadAlg := BuildThreadAlg{
-		inputData: BuildThreadAlgInputData{
+	threadAlg := ThreadCalcAlg{
+		inputData: ThreadInputData{
 			Cell: struct {
 				Lx int
 				Ly int

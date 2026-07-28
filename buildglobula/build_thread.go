@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type BuildThreadAlgInputData struct {
+type ThreadInputData struct {
 	Cell struct {
 		Lx int
 		Ly int
@@ -21,15 +21,15 @@ type BuildThreadAlgInputData struct {
 	MaxPolymersCount int
 }
 
-func (alg BuildThreadAlgInputData) GetGlobulaType() views.GlobulaProperty {
+func (alg ThreadInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaThreadType
 }
 
-type BuildThreadAlgInputDataBuilder struct {
+type ThreadInputDataBuilder struct {
 }
 
-func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
-	inputData := BuildThreadAlgInputData{}
+func (builder ThreadInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
+	inputData := ThreadInputData{}
 
 	predefinedParamsCount := len(predefinedParams)
 	if predefinedParamsCount < 3 {
@@ -96,9 +96,9 @@ func (builder BuildThreadAlgInputDataBuilder) CreateInputData(algType AlgType, p
 	return inputData, nil
 }
 
-type BuildThreadAlg AbstractAlg[BuildThreadAlgInputData]
+type ThreadCalcAlg AbstractAlg[ThreadInputData]
 
-func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
+func (alg *ThreadCalcAlg) Calc() []*datatypes.Polymer {
 	// define start monomers
 	outputformat.GetPrint().PrintlnInfo("Define new field")
 	field := datatypes.NewField(uint64(alg.inputData.ThreadRadius))
@@ -133,7 +133,7 @@ func (alg *BuildThreadAlg) Calc() []*datatypes.Polymer {
 	return polymers
 }
 
-func (alg *BuildThreadAlg) defineStartMonomers() []base.Vector3DF {
+func (alg *ThreadCalcAlg) defineStartMonomers() []base.Vector3DF {
 	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	if spaceDimention[base.AxisZ].Higher-spaceDimention[base.AxisZ].Lower < alg.inputData.ThreadLength {
 		return nil

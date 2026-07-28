@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type CalcAlgInputData struct {
+type GlobulaInputData struct {
 	GlobulaCount     int
 	PolymersCount    int
 	AcceptThreshold  float64
@@ -18,15 +18,15 @@ type CalcAlgInputData struct {
 	SphereRadius     int
 }
 
-func (data CalcAlgInputData) GetGlobulaType() views.GlobulaProperty {
+func (data GlobulaInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaGlobulaType
 }
 
-type CalcAlgInputDataBuilder struct {
+type GlobulaInputDataBuilder struct {
 }
 
-func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
-	inputData := CalcAlgInputData{}
+func (creator GlobulaInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
+	inputData := GlobulaInputData{}
 
 	predefinedParamsCount := len(predefinedParams)
 	if predefinedParamsCount < 1 {
@@ -87,9 +87,9 @@ func (creator CalcAlgInputDataBuilder) CreateInputData(algType AlgType, predefin
 	return inputData, nil
 }
 
-type CalcAlg AbstractAlg[CalcAlgInputData]
+type GlobulaCalcAlg AbstractAlg[GlobulaInputData]
 
-func (alg *CalcAlg) Calc() []*datatypes.Polymer {
+func (alg *GlobulaCalcAlg) Calc() []*datatypes.Polymer {
 	field := datatypes.NewField(uint64(alg.inputData.SphereRadius))
 	polymers := make([]*datatypes.Polymer, alg.inputData.PolymersCount)
 	for i := 0; i < alg.inputData.PolymersCount; i++ {
@@ -99,7 +99,7 @@ func (alg *CalcAlg) Calc() []*datatypes.Polymer {
 	return alg.calcImpl(polymers, field)
 }
 
-func (alg *CalcAlg) calcImpl(polymers []*datatypes.Polymer, field *datatypes.Field) []*datatypes.Polymer {
+func (alg *GlobulaCalcAlg) calcImpl(polymers []*datatypes.Polymer, field *datatypes.Field) []*datatypes.Polymer {
 	finishedPolymers := make([]*datatypes.Polymer, 0)
 	for _, p := range polymers {
 		startMonomer := field.DefineStartMonomer()
@@ -155,7 +155,7 @@ func (alg *CalcAlg) calcImpl(polymers []*datatypes.Polymer, field *datatypes.Fie
 	return finishedPolymers
 }
 
-func (alg *CalcAlg) getContinuations(kFree int, availableCells []*datatypes.Monomer) []*datatypes.Monomer {
+func (alg *GlobulaCalcAlg) getContinuations(kFree int, availableCells []*datatypes.Monomer) []*datatypes.Monomer {
 	chosenContinuationsIdxs := rand.Perm(kFree)
 	continuations := make([]*datatypes.Monomer, len(chosenContinuationsIdxs))
 	for i := 0; i < len(chosenContinuationsIdxs); i++ {
@@ -164,7 +164,7 @@ func (alg *CalcAlg) getContinuations(kFree int, availableCells []*datatypes.Mono
 	return continuations
 }
 
-func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *datatypes.Monomer) *datatypes.Polymer {
+func (alg *GlobulaCalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *datatypes.Monomer) *datatypes.Polymer {
 	configCopy := datatypes.NewPolymer(currConfig.GetField().(*datatypes.Field), -1)
 	for i := 0; i < currConfig.Len(); i++ {
 		mon := currConfig.GetMonomerByIdx(i)
@@ -175,7 +175,7 @@ func (alg *CalcAlg) getNextConfig(currConfig *datatypes.Polymer, continuation *d
 	return configCopy
 }
 
-func (alg *CalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, UCurrent float64) base.Vector3DF {
+func (alg *GlobulaCalcAlg) getNextCurrentPosition(potentialConfigs []*datatypes.Polymer, UCurrent float64) base.Vector3DF {
 	deltasOfPotentialConfigs := make([]float64, len(potentialConfigs))
 	for i := 0; i < len(potentialConfigs); i++ {
 		deltasOfPotentialConfigs[i] = UCurrent - datatypes.CalcEnergy(potentialConfigs[i])

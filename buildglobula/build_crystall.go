@@ -5,10 +5,10 @@ import (
 	"polymers/views"
 )
 
-type CrystallDataBuilder struct {
+type CrystallInputDataBuilder struct {
 }
 
-func (builder CrystallDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder CrystallInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	return CrystallBuildInputData{}, nil
 }
 
@@ -19,8 +19,8 @@ func (inputData CrystallBuildInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaCrystalType
 }
 
-type BuildCrystallAlg AbstractAlg[CrystallBuildInputData]
+type CrystallCalcAlg AbstractAlg[CrystallBuildInputData]
 
-func (alg *BuildCrystallAlg) Calc() []*datatypes.Polymer {
+func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
 	return nil
 }

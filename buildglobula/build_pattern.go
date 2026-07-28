@@ -21,24 +21,24 @@ func (builder PatternInputDataBuilder) CreateInputData(algType AlgType, defaultP
 	if len(particleName) == 0 {
 		return nil, errors.New("не задан файл с паттерном")
 	}
-	return PatternAlgInputData{
+	return PatternInputData{
 		patternFileName: particleName,
 		printStatistics: true,
 		polymersCount:   1,
 	}, nil
 }
 
-type PatternAlgInputData struct {
+type PatternInputData struct {
 	patternFileName string
 	printStatistics bool
 	polymersCount   int
 }
 
-func (inputData PatternAlgInputData) GetGlobulaType() views.GlobulaProperty {
+func (inputData PatternInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaPatternType
 }
 
-type PatternCalcAlg AbstractAlg[PatternAlgInputData]
+type PatternCalcAlg AbstractAlg[PatternInputData]
 
 /*
 Y
