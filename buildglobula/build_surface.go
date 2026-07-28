@@ -18,10 +18,10 @@ func (inputData SurfaceInputData) GetGlobulaType() views.GlobulaProperty {
 type SurfaceInputDataBuilder struct {
 }
 
-func (builder SurfaceInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder SurfaceInputDataBuilder) CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	params := append([]string{"0", "0", "0"}, defaultParams...)
 	threadBuilder := ThreadInputDataBuilder{}
-	inputData, err := threadBuilder.CreateInputData(algType, params, particleName)
+	inputData, err := threadBuilder.CreateInputData(params, particleName)
 	threadInputData := inputData.(ThreadInputData)
 	return SurfaceInputData{
 		Xlength: int(threadInputData.ThreadRadius) * 2,

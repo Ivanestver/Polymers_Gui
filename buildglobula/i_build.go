@@ -24,7 +24,7 @@ type ICalcAlgInputData interface {
 }
 
 type ICalcAlgInputDataBuilder interface {
-	CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error)
+	CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error)
 }
 
 type AbstractAlg[T ICalcAlgInputData] struct {

@@ -17,7 +17,7 @@ import (
 type PatternInputDataBuilder struct {
 }
 
-func (builder PatternInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder PatternInputDataBuilder) CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	if len(particleName) == 0 {
 		return nil, errors.New("не задан файл с паттерном")
 	}

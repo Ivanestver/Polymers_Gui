@@ -28,7 +28,7 @@ func (alg ThreadInputData) GetGlobulaType() views.GlobulaProperty {
 type ThreadInputDataBuilder struct {
 }
 
-func (builder ThreadInputDataBuilder) CreateInputData(algType AlgType, predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder ThreadInputDataBuilder) CreateInputData(predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
 	inputData := ThreadInputData{}
 
 	predefinedParamsCount := len(predefinedParams)

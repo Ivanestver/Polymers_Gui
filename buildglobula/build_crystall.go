@@ -8,7 +8,7 @@ import (
 type CrystallInputDataBuilder struct {
 }
 
-func (builder CrystallInputDataBuilder) CreateInputData(algType AlgType, defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error) {
 	return CrystallBuildInputData{}, nil
 }
 
