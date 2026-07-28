@@ -12,6 +12,7 @@ const (
 	ThreadBuildAlg
 	SurfaceBuildAlg
 	PatternBuildAlg
+	CrystallBuildAlg
 )
 
 type ICalcAlg interface {
@@ -40,6 +41,8 @@ func CreateInputDataBuilder(algType AlgType) IInputDataBuilder {
 		return SurfaceInputDataBuilder{}
 	case PatternBuildAlg:
 		return PatternInputDataBuilder{}
+	case CrystallBuildAlg:
+		return CrystallDataBuilder{}
 	default:
 		return nil
 	}
@@ -72,6 +75,13 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 		inp, ok := inputData.(PatternAlgInputData)
 		if ok {
 			return &PatternCalcAlg{
+				inputData: inp,
+			}
+		}
+	case CrystallBuildAlg:
+		inp, ok := inputData.(CrystallBuildInputData)
+		if ok {
+			return &BuildCrystallAlg{
 				inputData: inp,
 			}
 		}
