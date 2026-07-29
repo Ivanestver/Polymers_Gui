@@ -426,7 +426,7 @@ func main() {
 
 func buildGlobula(algType buildglobula.AlgType, predefinedParams []string, particleName string) {
 	inputDataBuilder := buildglobula.CreateInputDataBuilder(algType)
-	inputData_, err := inputDataBuilder.CreateInputData(algType, predefinedParams, particleName)
+	inputData_, err := inputDataBuilder.CreateInputData(predefinedParams, particleName)
 	if err != nil {
 		printer.PrintlnError(err.Error())
 		return
