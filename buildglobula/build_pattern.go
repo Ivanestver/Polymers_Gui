@@ -21,10 +21,23 @@ func (builder PatternInputDataBuilder) CreateInputData(defaultParams []string, p
 	if len(particleName) == 0 {
 		return nil, errors.New("не задан файл с паттерном")
 	}
+	printStatistics := true
+	polymersCount := 1
+	if len(defaultParams) > 0 {
+		printStatistics = defaultParams[0] == "true"
+	}
+	if len(defaultParams) > 1 {
+		if c, err := strconv.Atoi(defaultParams[1]); err == nil {
+			polymersCount = c
+		} else {
+			return nil, err
+		}
+	}
+
 	return PatternInputData{
 		patternFileName: particleName,
-		printStatistics: true,
-		polymersCount:   1,
+		printStatistics: printStatistics,
+		polymersCount:   polymersCount,
 	}, nil
 }
 
