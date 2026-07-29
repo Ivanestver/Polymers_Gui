@@ -138,7 +138,7 @@ func (polymer *Polymer) MakeStepBack() bool {
 	for _, side := range allSides {
 		other, _ := mon.GetSibling(side)
 		if other != nil {
-			BreakConnection(mon, other, side)
+			BreakConnection(mon, other)
 		}
 	}
 	if mon.PrevMonomer != nil {

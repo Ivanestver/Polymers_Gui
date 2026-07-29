@@ -79,35 +79,7 @@ func MakeConnectionUnsafe(mon1, mon2 *Monomer, side Side, connectionType Connect
 	return nil
 }
 
-func BreakConnection(mon1, mon2 *Monomer, side Side) error {
-
-	if mon1 == nil || mon2 == nil {
-		return errors.New("one of monomers is nil")
-	}
-
-	reversedSide := GetReversedSide(side)
-	currConn, ok := mon1.sides[side]
-	if !ok {
-		return errors.New("could not receive the connection")
-	}
-	otherConn, ok := mon2.sides[reversedSide]
-	if !ok {
-		return errors.New("could not receive the connection on the other side")
-	}
-	if currConn != otherConn {
-		return errors.New("two connection occupy the same place")
-	}
-	if MonomersAreEqual(mon1.NextMonomer, mon2) ||
-		MonomersAreEqual(mon1.PrevMonomer, mon2) {
-		currConn.ConnType = ConnectionTypeOne
-	} else {
-		currConn.ConnType = ConnectionTypeUndefined
-	}
-
-	return nil
-}
-
-func BreakConnection1(mon1, mon2 *Monomer) error {
+func BreakConnection(mon1, mon2 *Monomer) error {
 	if mon1 == nil || mon2 == nil {
 		return errors.New("one of monomers is nil")
 	}

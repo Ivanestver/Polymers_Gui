@@ -97,7 +97,7 @@ func (globula *GlobulaView) FullReset() {
 				if err != nil || sibling == nil {
 					continue
 				}
-				dt.BreakConnection(mon, sibling, side)
+				dt.BreakConnection(mon, sibling)
 			}
 			// Connection with the next monomer in the chain
 			dt.MakeConnection(mon, mon.NextMonomer, dt.ConnectionTypeOne)

@@ -320,7 +320,7 @@ func (alg *_AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, 
 			trialsCount++
 			continue
 		}
-		dt.BreakConnection1(chosenMonomer, nextChosenMonomer)
+		dt.BreakConnection(chosenMonomer, nextChosenMonomer)
 		chosenMonomer.MonomerType = typePrev
 		nextChosenMonomer.MonomerType = typeNext
 		OcontainingCount--
