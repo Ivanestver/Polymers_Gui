@@ -39,7 +39,7 @@ func NewPolymer() *_Polymer {
 func (molecule *_Monomer) GetMassCenter() base.Vector3DF {
 	res := molecule.Atoms[0].Coords
 	for i := 1; i < len(molecule.Atoms); i++ {
-		res.AddF(&molecule.Atoms[i].Coords)
+		res.AddF(molecule.Atoms[i].Coords)
 	}
 	res.MultiplyByConstantF(1.0 / float64(len(molecule.Atoms)))
 	return res
@@ -50,7 +50,7 @@ func (molecule *_Monomer) MoveTo(point *base.Vector3DF) {
 	direction := base.SubtractVecF(*point, massCenter)
 	for i := 0; i < len(molecule.Atoms); i++ {
 		currentAtom := &molecule.Atoms[i]
-		currentAtom.Coords.AddF(&direction)
+		currentAtom.Coords.AddF(direction)
 	}
 }
 

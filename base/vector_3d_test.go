@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+func TestVectorAdd(t *testing.T) {
+	origin := Vector3DF{1.0, 0.0, 1.0}
+	whatToAdd := Vector3DF{1.0, 0.0, -1.0}
+	origin.AddF(whatToAdd)
+	expected := Vector3DF{2.0, 0.0, 0.0}
+	if !VectorsAreEqualF(origin, expected) {
+		t.Fatalf("Expected: %v, got: %v", expected, origin)
+	}
+}
+
 func TestDotProduct(t *testing.T) {
 	v1 := Vector3DF{1, -2, 4}
 	v2 := Vector3DF{3, 0, 5}
@@ -20,7 +30,7 @@ func TestVectorProduct(t *testing.T) {
 	v2 := Vector3DF{4, 5, 6}
 	expected := Vector3DF{-3, 6, -3}
 	real := VectorProduct(v1, v2)
-	if !VectorsAreEqualF(&expected, &real) {
+	if !VectorsAreEqualF(expected, real) {
 		t.Fatalf("Incorrect vector product. Expected: %v, got: %v", expected, real)
 	}
 }
@@ -31,7 +41,7 @@ func TestRotateVector(t *testing.T) {
 	rotationVector := Vector3DF{0, 0, 1}
 	expected := Vector3DF{0.866, 0.5, 0}
 	real := RotateVector(v, angle, rotationVector)
-	if !VectorsAreEqualF(&expected, &real) {
+	if !VectorsAreEqualF(expected, real) {
 		t.Fatalf("Incorrect rotated vector. Expected: %v, got: %v", expected, real)
 	}
 }

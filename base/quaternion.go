@@ -49,6 +49,6 @@ func (q Quaternion) Len() float64 {
 func MultiplyQuaternions(q1, q2 Quaternion) Quaternion {
 	return Quaternion{
 		W: (q1.W*q2.W - DotProduct(q1.V, q2.V)),
-		V: AddVecF(AddVecF(MultiplyByConstantF(&q2.V, q1.W), MultiplyByConstantF(&q1.V, q2.W)), VectorProduct(q1.V, q2.V)),
+		V: AddVecF(AddVecF(MultiplyByConstantF(q2.V, q1.W), MultiplyByConstantF(q1.V, q2.W)), VectorProduct(q1.V, q2.V)),
 	}
 }

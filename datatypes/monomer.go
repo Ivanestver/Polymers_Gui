@@ -194,7 +194,7 @@ func MonomersAreEqual(left, right *Monomer) bool {
 		return false
 	}
 
-	return base.VectorsAreEqualF(&left.coords, &right.coords) &&
+	return base.VectorsAreEqualF(left.coords, right.coords) &&
 		left.Number == right.Number
 }
 

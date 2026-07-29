@@ -567,7 +567,7 @@ func getStartingMonomerCoords(polymer *_Polymer) base.Vector3DF {
 
 	direction := base.SubtractVecF(firstMonomerMassCenter, secondMonomerMassCenter)
 
-	firstMonomerMassCenter.AddF(&direction)
+	firstMonomerMassCenter.AddF(direction)
 	return firstMonomerMassCenter
 }
 
@@ -578,7 +578,7 @@ func getTerminatingMonomerCoords(polymer *_Polymer) base.Vector3DF {
 
 	direction := base.SubtractVecF(lastMonomerMassCenter, prelastMonomerMassCenter)
 
-	lastMonomerMassCenter.AddF(&direction)
+	lastMonomerMassCenter.AddF(direction)
 	return lastMonomerMassCenter
 }
 
@@ -592,16 +592,16 @@ func rotateMonomers(polymers []*_Polymer) {
 			Rcm := getRcm(mon)
 			RcmPoint := base.Point3DF{X: Rcm[base.AxisX], Y: Rcm[base.AxisY], Z: Rcm[base.AxisZ]}
 			destinationDirection := base.MakeVectorF(
-				&base.Point3DF{
+				base.Point3DF{
 					X: RcmGlobal[base.AxisX],
 					Y: RcmGlobal[base.AxisY],
 					Z: RcmGlobal[base.AxisZ],
 				},
-				&RcmPoint)
+				RcmPoint)
 
 			rotationPivotDirection := base.MakeVectorF(
-				&RcmPoint,
-				&base.Point3DF{
+				RcmPoint,
+				base.Point3DF{
 					X: mon.RotationPivot.Coords[base.AxisX],
 					Y: mon.RotationPivot.Coords[base.AxisY],
 					Z: mon.RotationPivot.Coords[base.AxisZ],
@@ -612,8 +612,8 @@ func rotateMonomers(polymers []*_Polymer) {
 			rotationVector := base.VectorProduct(rotationPivotDirection, destinationDirection)
 			for atomNumber := range mon.Atoms {
 				initialDirection := base.MakeVectorF(
-					&RcmPoint,
-					&base.Point3DF{
+					RcmPoint,
+					base.Point3DF{
 						X: mon.Atoms[atomNumber].Coords[base.AxisX],
 						Y: mon.Atoms[atomNumber].Coords[base.AxisY],
 						Z: mon.Atoms[atomNumber].Coords[base.AxisZ],
@@ -632,7 +632,7 @@ func getRcmGlobal(polymers []*_Polymer) base.Vector3DF {
 	for _, polymer := range polymers {
 		for _, monomer := range polymer.Monomers {
 			for _, atom := range monomer.Atoms {
-				v.AddF(&atom.Coords)
+				v.AddF(atom.Coords)
 				n += 1.0
 			}
 		}
@@ -645,7 +645,7 @@ func getRcm(monomer *_Monomer) base.Vector3DF {
 	v := base.IdentityVectorF()
 	n := 0.0
 	for _, atom := range monomer.Atoms {
-		v.AddF(&atom.Coords)
+		v.AddF(atom.Coords)
 		n += 1.0
 	}
 	v.MultiplyByConstantF(1.0 / n)

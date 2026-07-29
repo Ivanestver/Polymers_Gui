@@ -147,7 +147,7 @@ func (alg *ThreadCalcAlg) defineStartMonomers() []base.Vector3DF {
 		currPoint := toVisit[0]
 		toVisit = toVisit[1:]
 		if base.ContainsIf(startPositions, currPoint, func(it base.Vector3DF, value base.Vector3DF) bool {
-			return base.VectorsAreEqualF(&it, &value)
+			return base.VectorsAreEqualF(it, value)
 		}) ||
 			base.EcludianDistanceF(center, currPoint) > alg.inputData.ThreadRadius ||
 			!spaceDimention.PointInSpace(&currPoint) {

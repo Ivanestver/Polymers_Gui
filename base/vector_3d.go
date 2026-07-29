@@ -18,26 +18,20 @@ func (vector Vector3D) IsInvalid() bool {
 	return vector[AxisX] == -1 && vector[AxisY] == -1 && vector[AxisZ] == -1
 }
 
-func VectorsAreEqual(left, right *Vector3D) bool {
-	if left == nil && right == nil {
-		return true
-	}
-	if left == nil || right == nil {
-		return false
-	}
+func VectorsAreEqual(left, right Vector3D) bool {
 	return left[AxisX] == right[AxisX] &&
 		left[AxisY] == right[AxisY] &&
 		left[AxisZ] == right[AxisZ]
 }
 
-func (vector Vector3D) Add(other *Vector3D) {
+func (vector *Vector3D) Add(other Vector3D) {
 	vector[AxisX] += other[AxisX]
 	vector[AxisY] += other[AxisY]
 	vector[AxisZ] += other[AxisZ]
 }
 
-func AddVec(left *Vector3D, right *Vector3D) *Vector3D {
-	return &Vector3D{
+func AddVec(left Vector3D, right Vector3D) Vector3D {
+	return Vector3D{
 		left[AxisX] + right[AxisX],
 		left[AxisY] + right[AxisY],
 		left[AxisZ] + right[AxisZ],
@@ -63,20 +57,20 @@ func (vector Vector3DF) IsInvalid() bool {
 		math.IsNaN(vector[AxisZ])
 }
 
-func (vector Vector3DF) AddF(other *Vector3DF) {
+func (vector *Vector3DF) AddF(other Vector3DF) {
 	vector[AxisX] += other[AxisX]
 	vector[AxisY] += other[AxisY]
 	vector[AxisZ] += other[AxisZ]
 }
 
-func (vector Vector3DF) MultiplyByConstantF(constant float64) {
+func (vector *Vector3DF) MultiplyByConstantF(constant float64) {
 	vector[AxisX] *= constant
 	vector[AxisY] *= constant
 	vector[AxisZ] *= constant
 }
 
 func (vector Vector3DF) Normalized() Vector3DF {
-	return MultiplyByConstantF(&vector, 1.0/vector.Len())
+	return MultiplyByConstantF(vector, 1.0/vector.Len())
 }
 
 func (vector Vector3DF) ToPoint() Point3DF {
@@ -87,7 +81,7 @@ func (vector Vector3DF) ToPoint() Point3DF {
 	}
 }
 
-func Vector3DToVector3DF(vector3D *Vector3D) Vector3DF {
+func Vector3DToVector3DF(vector3D Vector3D) Vector3DF {
 	return Vector3DF{
 		float64(vector3D[AxisX]),
 		float64(vector3D[AxisY]),
@@ -95,13 +89,7 @@ func Vector3DToVector3DF(vector3D *Vector3D) Vector3DF {
 	}
 }
 
-func VectorsAreEqualF(left, right *Vector3DF) bool {
-	if left == nil && right == nil {
-		return true
-	}
-	if left == nil || right == nil {
-		return false
-	}
+func VectorsAreEqualF(left, right Vector3DF) bool {
 	const EPSILON float64 = 0.0001
 	return math.Abs(left[AxisX]-right[AxisX]) < EPSILON &&
 		math.Abs(left[AxisY]-right[AxisY]) < EPSILON &&
@@ -127,7 +115,7 @@ func IdentityVectorF() Vector3DF {
 func AddVecF(vectors ...Vector3DF) Vector3DF {
 	res := Vector3DF{0.0, 0.0, 0.0}
 	for _, v := range vectors {
-		res.AddF(&v)
+		res.AddF(v)
 	}
 	return res
 }
@@ -140,7 +128,7 @@ func SubtractVecF(from Vector3DF, what Vector3DF) Vector3DF {
 	}
 }
 
-func MultiplyByConstantF(v *Vector3DF, c float64) Vector3DF {
+func MultiplyByConstantF(v Vector3DF, c float64) Vector3DF {
 	return Vector3DF{
 		v[AxisX] * c,
 		v[AxisY] * c,
@@ -148,15 +136,15 @@ func MultiplyByConstantF(v *Vector3DF, c float64) Vector3DF {
 	}
 }
 
-func RevertVecF(vec *Vector3DF) *Vector3DF {
-	return &Vector3DF{
+func RevertVecF(vec Vector3DF) Vector3DF {
+	return Vector3DF{
 		-1 * vec[AxisX],
 		-1 * vec[AxisY],
 		-1 * vec[AxisZ],
 	}
 }
 
-func MakeVectorF(from, to *Point3DF) Vector3DF {
+func MakeVectorF(from, to Point3DF) Vector3DF {
 	return Vector3DF{
 		to.X - from.X,
 		to.Y - from.Y,
@@ -204,7 +192,7 @@ func RotateVector(originVector Vector3DF, angle float64, rotationVector Vector3D
 	cosAngle := math.Cos(angle / 2)
 	sinAngle := math.Sin(angle / 2)
 	r := rotationVector.Normalized()
-	q := MakeQuaternionFromVector(cosAngle, MultiplyByConstantF(&r, sinAngle))
+	q := MakeQuaternionFromVector(cosAngle, MultiplyByConstantF(r, sinAngle))
 	qConjugate := q.Conjugate()
 	v := MakeQuaternionFromVector(0, originVector)
 	rotatedVector := MultiplyQuaternions(MultiplyQuaternions(q, v), qConjugate)

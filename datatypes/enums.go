@@ -17,11 +17,11 @@ const (
 
 var SideUndefined = Side{0.0, 0.0, 0.0}
 var SideForward = base.AxisXVec
-var SideBackward = base.MultiplyByConstantF(&SideForward, float64(DirectionBackward))
+var SideBackward = base.MultiplyByConstantF(SideForward, float64(DirectionBackward))
 var SideLeft = base.AxisYVec
-var SideRight = base.MultiplyByConstantF(&SideLeft, float64(DirectionBackward))
+var SideRight = base.MultiplyByConstantF(SideLeft, float64(DirectionBackward))
 var SideUp = base.AxisZVec
-var SideDown = base.MultiplyByConstantF(&SideUp, float64(DirectionBackward))
+var SideDown = base.MultiplyByConstantF(SideUp, float64(DirectionBackward))
 var SideUpLeftForward = base.AddVecF(base.AddVecF(SideUp, SideLeft), SideForward)
 var SideUpForward = base.AddVecF(SideUp, SideForward)
 var SideUpRightForward = base.AddVecF(SideUp, SideRight, SideForward)
@@ -87,7 +87,7 @@ func GetReversedSide(side Side) Side {
 	if side == SideUndefined {
 		panic("Unappropriate side")
 	} else {
-		return base.MultiplyByConstantF(&side, -1)
+		return base.MultiplyByConstantF(side, -1)
 	}
 }
 

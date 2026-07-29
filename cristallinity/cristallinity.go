@@ -36,7 +36,7 @@ func (stick *_CristallizedStick) GetCenterOfMasses() base.Vector3DF {
 	ret := base.IdentityVectorF()
 	for _, m := range *stick {
 		v := m.Coords()
-		ret.AddF(&v)
+		ret.AddF(v)
 	}
 	ret.MultiplyByConstantF(1.0 / float64(len(*stick)))
 	return ret
@@ -580,7 +580,7 @@ func (analyzer *_CristallinityAnalyzer) getDirector(directions []base.Vector3DF)
 	if analyzer.baseStick == nil {
 		director := base.IdentityVectorF()
 		for _, stick := range directions {
-			director.AddF(&stick)
+			director.AddF(stick)
 		}
 		return director
 	} else {
