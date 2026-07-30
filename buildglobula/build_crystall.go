@@ -140,7 +140,7 @@ func (alg *CrystallCalcAlg) vaccinateRandomAmorphousPartsToPolymer(polymer *data
 			return polymer.LastMonomer()
 		},
 		func(newMonomer *datatypes.Monomer) {
-			polymer.AddMonomerNoConnection(newMonomer)
+			polymer.AddMonomer(newMonomer)
 		}); err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (alg *CrystallCalcAlg) vaccinateRandomAmorphousPartsToPolymer(polymer *data
 			return polymer.GetMonomerByIdx(0)
 		},
 		func(newMonomer *datatypes.Monomer) {
-			polymer.AddMonomerAtStartNoConnection(newMonomer)
+			polymer.AddMonomerAtStart(newMonomer)
 		}); err != nil {
 		return err
 	}
