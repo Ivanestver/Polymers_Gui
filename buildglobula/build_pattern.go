@@ -98,10 +98,15 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 		for _, beadType := range line {
 			allElementsCount += 1.0
 			currPoint = base.AddVecF(currPoint, direction)
-			mon := field.GetMonomerByCoords(currPoint)
-			mon.MonomerType = base.MendeleevTableElement(string(beadType))
-			metElements[mon.MonomerType] += 1
-			polymers[0].AddMonomer(mon)
+			for i := range polymers {
+				currPointOfCurrPolymer := base.AddVecF(
+					currPoint,
+					base.MultiplyByConstantF(base.AxisZVec, float64(i)))
+				mon := field.GetMonomerByCoords(currPointOfCurrPolymer)
+				mon.MonomerType = base.MendeleevTableElement(string(beadType))
+				metElements[mon.MonomerType] += 1
+				polymers[i].AddMonomer(mon)
+			}
 		}
 		currPoint = base.AddVecF(base.AddVecF(currPoint, direction), base.AxisXVec)
 		direction.MultiplyByConstantF(-1.0)

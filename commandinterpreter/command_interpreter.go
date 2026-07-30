@@ -262,12 +262,12 @@ func build() (Command, any) {
 		}
 		predefinedParams = append(predefinedParams, name)
 	}
-		for !finished() {
-			p, err := getNextToken()
-			if err != nil {
-				continue
-			}
-			predefinedParams = append(predefinedParams, p)
+	for !finished() {
+		p, err := getNextToken()
+		if err != nil {
+			continue
+		}
+		predefinedParams = append(predefinedParams, p)
 	}
 
 	m := make(map[string]any)
