@@ -172,23 +172,21 @@ func (alg *CrystallCalcAlg) growAmorphousPartFromMonomer(field *datatypes.Field,
 }
 
 func createPatternFile(filename string) error {
-	file, err := os.Open(filename)
-	if err == nil {
-		file.Close()
+	if _, err := os.Stat(filename); err == nil {
 		return nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
 	}
 
 	buf := []byte("CCCCC\nCCCCC\nCCCCC\nCCCCC\nCCCCC\nCCCCC\nCCCCC")
-	return os.WriteFile(filename, buf, os.ModeAppend)
+
+	return os.WriteFile(filename, buf, 0666)
 }
 
 func deleteFile(filename string) error {
-	if _, err := os.Stat(filename); err == nil {
-		if err = os.Remove(filename); err != nil {
-			return err
-		}
+	err := os.Remove(filename)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
