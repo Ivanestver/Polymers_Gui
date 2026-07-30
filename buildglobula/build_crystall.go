@@ -169,6 +169,7 @@ func (alg *CrystallCalcAlg) growAmorphousPartFromMonomer(field *datatypes.Field,
 		}
 		randomInt := rand.IntN(len(availableCells))
 		newCell := availableCells[randomInt]
+		newCell.MonomerType = base.O
 		addMonomer(newCell)
 	}
 	return nil
