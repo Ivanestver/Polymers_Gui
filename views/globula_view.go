@@ -43,11 +43,11 @@ func NewGlobulaView(polymers []dt.IPolymer, globulaType GlobulaProperty) *Globul
 	}
 	monomerNumber := int64(1)
 	for _, polymer := range newGlobulaView.polymers {
-		ForEachMonomer(polymer, func(mon *dt.Monomer) bool {
+		for monNumber := range polymer.Len() {
+			mon := polymer.GetMonomerByIdx(monNumber)
 			mon.Number = monomerNumber
 			monomerNumber++
-			return true
-		})
+		}
 	}
 	newGlobulaView.commonClusterDone = false
 	newGlobulaView.globulaProperties = make(map[GlobulaProperty]bool)
