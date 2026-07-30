@@ -25,7 +25,7 @@ func (data GlobulaInputData) GetGlobulaType() views.GlobulaProperty {
 type GlobulaInputDataBuilder struct {
 }
 
-func (creator GlobulaInputDataBuilder) CreateInputData(predefinedParams []string, particleName string) (ICalcAlgInputData, error) {
+func (creator GlobulaInputDataBuilder) CreateInputData(predefinedParams []string) (ICalcAlgInputData, error) {
 	inputData := GlobulaInputData{}
 
 	predefinedParamsCount := len(predefinedParams)

@@ -255,24 +255,23 @@ func build() (Command, any) {
 	}
 
 	predefinedParams := make([]string, 0)
-	if objective != CommandPatternSTR {
+	if objective == CommandPatternSTR {
+		name, err := getParameterAsString()
+		if err != nil {
+			return CommandUndefined, "Specify the name of a file with pattern"
+		}
+		predefinedParams = append(predefinedParams, name)
+	}
 		for !finished() {
 			p, err := getNextToken()
 			if err != nil {
 				continue
 			}
 			predefinedParams = append(predefinedParams, p)
-		}
 	}
 
 	m := make(map[string]any)
 	m["params"] = predefinedParams
-
-	name, err := getParameterAsString()
-	if err != nil {
-		return CommandUndefined, "Specify the name of a particle"
-	}
-	m["name"] = name
 
 	if objective == CommandGlobulaSTR {
 		m["alg"] = buildglobula.GlobulaBuildAlg
@@ -288,6 +287,7 @@ func build() (Command, any) {
 		m["alg"] = buildglobula.SurfaceBuildAlg
 		return CommandBuild, m
 	}
+
 	if objective == CommandPatternSTR {
 		m["alg"] = buildglobula.PatternBuildAlg
 		return CommandBuild, m

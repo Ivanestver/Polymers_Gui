@@ -17,17 +17,18 @@ import (
 type PatternInputDataBuilder struct {
 }
 
-func (builder PatternInputDataBuilder) CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error) {
-	if len(particleName) == 0 {
-		return nil, errors.New("не задан файл с паттерном")
+func (builder PatternInputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
+	if len(defaultParams) == 0 {
+		return nil, errors.New("не задано название файла с паттерном")
 	}
+	particleName := defaultParams[0]
 	printStatistics := true
 	polymersCount := 1
-	if len(defaultParams) > 0 {
+	if len(defaultParams) > 1 {
 		printStatistics = defaultParams[0] == "true"
 	}
-	if len(defaultParams) > 1 {
-		if c, err := strconv.Atoi(defaultParams[1]); err == nil {
+	if len(defaultParams) > 2 {
+		if c, err := strconv.Atoi(defaultParams[2]); err == nil {
 			polymersCount = c
 		} else {
 			return nil, err

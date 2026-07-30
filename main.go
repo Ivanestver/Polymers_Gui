@@ -151,7 +151,7 @@ func main() {
 			globaldata.SetSpaceDimention(spaceDimention)
 		case interp.CommandBuild:
 			m := data.(map[string]any)
-			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string), m["name"].(string))
+			buildGlobula(m["alg"].(buildglobula.AlgType), m["params"].([]string))
 		case interp.CommandShowGlobula:
 			if globulaDoesntExist() {
 				continue
@@ -424,9 +424,9 @@ func main() {
 	}
 }
 
-func buildGlobula(algType buildglobula.AlgType, predefinedParams []string, particleName string) {
+func buildGlobula(algType buildglobula.AlgType, predefinedParams []string) {
 	inputDataBuilder := buildglobula.CreateInputDataBuilder(algType)
-	inputData_, err := inputDataBuilder.CreateInputData(predefinedParams, particleName)
+	inputData_, err := inputDataBuilder.CreateInputData(predefinedParams)
 	if err != nil {
 		printer.PrintlnError(err.Error())
 		return

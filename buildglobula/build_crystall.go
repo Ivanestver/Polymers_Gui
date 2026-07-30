@@ -14,7 +14,7 @@ import (
 type CrystallInputDataBuilder struct {
 }
 
-func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string, particleName string) (ICalcAlgInputData, error) {
+func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
 	if len(defaultParams) == 0 {
 		return nil, errors.New("Не заданы параметры")
 	}
@@ -57,7 +57,7 @@ func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
 
 func (alg *CrystallCalcAlg) getPolymers(filename string) ([]*datatypes.Polymer, error) {
 	algbuilder := CreateInputDataBuilder(PatternBuildAlg)
-	inputData, err := algbuilder.CreateInputData([]string{"true", "4"}, filename)
+	inputData, err := algbuilder.CreateInputData([]string{filename, "false", "4"})
 	if err != nil {
 		return nil, err
 	}
