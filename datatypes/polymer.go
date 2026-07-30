@@ -41,6 +41,27 @@ func (polymer *Polymer) AddMonomerNoConnection(monomer *Monomer) {
 	polymer.field.MakeFilled(monomer)
 }
 
+func (polymer *Polymer) AddMonomerAtStart(monomer *Monomer) {
+	if len(polymer.polymer) != 0 {
+		firstMonomer := polymer.polymer[0]
+		firstMonomer.PrevMonomer = monomer
+		monomer.NextMonomer = firstMonomer
+		MakeConnection(firstMonomer, monomer, ConnectionTypeOne)
+	}
+	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.field.MakeFilled(monomer)
+}
+
+func (polymer *Polymer) AddMonomerAtStartNoConnection(monomer *Monomer) {
+	if len(polymer.polymer) != 0 {
+		firstMonomer := polymer.polymer[0]
+		firstMonomer.PrevMonomer = monomer
+		monomer.NextMonomer = firstMonomer
+	}
+	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.field.MakeFilled(monomer)
+}
+
 func (polymer *Polymer) Len() int {
 	return len(polymer.polymer)
 }
