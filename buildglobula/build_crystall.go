@@ -110,10 +110,12 @@ func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer *datatypes.Polym
 		newPolymer.AddMonomerNoConnection(prevMonomer)
 		if !base.VectorsAreEqualF(direction, currDirection) {
 			direction = base.RevertVecF(direction)
-			newPolymers = append(newPolymers, newPolymer)
-			newPolymer = datatypes.NewPolymer(field, int64(len(newPolymers)))
-			if err := datatypes.BreakConnection(prevMonomer, currMonomer); err != nil {
-				return nil, err
+			if rand.IntN(100)%2 == 0 {
+				newPolymers = append(newPolymers, newPolymer)
+				newPolymer = datatypes.NewPolymer(field, int64(len(newPolymers)))
+				if err := datatypes.BreakConnection(prevMonomer, currMonomer); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
