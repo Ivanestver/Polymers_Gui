@@ -85,8 +85,14 @@ func (polymer *Polymer) DeepCopy(args ...any) IPolymer {
 	return newPolymer
 }
 
+/*
+Returns a monomer by a given index. Supports the negative indexing like in Python (i.e. -1 is the last, -2 is the one before the last, etc.)
+*/
 func (polymer *Polymer) GetMonomerByIdx(idx int) *Monomer {
-	if idx < 0 || idx >= polymer.Len() {
+	if idx < 0 {
+		idx += polymer.Len()
+	}
+	if idx >= polymer.Len() {
 		return nil
 	}
 
