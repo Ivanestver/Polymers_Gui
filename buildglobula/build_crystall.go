@@ -118,6 +118,7 @@ func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer *datatypes.Polym
 		}
 	}
 	if newPolymer.Len() > 0 {
+		newPolymer.AddMonomerNoConnection(polymer.LastMonomer())
 		newPolymers = append(newPolymers, newPolymer)
 	}
 	return newPolymers, nil
