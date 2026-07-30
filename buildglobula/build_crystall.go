@@ -24,11 +24,13 @@ func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string) 
 	}
 	return CrystallBuildInputData{
 		maxAmorphousPartSize: maxAmorphousPartSize,
+		widthOfCrystall:      defaultParams[1],
 	}, nil
 }
 
 type CrystallBuildInputData struct {
 	maxAmorphousPartSize int
+	widthOfCrystall      string
 }
 
 func (inputData CrystallBuildInputData) GetGlobulaType() views.GlobulaProperty {
@@ -57,7 +59,7 @@ func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
 
 func (alg *CrystallCalcAlg) getPolymers(filename string) ([]*datatypes.Polymer, error) {
 	algbuilder := CreateInputDataBuilder(PatternBuildAlg)
-	inputData, err := algbuilder.CreateInputData([]string{filename, "false", "4"})
+	inputData, err := algbuilder.CreateInputData([]string{filename, "false", alg.inputData.widthOfCrystall})
 	if err != nil {
 		return nil, err
 	}
