@@ -48,7 +48,7 @@ func (polymer *Polymer) AddMonomerAtStart(monomer *Monomer) {
 		monomer.NextMonomer = firstMonomer
 		MakeConnection(firstMonomer, monomer, ConnectionTypeOne)
 	}
-	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.polymer = append([]*Monomer{monomer}, polymer.polymer...)
 	polymer.field.MakeFilled(monomer)
 }
 
@@ -58,7 +58,7 @@ func (polymer *Polymer) AddMonomerAtStartNoConnection(monomer *Monomer) {
 		firstMonomer.PrevMonomer = monomer
 		monomer.NextMonomer = firstMonomer
 	}
-	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.polymer = append([]*Monomer{monomer}, polymer.polymer...)
 	polymer.field.MakeFilled(monomer)
 }
 
