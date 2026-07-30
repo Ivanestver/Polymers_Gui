@@ -43,6 +43,7 @@ const (
 	CommandColorizeSTR         = "colorize"
 	CommandSaveSettingsSTR     = "save_settings"
 	CommandBoxSTR              = "box"
+	CommandCrystallSTR         = "crystall"
 )
 
 type Command = int
@@ -290,6 +291,11 @@ func build() (Command, any) {
 
 	if objective == CommandPatternSTR {
 		m["alg"] = buildglobula.PatternBuildAlg
+		return CommandBuild, m
+	}
+
+	if objective == CommandCrystallSTR {
+		m["alg"] = buildglobula.CrystallBuildAlg
 		return CommandBuild, m
 	}
 
