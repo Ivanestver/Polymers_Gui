@@ -72,6 +72,7 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 		outputformat.GetPrint().PrintlnError(err.Error())
 		return nil
 	}
+	defer file.Close()
 	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	field := datatypes.NewField(uint64(
 		max(
