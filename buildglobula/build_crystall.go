@@ -74,11 +74,108 @@ func (alg *CrystallCalcAlg) getPolymers(filename string) ([]*datatypes.Polymer, 
 }
 
 func (alg *CrystallCalcAlg) processPolymers(polymers *[]*datatypes.Polymer) error {
+	if err := alg.hardenCrystall(*polymers); err != nil {
+		return err
+	}
 	if err := alg.breakToPieces(polymers); err != nil {
 		return err
 	}
 	if err := alg.vaccinateRandomAmorphousParts(*polymers); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (alg *CrystallCalcAlg) hardenCrystall(polymers []*datatypes.Polymer) error {
+	if err := alg.hardenCrystallByInterpolymerConnections(polymers); err != nil {
+		return err
+	}
+	if err := alg.hardenCrystallByinterpieceConnections(polymers); err != nil {
+		return err
+	}
+	if err := alg.hardenCrystallByInterPolymerAndInterpieceConnections(polymers); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (alg *CrystallCalcAlg) hardenCrystallByInterpolymerConnections(polymers []*datatypes.Polymer) error {
+	for i := 1; i < len(polymers); i++ {
+		polymer1 := polymers[i-1]
+		polymer2 := polymers[i]
+		for j := 1; j < polymer1.Len(); j++ {
+			mon1InPolymer1 := polymer1.GetMonomerByIdx(j - 1)
+			mon2InPolymer1 := polymer1.GetMonomerByIdx(j)
+			mon1InPolymer2 := polymer2.GetMonomerByIdx(j - 1)
+			mon2InPolymer2 := polymer2.GetMonomerByIdx(j)
+			datatypes.MakeConnection(mon1InPolymer1, mon2InPolymer2, datatypes.ConnectionTypeCrossSurface)
+			datatypes.MakeConnection(mon2InPolymer1, mon1InPolymer2, datatypes.ConnectionTypeCrossSurface)
+		}
+	}
+	return nil
+}
+
+func (alg *CrystallCalcAlg) hardenCrystallByinterpieceConnections(polymers []*datatypes.Polymer) error {
+	for _, polymer := range polymers {
+		if err := alg.hardenPolymerByinterpieceConnections(polymer); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (alg *CrystallCalcAlg) hardenPolymerByinterpieceConnections(polymer *datatypes.Polymer) error {
+	field := polymer.GetField()
+	for monNumber := 0; monNumber < polymer.Len()-1; monNumber++ {
+		monomer := polymer.GetMonomerByIdx(monNumber)
+		if monomer == nil {
+			return errors.New("no monomer")
+		}
+		crossMonomer := field.GetMonomerByCoords(base.AddVecF(monomer.Coords(), base.AxisXVec))
+		if crossMonomer == nil {
+			return nil
+		}
+
+		if monomer.NextMonomer == crossMonomer {
+			continue
+		}
+
+		nextMonomer := polymer.GetMonomerByIdx(monNumber + 1)
+		if nextMonomer == nil {
+			return nil
+		}
+
+		nextCrossMonomer := field.GetMonomerByCoords(base.AddVecF(nextMonomer.Coords(), base.AxisXVec))
+		if nextCrossMonomer == nil {
+			return nil
+		}
+		datatypes.MakeConnection(monomer, nextCrossMonomer, datatypes.ConnectionTypeCrossSurface)
+		datatypes.MakeConnection(nextMonomer, crossMonomer, datatypes.ConnectionTypeCrossSurface)
+	}
+	return nil
+}
+
+func (alg *CrystallCalcAlg) hardenCrystallByInterPolymerAndInterpieceConnections(polymers []*datatypes.Polymer) error {
+	for polNumber := 0; polNumber < len(polymers)-1; polNumber++ {
+		polymer := polymers[polNumber]
+		field := polymer.GetField()
+		for monNumber := range polymer.Len() {
+			monomer := polymer.GetMonomerByIdx(monNumber)
+			crossMonomer := field.GetMonomerByCoords(base.AddVecF(monomer.Coords(), base.AxisXVec))
+			if crossMonomer == nil || crossMonomer.MonomerType == base.MendeleevTableElementUndefined {
+				continue
+			}
+			aboveMonomer := field.GetMonomerByCoords(base.AddVecF(monomer.Coords(), base.AxisZVec))
+			if aboveMonomer == nil || aboveMonomer.MonomerType == base.MendeleevTableElementUndefined {
+				return nil
+			}
+			aboveCrossMonomer := field.GetMonomerByCoords(base.AddVecF(crossMonomer.Coords(), base.AxisZVec))
+			if aboveCrossMonomer == nil || aboveCrossMonomer.MonomerType == base.MendeleevTableElementUndefined {
+				return nil
+			}
+			datatypes.MakeConnection(monomer, aboveCrossMonomer, datatypes.ConnectionTypeCrossSurface)
+			datatypes.MakeConnection(crossMonomer, aboveMonomer, datatypes.ConnectionTypeCrossSurface)
+		}
 	}
 	return nil
 }
