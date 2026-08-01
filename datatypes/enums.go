@@ -52,6 +52,16 @@ const (
 	ConnectionTypeCrossSpacial
 )
 
+func GetConnectionTypeLength(connType ConnectionType) float64 {
+	m := make(map[ConnectionType]float64)
+	m[ConnectionTypeOne] = 1.0
+	m[ConnectionTypeCrosslinks] = 1.0
+	m[ConnectionTypeCrossLinear] = 1.0
+	m[ConnectionTypeCrossSurface] = 1.414213
+	m[ConnectionTypeCrossSpacial] = 1.732050
+	return m[connType]
+}
+
 const (
 	GlobulaViewTypeGlobula GlobulaViewType = iota
 	GlobulaViewTypeThread

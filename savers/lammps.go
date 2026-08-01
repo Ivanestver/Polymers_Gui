@@ -3,6 +3,7 @@ package savers
 import (
 	"math"
 	"polymers/base"
+	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/globaldata"
 	"polymers/views"
@@ -239,8 +240,8 @@ func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes 
 		if !ok {
 			value = lammps_structs.BondType{
 				BondID: len(bondTypes) + 1,
-				Sth1:   1.0,
-				Sth2:   100.0,
+				Sth1:   100.0,
+				Sth2:   datatypes.GetConnectionTypeLength(connectionType),
 			}
 			bondTypes[connectionType] = value
 		}
