@@ -1,6 +1,7 @@
 package buildglobula
 
 import (
+	"polymers/base"
 	"polymers/datatypes"
 	"polymers/views"
 )
@@ -21,6 +22,18 @@ func (inputData Crystall2InputData) GetGlobulaType() views.GlobulaProperty {
 
 type Crystall2CalcAlg AbstractAlg[Crystall2InputData]
 
+type Plate []base.Vector3DF
+
 func (alg Crystall2CalcAlg) Calc() []*datatypes.Polymer {
+	plates := alg.createPlates()
+	polymer := alg.turnPlatesIntoPolymer(plates)
+	return []*datatypes.Polymer{polymer}
+}
+
+func (alg *Crystall2CalcAlg) createPlates() []Plate {
+	panic("Not implemented")
+}
+
+func (alg *Crystall2CalcAlg) turnPlatesIntoPolymer(plates []Plate) *datatypes.Polymer {
 	panic("Not implemented")
 }
