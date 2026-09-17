@@ -44,6 +44,8 @@ func CreateInputDataBuilder(algType AlgType) ICalcAlgInputDataBuilder {
 		return PatternInputDataBuilder{}
 	case CrystallBuildAlg:
 		return CrystallInputDataBuilder{}
+	case Crystall2BuildAlg:
+		return Crystall2InputDataBuilder{}
 	default:
 		return nil
 	}

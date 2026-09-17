@@ -8,7 +8,7 @@ import (
 type Crystall2InputDataBuilder struct {
 }
 
-func CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
+func (builder Crystall2InputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
 	panic("Not implemented")
 }
 
