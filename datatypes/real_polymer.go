@@ -1,6 +1,9 @@
 package datatypes
 
-import "strconv"
+import (
+	"polymers/outputformat"
+	"strconv"
+)
 
 type RealPolymer struct {
 	number   int64
@@ -84,6 +87,22 @@ func (realPolymer *RealPolymer) AddMonomerNoConnection(monomer *Monomer) {
 		return
 	}
 	realPolymer.monomers = append(realPolymer.monomers, monomer)
+}
+
+func (realPolymer *RealPolymer) AddMonomerAtStart(monomer *Monomer) {
+	if monomer == nil {
+		return
+	}
+	if realPolymer.Len() == 0 {
+		realPolymer.monomers = append(realPolymer.monomers, monomer)
+	}
+	firstMonomer := realPolymer.monomers[0]
+	firstMonomer.PrevMonomer = monomer
+	monomer.NextMonomer = firstMonomer
+	realPolymer.monomers = append([]*Monomer{monomer}, realPolymer.monomers...)
+	if err := MakeConnection(monomer, firstMonomer, ConnectionTypeOne); err != nil {
+		outputformat.GetPrint().PrintflnError(err.Error())
+	}
 }
 
 func (realPolymer *RealPolymer) GetMonomerByIdx(idx int) *Monomer {

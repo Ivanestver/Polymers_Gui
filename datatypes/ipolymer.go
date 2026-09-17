@@ -11,6 +11,7 @@ type IPolymer interface {
 	DeepCopy(args ...any) IPolymer
 	AddMonomer(monomer *Monomer)
 	AddMonomerNoConnection(monomer *Monomer)
+	AddMonomerAtStart(monomer *Monomer)
 	GetMonomerByIdx(idx int) *Monomer
 	GetFieldType() FieldType
 	GetField() IField
