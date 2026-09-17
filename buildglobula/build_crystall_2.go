@@ -1,6 +1,7 @@
 package buildglobula
 
 import (
+	"math"
 	"polymers/base"
 	"polymers/datatypes"
 	"polymers/views"
@@ -31,9 +32,58 @@ func (alg Crystall2CalcAlg) Calc() []*datatypes.Polymer {
 }
 
 func (alg *Crystall2CalcAlg) createPlates() []Plate {
-	panic("Not implemented")
+	startingPlate := alg.createStartingPlate()
+	return alg.multiplyStartingPlate(startingPlate)
 }
 
-func (alg *Crystall2CalcAlg) turnPlatesIntoPolymer(plates []Plate) *datatypes.Polymer {
-	panic("Not implemented")
+func (alg *Crystall2CalcAlg) createStartingPlate() Plate {
+	startPoint := base.IdentityVectorF()
+	plate := Plate{startPoint}
+	for i := range 51 {
+		alg.createCircle(plate, i+1)
+	}
+	return plate
+}
+
+func (alg *Crystall2CalcAlg) createCircle(plate Plate, curCircleNumber int) {
+	if curCircleNumber <= 1 {
+		return
+	}
+
+	newCircleLen := 6 * curCircleNumber
+	prevCircleLen := 6 * (curCircleNumber - 1)
+	startPoint := plate[0]
+	currPoint := plate[len(plate)-prevCircleLen]
+	direction := base.SubtractVecF(currPoint, startPoint)
+	stepLength := 1.0
+	currPoint = base.AddVecF(currPoint, base.MultiplyByConstantF(direction, stepLength))
+	direction = base.RotateVector(direction, math.Pi/3, base.AxisZVec)
+	for i := range newCircleLen {
+		currPoint = base.AddVecF(currPoint, base.MultiplyByConstantF(direction, stepLength))
+		plate = append(plate, currPoint)
+		if i%curCircleNumber == 0 {
+			direction = base.RotateVector(direction, math.Pi/3, base.AxisZVec)
+		}
+	}
+}
+
+func (alg *Crystall2CalcAlg) multiplyStartingPlate(startingPlate Plate) []Plate {
+	return []Plate{startingPlate}
+}
+
+func (alg *Crystall2CalcAlg) turnPlatesIntoPolymer(plates []Plate) datatypes.IPolymer {
+	field := datatypes.NewRealField(
+		[3][2]float64{
+			[2]float64{-100.0, 100.0},
+			[2]float64{-100.0, 100.0},
+			[2]float64{-100.0, 100.0},
+		})
+	polymer := datatypes.NewRealPolymer(field, 0)
+	for _, plate := range plates {
+		for _, point := range plate {
+			monomer := field.GetMonomerByCoords(point)
+			polymer.AddMonomer(monomer)
+		}
+	}
+	return polymer
 }
