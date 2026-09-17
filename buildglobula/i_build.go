@@ -17,7 +17,7 @@ const (
 )
 
 type ICalcAlg interface {
-	Calc() []*datatypes.Polymer
+	Calc() []datatypes.IPolymer
 }
 
 type ICalcAlgInputData interface {

@@ -89,14 +89,19 @@ func (creator GlobulaInputDataBuilder) CreateInputData(predefinedParams []string
 
 type GlobulaCalcAlg AbstractAlg[GlobulaInputData]
 
-func (alg *GlobulaCalcAlg) Calc() []*datatypes.Polymer {
+func (alg *GlobulaCalcAlg) Calc() []datatypes.IPolymer {
 	field := datatypes.NewField(uint64(alg.inputData.SphereRadius))
 	polymers := make([]*datatypes.Polymer, alg.inputData.PolymersCount)
 	for i := 0; i < alg.inputData.PolymersCount; i++ {
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 	}
 
-	return alg.calcImpl(polymers, field)
+	polymers = alg.calcImpl(polymers, field)
+	ipolymers := make([]datatypes.IPolymer, len(polymers))
+	for i := range len(ipolymers) {
+		ipolymers[i] = polymers[i]
+	}
+	return ipolymers
 }
 
 func (alg *GlobulaCalcAlg) calcImpl(polymers []*datatypes.Polymer, field *datatypes.Field) []*datatypes.Polymer {

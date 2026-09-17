@@ -98,7 +98,7 @@ func (builder ThreadInputDataBuilder) CreateInputData(predefinedParams []string)
 
 type ThreadCalcAlg AbstractAlg[ThreadInputData]
 
-func (alg *ThreadCalcAlg) Calc() []*datatypes.Polymer {
+func (alg *ThreadCalcAlg) Calc() []datatypes.IPolymer {
 	// define start monomers
 	outputformat.GetPrint().PrintlnInfo("Define new field")
 	field := datatypes.NewField(uint64(alg.inputData.ThreadRadius))
@@ -108,7 +108,7 @@ func (alg *ThreadCalcAlg) Calc() []*datatypes.Polymer {
 		return nil
 	}
 	// create threads
-	polymers := make([]*datatypes.Polymer, len(startPositions))
+	polymers := make([]datatypes.IPolymer, len(startPositions))
 	// build the polymers
 	for i, startPosition := range startPositions {
 		outputformat.GetPrint().PrintflnInfo("The start position is (%v)", startPosition)

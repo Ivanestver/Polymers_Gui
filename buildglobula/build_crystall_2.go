@@ -25,10 +25,10 @@ type Crystall2CalcAlg AbstractAlg[Crystall2InputData]
 
 type Plate []base.Vector3DF
 
-func (alg Crystall2CalcAlg) Calc() []*datatypes.Polymer {
+func (alg Crystall2CalcAlg) Calc() []datatypes.IPolymer {
 	plates := alg.createPlates()
 	polymer := alg.turnPlatesIntoPolymer(plates)
-	return []*datatypes.Polymer{polymer}
+	return []datatypes.IPolymer{polymer}
 }
 
 func (alg *Crystall2CalcAlg) createPlates() []Plate {

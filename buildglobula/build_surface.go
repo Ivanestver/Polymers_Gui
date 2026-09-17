@@ -32,7 +32,7 @@ func (builder SurfaceInputDataBuilder) CreateInputData(defaultParams []string) (
 
 type SurfaceCalcAlg AbstractAlg[SurfaceInputData]
 
-func (alg *SurfaceCalcAlg) Calc() []*datatypes.Polymer {
+func (alg *SurfaceCalcAlg) Calc() []datatypes.IPolymer {
 	xDiv2 := alg.inputData.Xlength / 2
 	yDiv2 := alg.inputData.Ylength / 2
 	radius := math.Sqrt(

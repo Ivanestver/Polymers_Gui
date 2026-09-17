@@ -39,7 +39,7 @@ func (inputData CrystallInputData) GetGlobulaType() views.GlobulaProperty {
 
 type CrystallCalcAlg AbstractAlg[CrystallInputData]
 
-func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
+func (alg *CrystallCalcAlg) Calc() []datatypes.IPolymer {
 	filename := "crystallalg.txt"
 	polymers, err := alg.getPolymers(filename)
 	if err != nil {
@@ -57,7 +57,7 @@ func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
 	return polymers
 }
 
-func (alg *CrystallCalcAlg) getPolymers(filename string) ([]*datatypes.Polymer, error) {
+func (alg *CrystallCalcAlg) getPolymers(filename string) ([]datatypes.IPolymer, error) {
 	algbuilder := CreateInputDataBuilder(PatternBuildAlg)
 	inputData, err := algbuilder.CreateInputData([]string{filename, "false", alg.inputData.widthOfCrystall})
 	if err != nil {
@@ -73,7 +73,7 @@ func (alg *CrystallCalcAlg) getPolymers(filename string) ([]*datatypes.Polymer, 
 	return patternAlg.Calc(), nil
 }
 
-func (alg *CrystallCalcAlg) processPolymers(polymers *[]*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) processPolymers(polymers *[]datatypes.IPolymer) error {
 	if err := alg.hardenCrystall(*polymers); err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (alg *CrystallCalcAlg) processPolymers(polymers *[]*datatypes.Polymer) erro
 	return nil
 }
 
-func (alg *CrystallCalcAlg) hardenCrystall(polymers []*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) hardenCrystall(polymers []datatypes.IPolymer) error {
 	if err := alg.hardenCrystallByInterpolymerConnections(polymers); err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (alg *CrystallCalcAlg) hardenCrystall(polymers []*datatypes.Polymer) error 
 	return nil
 }
 
-func (alg *CrystallCalcAlg) hardenCrystallByInterpolymerConnections(polymers []*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) hardenCrystallByInterpolymerConnections(polymers []datatypes.IPolymer) error {
 	for i := 1; i < len(polymers); i++ {
 		polymer1 := polymers[i-1]
 		polymer2 := polymers[i]
@@ -115,7 +115,7 @@ func (alg *CrystallCalcAlg) hardenCrystallByInterpolymerConnections(polymers []*
 	return nil
 }
 
-func (alg *CrystallCalcAlg) hardenCrystallByinterpieceConnections(polymers []*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) hardenCrystallByinterpieceConnections(polymers []datatypes.IPolymer) error {
 	for _, polymer := range polymers {
 		if err := alg.hardenPolymerByinterpieceConnections(polymer); err != nil {
 			return err
@@ -124,7 +124,7 @@ func (alg *CrystallCalcAlg) hardenCrystallByinterpieceConnections(polymers []*da
 	return nil
 }
 
-func (alg *CrystallCalcAlg) hardenPolymerByinterpieceConnections(polymer *datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) hardenPolymerByinterpieceConnections(polymer datatypes.IPolymer) error {
 	field := polymer.GetField()
 	for monNumber := 0; monNumber < polymer.Len()-1; monNumber++ {
 		monomer := polymer.GetMonomerByIdx(monNumber)
@@ -155,7 +155,7 @@ func (alg *CrystallCalcAlg) hardenPolymerByinterpieceConnections(polymer *dataty
 	return nil
 }
 
-func (alg *CrystallCalcAlg) hardenCrystallByInterPolymerAndInterpieceConnections(polymers []*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) hardenCrystallByInterPolymerAndInterpieceConnections(polymers []datatypes.IPolymer) error {
 	for polNumber := 0; polNumber < len(polymers)-1; polNumber++ {
 		polymer := polymers[polNumber]
 		field := polymer.GetField()
@@ -180,8 +180,8 @@ func (alg *CrystallCalcAlg) hardenCrystallByInterPolymerAndInterpieceConnections
 	return nil
 }
 
-func (alg *CrystallCalcAlg) breakToPieces(polymers *[]*datatypes.Polymer) error {
-	newPolymers := make([]*datatypes.Polymer, 0)
+func (alg *CrystallCalcAlg) breakToPieces(polymers *[]datatypes.IPolymer) error {
+	newPolymers := make([]datatypes.IPolymer, 0)
 	for _, polymer := range *polymers {
 		if pieces, err := alg.breakConnectionAndGetPieces(polymer); err == nil {
 			newPolymers = append(newPolymers, pieces...)
@@ -193,11 +193,11 @@ func (alg *CrystallCalcAlg) breakToPieces(polymers *[]*datatypes.Polymer) error 
 	return nil
 }
 
-func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer *datatypes.Polymer) ([]*datatypes.Polymer, error) {
+func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer datatypes.IPolymer) ([]datatypes.IPolymer, error) {
 	if polymer.Len() <= 2 {
 		return nil, errors.New("Слишком короткий полимер")
 	}
-	newPolymers := make([]*datatypes.Polymer, 0)
+	newPolymers := make([]datatypes.IPolymer, 0)
 	direction := base.SubtractVecF(polymer.GetMonomerByIdx(1).Coords(), polymer.GetMonomerByIdx(0).Coords())
 	field := polymer.GetField().(*datatypes.Field)
 	newPolymer := datatypes.NewPolymer(field, int64(len(newPolymers)))
@@ -225,7 +225,7 @@ func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer *datatypes.Polym
 	return newPolymers, nil
 }
 
-func (alg *CrystallCalcAlg) vaccinateRandomAmorphousParts(polymers []*datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) vaccinateRandomAmorphousParts(polymers []datatypes.IPolymer) error {
 	for _, polymer := range polymers {
 		if err := alg.vaccinateRandomAmorphousPartsToPolymer(polymer); err != nil {
 			return err
@@ -234,7 +234,7 @@ func (alg *CrystallCalcAlg) vaccinateRandomAmorphousParts(polymers []*datatypes.
 	return nil
 }
 
-func (alg *CrystallCalcAlg) vaccinateRandomAmorphousPartsToPolymer(polymer *datatypes.Polymer) error {
+func (alg *CrystallCalcAlg) vaccinateRandomAmorphousPartsToPolymer(polymer datatypes.IPolymer) error {
 	field := polymer.GetField().(*datatypes.Field)
 	if err := alg.growAmorphousPartFromMonomer(
 		field,

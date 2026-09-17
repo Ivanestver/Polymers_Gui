@@ -66,7 +66,7 @@ Y
  ----------------------------------> X
 */
 
-func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
+func (alg *PatternCalcAlg) Calc() []datatypes.IPolymer {
 	file, err := os.Open(alg.inputData.patternFileName)
 	if err != nil {
 		outputformat.GetPrint().PrintlnError(err.Error())
@@ -82,7 +82,7 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 			spaceDimention[base.AxisY].Lower,
 			spaceDimention[base.AxisZ].Higher,
 			spaceDimention[base.AxisZ].Lower)))
-	polymers := make([]*datatypes.Polymer, alg.inputData.polymersCount)
+	polymers := make([]datatypes.IPolymer, alg.inputData.polymersCount)
 	for i := range polymers {
 		polymers[i] = datatypes.NewPolymer(field, int64(i))
 	}
@@ -118,7 +118,7 @@ func (alg *PatternCalcAlg) Calc() []*datatypes.Polymer {
 	return polymers
 }
 
-func beautifulPrint(polymers []*datatypes.Polymer, metElements map[base.MendeleevTableElement]float64) {
+func beautifulPrint(polymers []datatypes.IPolymer, metElements map[base.MendeleevTableElement]float64) {
 	allElementsCount := 0.0
 	for _, p := range polymers {
 		allElementsCount += float64(p.Len())
