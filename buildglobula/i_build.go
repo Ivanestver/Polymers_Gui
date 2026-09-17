@@ -13,6 +13,7 @@ const (
 	SurfaceBuildAlg
 	PatternBuildAlg
 	CrystallBuildAlg
+	Crystall2BuildAlg
 )
 
 type ICalcAlg interface {
@@ -82,6 +83,13 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 		inp, ok := inputData.(CrystallBuildInputData)
 		if ok {
 			return &CrystallCalcAlg{
+				inputData: inp,
+			}
+		}
+	case Crystall2BuildAlg:
+		inp, ok := inputData.(Crystall2InputData)
+		if ok {
+			return &Crystall2CalcAlg{
 				inputData: inp,
 			}
 		}
