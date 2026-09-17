@@ -80,7 +80,7 @@ func CreateCalcAlg(inputData ICalcAlgInputData, algType AlgType) ICalcAlg {
 			}
 		}
 	case CrystallBuildAlg:
-		inp, ok := inputData.(CrystallBuildInputData)
+		inp, ok := inputData.(CrystallInputData)
 		if ok {
 			return &CrystallCalcAlg{
 				inputData: inp,

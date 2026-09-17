@@ -22,22 +22,22 @@ func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string) 
 	if err != nil {
 		return nil, err
 	}
-	return CrystallBuildInputData{
+	return CrystallInputData{
 		maxAmorphousPartSize: maxAmorphousPartSize,
 		widthOfCrystall:      defaultParams[1],
 	}, nil
 }
 
-type CrystallBuildInputData struct {
+type CrystallInputData struct {
 	maxAmorphousPartSize int
 	widthOfCrystall      string
 }
 
-func (inputData CrystallBuildInputData) GetGlobulaType() views.GlobulaProperty {
+func (inputData CrystallInputData) GetGlobulaType() views.GlobulaProperty {
 	return views.GlobulaCrystalType
 }
 
-type CrystallCalcAlg AbstractAlg[CrystallBuildInputData]
+type CrystallCalcAlg AbstractAlg[CrystallInputData]
 
 func (alg *CrystallCalcAlg) Calc() []*datatypes.Polymer {
 	filename := "crystallalg.txt"
