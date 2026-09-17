@@ -9,14 +9,14 @@ type Crystall2InputDataBuilder struct {
 }
 
 func (builder Crystall2InputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
-	panic("Not implemented")
+	return Crystall2InputData{}, nil
 }
 
 type Crystall2InputData struct {
 }
 
 func (inputData Crystall2InputData) GetGlobulaType() views.GlobulaProperty {
-	panic("Not implemented")
+	return views.GlobulaCrystal2Type
 }
 
 type Crystall2CalcAlg AbstractAlg[Crystall2InputData]
