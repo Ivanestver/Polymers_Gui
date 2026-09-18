@@ -732,8 +732,17 @@ func cristallinity() (Command, any) {
 
 func trajectories() (Command, any) {
 	outputFilename, err := getParameterAsString()
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
 	percentStr, err := getNextToken()
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
 	percent, err := strconv.Atoi(percentStr)
+	if err != nil {
+		return CommandUndefined, err.Error()
+	}
 	files := make([]string, 0)
 	token, err := getParameterAsString()
 	for len(token) > 0 && err == nil {

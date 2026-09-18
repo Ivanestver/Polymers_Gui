@@ -16,7 +16,7 @@ type CrystallInputDataBuilder struct {
 
 func (builder CrystallInputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
 	if len(defaultParams) == 0 {
-		return nil, errors.New("Не заданы параметры")
+		return nil, errors.New("не заданы параметры")
 	}
 	maxAmorphousPartSize, err := strconv.Atoi(defaultParams[0])
 	if err != nil {
@@ -195,7 +195,7 @@ func (alg *CrystallCalcAlg) breakToPieces(polymers *[]datatypes.IPolymer) error 
 
 func (alg *CrystallCalcAlg) breakConnectionAndGetPieces(polymer datatypes.IPolymer) ([]datatypes.IPolymer, error) {
 	if polymer.Len() <= 2 {
-		return nil, errors.New("Слишком короткий полимер")
+		return nil, errors.New("слишком короткий полимер")
 	}
 	newPolymers := make([]datatypes.IPolymer, 0)
 	direction := base.SubtractVecF(polymer.GetMonomerByIdx(1).Coords(), polymer.GetMonomerByIdx(0).Coords())
