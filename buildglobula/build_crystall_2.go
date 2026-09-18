@@ -39,30 +39,34 @@ func (alg *Crystall2CalcAlg) createPlates() []Plate {
 func (alg *Crystall2CalcAlg) createStartingPlate() Plate {
 	startPoint := base.IdentityVectorF()
 	plate := Plate{startPoint}
-	for i := range 51 {
-		alg.createCircle(plate, i+1)
+	for i := range 2 {
+		alg.createCircle(&plate, i+1)
 	}
 	return plate
 }
 
-func (alg *Crystall2CalcAlg) createCircle(plate Plate, curCircleNumber int) {
-	if curCircleNumber <= 1 {
+func (alg *Crystall2CalcAlg) createCircle(plate *Plate, currCircleNumber int) {
+	if currCircleNumber < 1 {
 		return
 	}
 
-	newCircleLen := 6 * curCircleNumber
-	prevCircleLen := 6 * (curCircleNumber - 1)
-	startPoint := plate[0]
-	currPoint := plate[len(plate)-prevCircleLen]
-	direction := base.SubtractVecF(currPoint, startPoint)
+	newCircleLen := 6 * currCircleNumber
+	prevCircleLen := max(6*(currCircleNumber-1), 1)
+	currPoint := (*plate)[len(*plate)-prevCircleLen]
+	var direction base.Vector3DF
+	direction = base.Vector3DF{
+		math.Cos(math.Pi / 3),
+		math.Sin(math.Pi / 3),
+	}
 	stepLength := 1.0
 	currPoint = base.AddVecF(currPoint, base.MultiplyByConstantF(direction, stepLength))
-	direction = base.RotateVector(direction, math.Pi/3, base.AxisZVec)
-	for i := range newCircleLen {
+	*plate = append(*plate, currPoint)
+	direction = base.RotateVector(direction, -2*math.Pi/3, base.AxisZVec)
+	for i := 1; i < newCircleLen; i++ {
 		currPoint = base.AddVecF(currPoint, base.MultiplyByConstantF(direction, stepLength))
-		plate = append(plate, currPoint)
-		if i%curCircleNumber == 0 {
-			direction = base.RotateVector(direction, math.Pi/3, base.AxisZVec)
+		*plate = append(*plate, currPoint)
+		if i%currCircleNumber == 0 {
+			direction = base.RotateVector(direction, -math.Pi/3, base.AxisZVec)
 		}
 	}
 }
@@ -74,9 +78,9 @@ func (alg *Crystall2CalcAlg) multiplyStartingPlate(startingPlate Plate) []Plate 
 func (alg *Crystall2CalcAlg) turnPlatesIntoPolymer(plates []Plate) datatypes.IPolymer {
 	field := datatypes.NewRealField(
 		[3][2]float64{
-			[2]float64{-100.0, 100.0},
-			[2]float64{-100.0, 100.0},
-			[2]float64{-100.0, 100.0},
+			{-100.0, 100.0},
+			{-100.0, 100.0},
+			{-100.0, 100.0},
 		})
 	polymer := datatypes.NewRealPolymer(field, 0)
 	for _, plate := range plates {
