@@ -74,7 +74,9 @@ func (realPolymer *RealPolymer) AddMonomer(monomer *Monomer) {
 	lastMonomer.NextMonomer = monomer
 	monomer.PrevMonomer = lastMonomer
 	realPolymer.monomers = append(realPolymer.monomers, monomer)
-	MakeConnection(lastMonomer, monomer, ConnectionTypeOne)
+	if err := MakeConnection(lastMonomer, monomer, ConnectionTypeOne); err != nil {
+		outputformat.GetPrint().PrintflnError(err.Error())
+	}
 }
 
 func (realPolymer *RealPolymer) AddMonomerNoConnection(monomer *Monomer) {
