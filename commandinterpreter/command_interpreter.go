@@ -25,6 +25,7 @@ const (
 	CommandHighlightBordersSTR = "highlight_borders"
 	CommandThreadSTR           = "thread"
 	CommandSurfaceSTR          = "surface"
+	CommandCrystall2STR        = "crystall2"
 	CommandWaterizeSTR         = "waterize"
 	CommandTrunkSTR            = "trunk"
 	CommandPatternSTR          = "pattern"
@@ -296,6 +297,11 @@ func build() (Command, any) {
 
 	if objective == CommandCrystallSTR {
 		m["alg"] = buildglobula.CrystallBuildAlg
+		return CommandBuild, m
+	}
+
+	if objective == CommandCrystall2STR {
+		m["alg"] = buildglobula.Crystall2BuildAlg
 		return CommandBuild, m
 	}
 
