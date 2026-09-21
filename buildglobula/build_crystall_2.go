@@ -141,7 +141,7 @@ func (alg *Crystall2CalcAlg) createV2() []datatypes.IPolymer {
 }
 
 func (alg *Crystall2CalcAlg) getPlatesCount() int {
-	return 3
+	return 5
 }
 
 func (alg *Crystall2CalcAlg) getWholeNumberOfPoints() int {
@@ -156,7 +156,145 @@ func (alg *Crystall2CalcAlg) getMonomersInAmorphousLoop() (horCount, verCount in
 }
 
 func (alg *Crystall2CalcAlg) getMonomersNumberInRow() int {
-	return 3
+	return 10
+}
+
+func (alg *Crystall2CalcAlg) addMonomer(point base.Vector3DF, polymer datatypes.IPolymer, monomerType base.MendeleevTableElement) {
+	field := polymer.GetField()
+	monomer := field.GetMonomerByCoords(point)
+	monomer.MonomerType = monomerType
+	polymer.AddMonomer(monomer)
+}
+
+func (alg *Crystall2CalcAlg) addCrystallMonomer(point base.Vector3DF, polymer datatypes.IPolymer) {
+	alg.addMonomer(point, polymer, base.O)
+}
+
+func (alg *Crystall2CalcAlg) addAmorphousMonomer(point base.Vector3DF, polymer datatypes.IPolymer) {
+	alg.addMonomer(point, polymer, base.N)
+}
+
+func getNextPoint(point, direction base.Vector3DF) base.Vector3DF {
+	stepLength := 1.0
+	return base.AddVecF(point, base.MultiplyByConstantF(direction, stepLength))
+}
+
+func moveForward(currPoint *base.Vector3DF, direction base.Vector3DF) {
+	*currPoint = getNextPoint(*currPoint, direction)
+}
+
+func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer datatypes.IPolymer) {
+	direction := alg.getDirectionOfZ()
+	for range alg.getPlatesCount() {
+		alg.addCrystallMonomer(*currPoint, polymer)
+		moveForward(currPoint, direction)
+	}
+}
+
+func (alg *Crystall2CalcAlg) createAmorphousPart(currPoint *base.Vector3DF, monomersCount int, polymer datatypes.IPolymer, direction base.Vector3DF) {
+	for range monomersCount - 1 {
+		alg.addAmorphousMonomer(*currPoint, polymer)
+		moveForward(currPoint, direction)
+	}
+	alg.addAmorphousMonomer(*currPoint, polymer)
+}
+
+func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, polymer datatypes.IPolymer, baseDirection base.Vector3DF) {
+	// Create the first vertical part
+	horCount, verCount := alg.getMonomersInAmorphousLoop()
+	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
+
+	// Make the turn to the horizontal part
+	direction := alg.getDirectionForLoops()
+	angle := math.Asin(baseDirection[base.AxisY])
+	if !alongX && !base.CompareFloat(angle, 0.0) {
+		angle += math.Pi
+	}
+	direction = base.RotateVector(direction, angle, base.AxisZVec)
+	moveForward(currPoint, direction)
+
+	// Make the horizontal part
+	alg.createAmorphousPart(currPoint, horCount, polymer, baseDirection)
+	alongZ = !alongZ
+	// Make the turn to the vertical part
+	direction = alg.getDirectionForLoops()
+	angle = math.Asin(baseDirection[base.AxisY])
+	if !alongX && !base.CompareFloat(angle, 0.0) {
+		angle += math.Pi
+	}
+	direction = base.RotateVector(direction, angle, base.AxisZVec)
+	moveForward(currPoint, direction)
+
+	// Make the second vertical part
+	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
+	moveForward(currPoint, alg.getDirectionOfZ())
+}
+
+func (alg *Crystall2CalcAlg) getAmorphousLoopLength() float64 {
+	prevAlongX := alongX
+	prevAlongZ := alongZ
+	alongX = true
+	alongZ = true
+	direction := alg.getDirectionForLoops()
+	alongX = prevAlongX
+	alongZ = prevAlongZ
+	angle := base.GetAngleInRad(direction, base.AxisXVec)
+	length := 1.0 * math.Cos(angle)
+	length *= 2
+	horCount, _ := alg.getMonomersInAmorphousLoop()
+	length += float64(horCount - 1)
+	return length
+}
+
+type AlongX = bool
+type AlongZ = bool
+
+var alongX AlongX = AlongX(true)
+var alongZ AlongZ = AlongZ(true)
+
+func (alg *Crystall2CalcAlg) getDirectionForLoops() base.Vector3DF {
+	directionsForLoops := make(map[AlongX]map[AlongZ]base.Vector3DF)
+	directionsForLoops[true] = make(map[AlongZ]base.Vector3DF)
+	directionsForLoops[true][true] = base.AddVecF(base.AxisXVec, base.AxisZVec).Normalized()
+	directionsForLoops[true][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed).Normalized()
+	directionsForLoops[false] = make(map[AlongZ]base.Vector3DF)
+	directionsForLoops[false][true] = base.AddVecF(base.AxisXVecReversed, base.AxisZVec).Normalized()
+	directionsForLoops[false][false] = base.AddVecF(base.AxisXVecReversed, base.AxisZVecReversed).Normalized()
+	return directionsForLoops[alongX][alongZ]
+}
+
+func (alg *Crystall2CalcAlg) getDirectionOfZ() base.Vector3DF {
+	directionsOfZ := make(map[AlongZ]base.Vector3DF)
+	directionsOfZ[true] = base.AxisZVec
+	directionsOfZ[false] = base.AxisZVecReversed
+	return directionsOfZ[alongZ]
+}
+
+func (alg *Crystall2CalcAlg) getDirectionOfX() base.Vector3DF {
+	directionsOfX := make(map[AlongX]base.Vector3DF)
+	directionsOfX[true] = base.AxisXVec
+	directionsOfX[false] = base.AxisXVecReversed
+	return directionsOfX[alongX]
+}
+
+func (alg *Crystall2CalcAlg) createRow(currPoint *base.Vector3DF, polymer datatypes.IPolymer) {
+	monomerNumberInRow := alg.getMonomersNumberInRow()
+	for range monomerNumberInRow - 1 {
+		// Create a stick
+		alg.createStick(currPoint, polymer)
+
+		// Create an amorphous part
+		alg.createAmorphousLoop(currPoint, polymer, base.IdentityVectorF())
+	}
+	alg.createStick(currPoint, polymer)
+}
+
+func (alg *Crystall2CalcAlg) getLateralDirection() base.Vector3DF {
+	return base.Vector3DF{
+		math.Cos(1.1752),
+		math.Sin(1.1752),
+		0.0,
+	}
 }
 
 func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
@@ -167,78 +305,87 @@ func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
 			{-100.0, 100.0},
 		})
 	polymer := datatypes.NewIPolymer(datatypes.FieldTypeReal, field, int64(0))
-	addMonomer := func(point base.Vector3DF) { polymer.AddMonomer(field.GetMonomerByCoords(point)) }
-	stepLength := 1.0
-	getNextPoint := func(point, direction base.Vector3DF) base.Vector3DF {
-		return base.AddVecF(point, base.MultiplyByConstantF(direction, stepLength))
-	}
 	currPoint := base.IdentityVectorF()
 	monomerNumberInRow := alg.getMonomersNumberInRow()
-	type AlongX bool
-	type AlongZ bool
-	alongX := AlongX(true)
-	alongZ := AlongZ(true)
-	directionsForLoops := make(map[AlongX]map[AlongZ]base.Vector3DF)
-	directionsForLoops[true] = make(map[AlongZ]base.Vector3DF)
-	directionsForLoops[true][true] = base.AddVecF(base.AxisXVec, base.AxisZVec).Normalized()
-	directionsForLoops[true][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed).Normalized()
-	directionsForLoops[false] = make(map[AlongZ]base.Vector3DF)
-	directionsForLoops[false][true] = base.AddVecF(base.AxisXVecReversed, base.AxisZVec).Normalized()
-	directionsForLoops[false][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed).Normalized()
-	directionsOfZ := make(map[AlongZ]base.Vector3DF)
-	directionsOfZ[true] = base.AxisZVec
-	directionsOfZ[false] = base.AxisZVecReversed
-	directionsOfX := make(map[AlongX]base.Vector3DF)
-	directionsOfX[true] = base.AxisXVec
-	directionsOfX[false] = base.AxisXVecReversed
-	direction := base.AxisZVec
-	for range monomerNumberInRow {
+	for range monomerNumberInRow - 1 {
 		// Create a row
-		for range monomerNumberInRow {
-			// Create a stick
-			for range alg.getPlatesCount() {
-				addMonomer(currPoint)
-				currPoint = getNextPoint(currPoint, direction)
-			}
-
-			// Create an amorphous part
-			// Create the first vertical part
-			horCount, verCount := alg.getMonomersInAmorphousLoop()
-			for range verCount - 1 {
-				addMonomer(currPoint)
-				currPoint = getNextPoint(currPoint, direction)
-			}
-			addMonomer(currPoint)
-			// Make the turn to the horizontal part
-			direction = directionsForLoops[alongX][alongZ]
-			currPoint = getNextPoint(currPoint, direction)
-
-			// Make the horizontal part
-			for range horCount - 1 {
-				addMonomer(currPoint)
-				currPoint = getNextPoint(currPoint, direction)
-			}
-			addMonomer(currPoint)
-			alongZ = !alongZ
-			// Make the turn to the vertical part
-			direction = directionsForLoops[alongX][alongZ]
-			currPoint = getNextPoint(currPoint, direction)
-
-			// Make the second vertical part
-			direction = directionsOfZ[alongZ]
-			for range verCount - 1 {
-				addMonomer(currPoint)
-				currPoint = getNextPoint(currPoint, direction)
-			}
-		}
+		alg.createRow(&currPoint, polymer)
 		// Now move to the next row
-		direction = base.Vector3DF{
-			math.Cos(1.1752),
-			math.Sin(1.1752),
-			0.0,
-		}
-		currPoint = getNextPoint(currPoint, direction)
+		direction := alg.getLateralDirection()
+		alg.createAmorphousLoop(&currPoint, polymer, direction)
 		alongX = !alongX
 	}
+	alg.createRow(&currPoint, polymer)
+
+	alg.hardenPolymer(polymer)
 	return []datatypes.IPolymer{polymer}
+}
+
+type Cell struct {
+	LeftLowerCloser   *datatypes.Monomer
+	LeftUpperCloser   *datatypes.Monomer
+	RightLowerCloser  *datatypes.Monomer
+	RightUpperCloser  *datatypes.Monomer
+	LeftLowerFurther  *datatypes.Monomer
+	LeftUpperFurther  *datatypes.Monomer
+	RightLowerFurther *datatypes.Monomer
+	RightUpperFurther *datatypes.Monomer
+}
+
+func (cell *Cell) CreateConnections() {
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.LeftUpperFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftUpperCloser, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
+}
+
+func (cell *Cell) MakeCell(leftLowerCloser *datatypes.Monomer, field datatypes.IField, lateralDirection base.Vector3DF, stepLengthInStick, stepLengthInAmorphousPart float64) {
+	cell.LeftLowerCloser = leftLowerCloser
+	getMonomer := func(mon *datatypes.Monomer, direction base.Vector3DF, stepLength float64) *datatypes.Monomer {
+		return field.GetMonomerByCoords(base.AddVecF(mon.Coords(), base.MultiplyByConstantF(direction, stepLength)))
+	}
+	cell.LeftUpperCloser = getMonomer(cell.LeftLowerCloser, base.AxisZVec, stepLengthInStick)
+	cell.RightLowerCloser = getMonomer(cell.LeftLowerCloser, base.AxisXVec, stepLengthInAmorphousPart)
+	cell.RightUpperCloser = getMonomer(cell.LeftUpperCloser, base.AxisXVec, stepLengthInAmorphousPart)
+	cell.LeftLowerFurther = getMonomer(cell.LeftLowerCloser, lateralDirection, stepLengthInAmorphousPart)
+	cell.LeftUpperFurther = getMonomer(cell.LeftUpperCloser, lateralDirection, stepLengthInAmorphousPart)
+	cell.RightLowerFurther = getMonomer(cell.RightLowerCloser, lateralDirection, stepLengthInAmorphousPart)
+	cell.RightUpperFurther = getMonomer(cell.RightUpperCloser, lateralDirection, stepLengthInAmorphousPart)
+}
+
+func (alg *Crystall2CalcAlg) hardenPolymer(polymer datatypes.IPolymer) {
+	field := polymer.GetField()
+	currMonomer := polymer.GetMonomerByIdx(0)
+	alongX = true
+	alongZ = true
+
+	stepLengthInAmorphousPart := alg.getAmorphousLoopLength()
+	stepLengthInStick := 1.0
+
+	for range alg.getMonomersNumberInRow() - 1 { // The width
+		for j := range alg.getMonomersNumberInRow() - 1 { // The row
+			for k := range alg.getPlatesCount() - 1 { // The height
+				cell := Cell{}
+				cell.MakeCell(currMonomer, field, alg.getLateralDirection(), stepLengthInStick, stepLengthInAmorphousPart)
+				cell.CreateConnections()
+				if k != alg.getPlatesCount()-2 {
+					currMonomer = field.GetMonomerByCoords(base.AddVecF(currMonomer.Coords(), alg.getDirectionOfZ()))
+				}
+			}
+			alongZ = !alongZ
+			if j != alg.getMonomersNumberInRow()-2 {
+				currMonomer = field.GetMonomerByCoords(base.AddVecF(currMonomer.Coords(), base.MultiplyByConstantF(alg.getDirectionOfX(), stepLengthInAmorphousPart)))
+			}
+		}
+		alongX = !alongX
+		currMonomer = field.GetMonomerByCoords(base.AddVecF(currMonomer.Coords(), base.MultiplyByConstantF(alg.getLateralDirection(), stepLengthInAmorphousPart)))
+	}
 }
