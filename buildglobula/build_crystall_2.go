@@ -180,11 +180,11 @@ func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
 	alongZ := AlongZ(true)
 	directionsForLoops := make(map[AlongX]map[AlongZ]base.Vector3DF)
 	directionsForLoops[true] = make(map[AlongZ]base.Vector3DF)
-	directionsForLoops[true][true] = base.AddVecF(base.AxisXVec, base.AxisZVec)
-	directionsForLoops[true][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed)
+	directionsForLoops[true][true] = base.AddVecF(base.AxisXVec, base.AxisZVec).Normalized()
+	directionsForLoops[true][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed).Normalized()
 	directionsForLoops[false] = make(map[AlongZ]base.Vector3DF)
-	directionsForLoops[false][true] = base.AddVecF(base.AxisXVecReversed, base.AxisZVec)
-	directionsForLoops[false][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed)
+	directionsForLoops[false][true] = base.AddVecF(base.AxisXVecReversed, base.AxisZVec).Normalized()
+	directionsForLoops[false][false] = base.AddVecF(base.AxisXVec, base.AxisZVecReversed).Normalized()
 	directionsOfZ := make(map[AlongZ]base.Vector3DF)
 	directionsOfZ[true] = base.AxisZVec
 	directionsOfZ[false] = base.AxisZVecReversed
