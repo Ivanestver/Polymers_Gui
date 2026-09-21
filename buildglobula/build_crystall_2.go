@@ -230,7 +230,6 @@ func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
 				addMonomer(currPoint)
 				currPoint = getNextPoint(currPoint, direction)
 			}
-			addMonomer(currPoint)
 		}
 		// Now move to the next row
 		direction = base.Vector3DF{
