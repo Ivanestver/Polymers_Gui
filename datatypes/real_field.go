@@ -2,6 +2,7 @@ package datatypes
 
 import (
 	"fmt"
+	"math"
 	"polymers/base"
 	"polymers/globaldata"
 )
@@ -27,8 +28,9 @@ func (realField *RealField) GetType() FieldType {
 
 func (realField *RealField) MakeFilled(monomer *Monomer) {
 	if globaldata.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
-		if _, ok := realField.monomers[monomer.coords]; !ok {
-			realField.monomers[monomer.coords] = monomer
+		roundedCoords := realField.roundCoords(monomer.coords)
+		if _, ok := realField.monomers[roundedCoords]; !ok {
+			realField.monomers[roundedCoords] = monomer
 		}
 	}
 }
@@ -37,15 +39,16 @@ func (realField *RealField) MakeFree(monomer *Monomer) {
 	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&monomer.coords) {
 		return
 	}
-	realField.monomers[monomer.coords] = nil
+	realField.monomers[realField.roundCoords(monomer.coords)] = nil
 }
 
 func (realField *RealField) IsFree(coords base.Vector3DF) bool {
 	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
 		return false
 	}
-	if m, ok := realField.monomers[coords]; !ok {
-		realField.monomers[coords] = nil
+	roundedCoords := realField.roundCoords(coords)
+	if m, ok := realField.monomers[roundedCoords]; !ok {
+		realField.monomers[roundedCoords] = nil
 		return true
 	} else {
 		return m == nil
@@ -56,22 +59,32 @@ func (realField *RealField) GetMonomerByCoords(coords base.Vector3DF) *Monomer {
 	if !globaldata.GetGlobalData().SpaceDimention.PointInSpace(&coords) {
 		return nil
 	}
-	if m, ok := realField.monomers[coords]; ok {
+	roundedCoords := realField.roundCoords(coords)
+	if m, ok := realField.monomers[roundedCoords]; ok {
 		return m
 	} else {
-		m1 := NewMonomer(coords, base.C)
-		realField.monomers[coords] = m1
+		m1 := NewMonomer(roundedCoords, base.C)
+		realField.monomers[roundedCoords] = m1
 		return m1
 	}
 }
 
-func (realField *RealField) MoveMonomer(monomer *Monomer, to base.Vector3DF) error {
-	if _, ok := realField.monomers[monomer.coords]; !ok {
-		return fmt.Errorf("нет указанного мономера: %v", monomer.coords)
+func (realField *RealField) roundCoords(coords base.Vector3DF) base.Vector3DF {
+	return base.Vector3DF{
+		math.Round(coords[base.AxisX]*10000) / 10000.0,
+		math.Round(coords[base.AxisY]*10000) / 10000.0,
+		math.Round(coords[base.AxisZ]*10000) / 10000.0,
 	}
-	delete(realField.monomers, monomer.coords)
+}
+
+func (realField *RealField) MoveMonomer(monomer *Monomer, to base.Vector3DF) error {
+	roundedCoords := realField.roundCoords(monomer.coords)
+	if _, ok := realField.monomers[roundedCoords]; !ok {
+		return fmt.Errorf("нет указанного мономера: %v", roundedCoords)
+	}
+	delete(realField.monomers, roundedCoords)
 	monomer.coords = to
-	realField.monomers[to] = monomer
+	realField.monomers[realField.roundCoords(to)] = monomer
 	return nil
 }
 
