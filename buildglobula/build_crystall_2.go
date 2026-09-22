@@ -345,6 +345,10 @@ func (cell *Cell) CreateConnections() {
 	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
 	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
 	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSpacial)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSpacial)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSpacial)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSpacial)
 }
 
 func (cell *Cell) MakeCell(leftLowerCloser *datatypes.Monomer, field datatypes.IField, lateralDirection base.Vector3DF, stepLengthInStick, stepLengthInAmorphousPart float64) {
