@@ -50,9 +50,13 @@ const (
 	ConnectionTypeCrossLinear
 	ConnectionTypeCrossSurface
 	ConnectionTypeCrossSpacial
+	ConnectionTypeCount
 )
 
 func GetConnectionTypeLength(connType ConnectionType) float64 {
+	if connType <= ConnectionTypeUndefined || connType >= ConnectionTypeCount {
+		return float64(connType)
+	}
 	m := make(map[ConnectionType]float64)
 	m[ConnectionTypeOne] = 1.0
 	m[ConnectionTypeCrosslinks] = 1.0
