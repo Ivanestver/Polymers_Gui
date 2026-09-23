@@ -6,8 +6,14 @@ import (
 
 type MoveDirection = int8
 type Side = base.Vector3DF
-type ConnectionType int8
+
+// type ConnectionType int8
 type GlobulaViewType int
+
+type ConnectionType struct {
+	Number int
+	Length float64
+}
 
 const (
 	DirectionBackward MoveDirection = -1
@@ -43,27 +49,16 @@ var SideDownLeftBackward = base.AddVecF(SideDown, SideLeft, SideBackward)
 var SideDownBackward = base.AddVecF(SideDown, SideBackward)
 var SideDownRightBackward = base.AddVecF(SideDown, SideRight, SideBackward)
 
-const (
-	ConnectionTypeUndefined ConnectionType = iota
-	ConnectionTypeOne
-	ConnectionTypeCrosslinks
-	ConnectionTypeCrossLinear
-	ConnectionTypeCrossSurface
-	ConnectionTypeCrossSpacial
-	ConnectionTypeCount
-)
+var ConnectionTypeUndefined = ConnectionType{Number: -1, Length: 0.0}
+var ConnectionTypeOne = ConnectionType{Number: 1, Length: 1.0}
+var ConnectionTypeCrosslinks = ConnectionType{Number: 2, Length: 1.0}
+var ConnectionTypeCrossLinear = ConnectionType{Number: 3, Length: 1.0}
+var ConnectionTypeCrossSurface = ConnectionType{Number: 4, Length: 1.0}
+var ConnectionTypeCrossSpacial = ConnectionType{Number: 5, Length: 1.0}
+var ConnectionTypeCount = ConnectionType{Number: ConnectionTypeCrossSpacial.Number, Length: -1.0}
 
 func GetConnectionTypeLength(connType ConnectionType) float64 {
-	if connType <= ConnectionTypeUndefined || connType >= ConnectionTypeCount {
-		return float64(connType)
-	}
-	m := make(map[ConnectionType]float64)
-	m[ConnectionTypeOne] = 1.0
-	m[ConnectionTypeCrosslinks] = 1.0
-	m[ConnectionTypeCrossLinear] = 1.0
-	m[ConnectionTypeCrossSurface] = 1.414213
-	m[ConnectionTypeCrossSpacial] = 1.732050
-	return m[connType]
+	return connType.Length
 }
 
 const (

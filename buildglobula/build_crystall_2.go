@@ -7,6 +7,12 @@ import (
 	"polymers/views"
 )
 
+var _ConnectionTypeRhombusShorter = datatypes.ConnectionType{Number: datatypes.ConnectionTypeCount.Number, Length: 1.56798}
+var _ConnectionTypeRhombusLonger = datatypes.ConnectionType{Number: _ConnectionTypeRhombusShorter.Number + 1, Length: 2.35402}
+var _ConnectionTypeRhombusEdge = datatypes.ConnectionType{Number: _ConnectionTypeRhombusLonger.Number + 1, Length: 1.41421}
+var _ConnectionTypeRhombusSurface = datatypes.ConnectionType{Number: _ConnectionTypeRhombusEdge.Number + 1, Length: 1.73205}
+var _ConnectionTypeAmorphous = datatypes.ConnectionType{Number: _ConnectionTypeRhombusSurface.Number + 1, Length: 1.41421}
+
 type Crystall2InputDataBuilder struct {
 }
 
@@ -212,9 +218,16 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
 	moveForward(currPoint, direction)
+	nMon1 := polymer.Len() - 1
+	nMon2 := nMon1 + 1
 
 	// Make the horizontal part
 	alg.createAmorphousPart(currPoint, horCount, polymer, baseDirection)
+	datatypes.SetConnectionType(
+		polymer.GetMonomerByIdx(nMon1),
+		polymer.GetMonomerByIdx(nMon2),
+		_ConnectionTypeAmorphous,
+	)
 	alongZ = !alongZ
 	// Make the turn to the vertical part
 	direction = alg.getDirectionForLoops()
@@ -224,9 +237,16 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
 	moveForward(currPoint, direction)
+	nMon1 = polymer.Len() - 1
+	nMon2 = nMon1 + 1
 
 	// Make the second vertical part
 	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
+	datatypes.SetConnectionType(
+		polymer.GetMonomerByIdx(nMon1),
+		polymer.GetMonomerByIdx(nMon2),
+		_ConnectionTypeAmorphous,
+	)
 	moveForward(currPoint, alg.getDirectionOfZ())
 }
 
@@ -331,13 +351,6 @@ type Cell struct {
 	RightLowerFurther *datatypes.Monomer
 	RightUpperFurther *datatypes.Monomer
 }
-
-const (
-	_ConnectionTypeRhombusShorter = datatypes.ConnectionTypeCount     // 1.56798
-	_ConnectionTypeRhombusLonger  = _ConnectionTypeRhombusShorter + 1 // 2.35402
-	_ConnectionTypeRhombusEdge    = _ConnectionTypeRhombusLonger + 1  // 1.41421
-	_ConnectionTypeRhombusSurface = _ConnectionTypeRhombusEdge + 1    // 1.73205
-)
 
 func (cell *Cell) CreateConnections() {
 	// Edges

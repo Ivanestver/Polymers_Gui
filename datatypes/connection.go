@@ -79,7 +79,7 @@ func MakeConnectionUnsafe(mon1, mon2 *Monomer, side Side, connectionType Connect
 	return nil
 }
 
-func BreakConnection(mon1, mon2 *Monomer) error {
+func SetConnectionType(mon1, mon2 *Monomer, connType ConnectionType) error {
 	if mon1 == nil || mon2 == nil {
 		return errors.New("one of monomers is nil")
 	}
@@ -87,8 +87,12 @@ func BreakConnection(mon1, mon2 *Monomer) error {
 	if side == SideUndefined {
 		return errors.New("the monomers are not sibiings")
 	}
-	mon1.sides[side].ConnType = ConnectionTypeUndefined
+	mon1.sides[side].ConnType = connType
 	return nil
+}
+
+func BreakConnection(mon1, mon2 *Monomer) error {
+	return SetConnectionType(mon1, mon2, ConnectionTypeUndefined)
 }
 
 func TierConnection(mon1, mon2 *Monomer, side Side) error {
