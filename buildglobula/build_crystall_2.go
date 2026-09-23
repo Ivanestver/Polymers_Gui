@@ -340,22 +340,29 @@ const (
 )
 
 func (cell *Cell) CreateConnections() {
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.LeftUpperFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftUpperCloser, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperFurther, datatypes.ConnectionTypeCrossSpacial)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerFurther, datatypes.ConnectionTypeCrossSpacial)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSpacial)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSpacial)
+	// Edges
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerCloser, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.RightLowerFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperCloser, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.RightUpperFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusEdge)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusEdge)
+
+	// Surfaces
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightUpperFurther, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightLowerFurther, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.RightLowerFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.RightUpperFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusSurface)
+	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusLonger)
+	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, _ConnectionTypeRhombusShorter)
+	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusLonger)
+	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, _ConnectionTypeRhombusShorter)
 }
 
 func (cell *Cell) MakeCell(leftLowerCloser *datatypes.Monomer, field datatypes.IField, lateralDirection base.Vector3DF, stepLengthInStick, stepLengthInAmorphousPart float64) {
