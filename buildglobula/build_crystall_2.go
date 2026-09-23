@@ -332,6 +332,13 @@ type Cell struct {
 	RightUpperFurther *datatypes.Monomer
 }
 
+const (
+	_ConnectionTypeRhombusShorter = datatypes.ConnectionTypeCount     // 1.56798
+	_ConnectionTypeRhombusLonger  = _ConnectionTypeRhombusShorter + 1 // 2.35402
+	_ConnectionTypeRhombusEdge    = _ConnectionTypeRhombusLonger + 1  // 1.41421
+	_ConnectionTypeRhombusSurface = _ConnectionTypeRhombusEdge + 1    // 1.73205
+)
+
 func (cell *Cell) CreateConnections() {
 	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, datatypes.ConnectionTypeCrossSurface)
 	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, datatypes.ConnectionTypeCrossSurface)
