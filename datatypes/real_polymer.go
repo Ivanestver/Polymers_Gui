@@ -62,21 +62,7 @@ func (realPolymer *RealPolymer) DeepCopy(args ...any) IPolymer {
 }
 
 func (realPolymer *RealPolymer) AddMonomer(monomer *Monomer) {
-	if monomer == nil {
-		return
-	}
-
-	if realPolymer.Len() == 0 {
-		realPolymer.monomers = append(realPolymer.monomers, monomer)
-		return
-	}
-	lastMonomer := realPolymer.LastMonomer()
-	lastMonomer.NextMonomer = monomer
-	monomer.PrevMonomer = lastMonomer
-	realPolymer.monomers = append(realPolymer.monomers, monomer)
-	if err := MakeConnection(lastMonomer, monomer, ConnectionTypeOne); err != nil {
-		outputformat.GetPrint().PrintflnError(err.Error())
-	}
+	realPolymer.AddMonomerWithConnection(monomer, ConnectionTypeOne)
 }
 
 func (realPolymer *RealPolymer) AddMonomerNoConnection(monomer *Monomer) {
@@ -89,6 +75,24 @@ func (realPolymer *RealPolymer) AddMonomerNoConnection(monomer *Monomer) {
 		return
 	}
 	realPolymer.monomers = append(realPolymer.monomers, monomer)
+}
+
+func (realPolymer *RealPolymer) AddMonomerWithConnection(monomer *Monomer, connType ConnectionType) {
+	if monomer == nil {
+		return
+	}
+
+	if realPolymer.Len() == 0 {
+		realPolymer.monomers = append(realPolymer.monomers, monomer)
+		return
+	}
+	lastMonomer := realPolymer.LastMonomer()
+	lastMonomer.NextMonomer = monomer
+	monomer.PrevMonomer = lastMonomer
+	realPolymer.monomers = append(realPolymer.monomers, monomer)
+	if err := MakeConnection(lastMonomer, monomer, connType); err != nil {
+		outputformat.GetPrint().PrintflnError(err.Error())
+	}
 }
 
 func (realPolymer *RealPolymer) AddMonomerAtStart(monomer *Monomer) {

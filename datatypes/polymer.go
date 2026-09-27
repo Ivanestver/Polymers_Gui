@@ -21,14 +21,7 @@ func NewPolymer(field *Field, polymerNumber int64) *Polymer {
 }
 
 func (polymer *Polymer) AddMonomer(monomer *Monomer) {
-	if len(polymer.polymer) != 0 {
-		lastMonomer := polymer.polymer[len(polymer.polymer)-1]
-		lastMonomer.NextMonomer = monomer
-		monomer.PrevMonomer = lastMonomer
-		MakeConnection(lastMonomer, monomer, ConnectionTypeOne)
-	}
-	polymer.polymer = append(polymer.polymer, monomer)
-	polymer.field.MakeFilled(monomer)
+	polymer.AddMonomerWithConnection(monomer, ConnectionTypeOne)
 }
 
 func (polymer *Polymer) AddMonomerNoConnection(monomer *Monomer) {
@@ -36,6 +29,17 @@ func (polymer *Polymer) AddMonomerNoConnection(monomer *Monomer) {
 		lastMonomer := polymer.polymer[len(polymer.polymer)-1]
 		lastMonomer.NextMonomer = monomer
 		monomer.PrevMonomer = lastMonomer
+	}
+	polymer.polymer = append(polymer.polymer, monomer)
+	polymer.field.MakeFilled(monomer)
+}
+
+func (polymer *Polymer) AddMonomerWithConnection(monomer *Monomer, connType ConnectionType) {
+	if len(polymer.polymer) != 0 {
+		lastMonomer := polymer.polymer[len(polymer.polymer)-1]
+		lastMonomer.NextMonomer = monomer
+		monomer.PrevMonomer = lastMonomer
+		MakeConnection(lastMonomer, monomer, connType)
 	}
 	polymer.polymer = append(polymer.polymer, monomer)
 	polymer.field.MakeFilled(monomer)
