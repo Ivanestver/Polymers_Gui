@@ -109,7 +109,7 @@ func writeSpaceDimention(lammpsStruct *lammps_structs.LammpsStruct) {
 
 func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
 	atomsTypes := make(map[base.MendeleevTableElement]lammps_structs.Pair[int, string])
-	updateAtomsInfo := createUpdateAtomsInfo(lammpsStruct, atomsTypes, globula)
+	updateAtomsInfo := createUpdateAtomsInfo(lammpsStruct, atomsTypes)
 	// Write atoms and gather atom types info
 	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
 		polymer := globula.GetPolymerByIdx(polNumber)
@@ -167,7 +167,7 @@ func writeAtoms(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	}
 }
 
-func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[base.MendeleevTableElement]lammps_structs.Pair[int, string], globula *views.GlobulaView) func(*dt.Monomer, int) {
+func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes map[base.MendeleevTableElement]lammps_structs.Pair[int, string]) func(*dt.Monomer, int) {
 	return func(monomer *dt.Monomer, polymerID int) {
 		p, ok := atomsTypes[monomer.MonomerType]
 		if !ok {
@@ -194,7 +194,7 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
 	bondID := 1
 	bondTypes := make(map[dt.ConnectionType]lammps_structs.BondType)
-	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, globula, &bondID)
+	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, &bondID)
 	usedPairs := make(map[[2]int]bool)
 	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
 		polymer := globula.GetPolymerByIdx(polNumber)
@@ -225,7 +225,7 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	}
 }
 
-func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, globula *views.GlobulaView, bondID *int) func(*dt.Monomer, *dt.Monomer) {
+func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, bondID *int) func(*dt.Monomer, *dt.Monomer) {
 	return func(mon1, mon2 *dt.Monomer) {
 		side := mon1.GetSideOfSibling(mon2)
 		if side == dt.SideUndefined {
