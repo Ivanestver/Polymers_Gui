@@ -220,9 +220,18 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	}
 
 	// Write the atom types info gathered
-	for _, p := range bondTypes {
-		lammpsStruct.BondTypes = append(lammpsStruct.BondTypes, p)
+	for _, bondType := range bondTypes {
+		lammpsStruct.BondTypes = append(lammpsStruct.BondTypes, bondType)
 	}
+	slices.SortFunc(lammpsStruct.BondTypes, func(left, right lammps_structs.BondType) int {
+		if left.BondID < right.BondID {
+			return -1
+		} else if left.BondID == right.BondID {
+			return 0
+		} else {
+			return 1
+		}
+	})
 }
 
 func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, bondID *int) func(*dt.Monomer, *dt.Monomer) {
