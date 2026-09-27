@@ -120,7 +120,10 @@ func (alg *Crystall2CalcAlg) turnPlatesIntoPolymer(plates []Plate) datatypes.IPo
 	for _, plate := range plates {
 		for _, point := range plate {
 			monomer := field.GetMonomerByCoords(point)
-			polymer.AddMonomer(monomer)
+			polymer.AddMonomerWithConnection(monomer, datatypes.ConnectionType{
+				Number: datatypes.ConnectionTypeOne.Number,
+				Length: base.EcludianDistanceF(monomer.Coords(), polymer.LastMonomer().Coords()),
+			})
 		}
 	}
 	return polymer
@@ -183,7 +186,14 @@ func (alg *Crystall2CalcAlg) addMonomer(point base.Vector3DF, polymer datatypes.
 	field := polymer.GetField()
 	monomer := field.GetMonomerByCoords(point)
 	monomer.MonomerType = monomerType
-	polymer.AddMonomer(monomer)
+	if polymer.Len() > 0 {
+		polymer.AddMonomerWithConnection(monomer, datatypes.ConnectionType{
+			Number: datatypes.ConnectionTypeOne.Number,
+			Length: base.EcludianDistanceF(polymer.LastMonomer().Coords(), monomer.Coords()),
+		})
+	} else {
+		polymer.AddMonomer(monomer)
+	}
 }
 
 func (alg *Crystall2CalcAlg) addCrystallMonomer(point base.Vector3DF, polymer datatypes.IPolymer) {
@@ -266,7 +276,7 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 }
 
 func (alg *Crystall2CalcAlg) getTurnLength() float64 {
-	return alg.inputData.StepLength * math.Sqrt(2.0)
+	return alg.inputData.StepLength
 }
 
 func (alg *Crystall2CalcAlg) getAmorphousLoopLength() float64 {
