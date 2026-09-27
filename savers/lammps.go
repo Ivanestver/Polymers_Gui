@@ -193,7 +193,9 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 
 func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
 	bondID := 1
-	bondTypes := make(map[dt.ConnectionType]lammps_structs.BondType)
+	bondTypes := base.NewDictionary[dt.ConnectionType, lammps_structs.BondType](func(left, right dt.ConnectionType) bool {
+		return left.Number == right.Number && base.CompareFloatWithE(left.Length, right.Length, 1e-4)
+	})
 	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, &bondID)
 	usedPairs := make(map[[2]int]bool)
 	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
@@ -220,9 +222,9 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	}
 
 	// Write the atom types info gathered
-	for _, bondType := range bondTypes {
+	bondTypes.ForEach(func(connType dt.ConnectionType, bondType lammps_structs.BondType) {
 		lammpsStruct.BondTypes = append(lammpsStruct.BondTypes, bondType)
-	}
+	})
 	slices.SortFunc(lammpsStruct.BondTypes, func(left, right lammps_structs.BondType) int {
 		if left.BondID < right.BondID {
 			return -1
@@ -234,7 +236,7 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	})
 }
 
-func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes map[dt.ConnectionType]lammps_structs.BondType, bondID *int) func(*dt.Monomer, *dt.Monomer) {
+func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes *base.Dictionary[dt.ConnectionType, lammps_structs.BondType], bondID *int) func(*dt.Monomer, *dt.Monomer) {
 	return func(mon1, mon2 *dt.Monomer) {
 		side := mon1.GetSideOfSibling(mon2)
 		if side == dt.SideUndefined {
@@ -245,16 +247,16 @@ func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes 
 			return
 		}
 
-		value, ok := bondTypes[connectionType]
-		if !ok {
-			value = lammps_structs.BondType{
-				BondID: len(bondTypes) + 1,
+		if !bondTypes.ContainsKey(connectionType) {
+			value := lammps_structs.BondType{
+				BondID: bondTypes.Len() + 1,
 				Sth1:   100.0,
 				Sth2:   datatypes.GetConnectionTypeLength(connectionType),
 			}
-			bondTypes[connectionType] = value
+			bondTypes.AddValue(connectionType, value)
 		}
 
+		value := bondTypes.GetValue(connectionType)
 		lammpsStruct.Bonds = append(lammpsStruct.Bonds, lammps_structs.Bond{
 			BondID:         *bondID,
 			ConnectionType: value.BondID,
