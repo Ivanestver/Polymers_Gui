@@ -354,28 +354,97 @@ type Cell struct {
 
 func (cell *Cell) CreateConnections() {
 	// Edges
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerCloser, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.RightLowerFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperCloser, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.RightUpperFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusEdge)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusEdge)
+	if err := cell.makeConnection(cell.LeftLowerCloser, cell.RightLowerCloser, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightLowerFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftLowerFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperCloser, cell.RightUpperCloser, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightUpperFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusEdge); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
 
 	// Surfaces
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.RightLowerCloser, cell.RightUpperFurther, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.RightUpperCloser, cell.RightLowerFurther, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.RightLowerFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.RightUpperFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusSurface)
-	datatypes.MakeConnection(cell.LeftLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusLonger)
-	datatypes.MakeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, _ConnectionTypeRhombusShorter)
-	datatypes.MakeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusLonger)
-	datatypes.MakeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, _ConnectionTypeRhombusShorter)
+	if err := cell.makeConnection(cell.LeftLowerCloser, cell.RightUpperCloser, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperCloser, cell.RightLowerCloser, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightLowerCloser, cell.RightUpperFurther, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightUpperCloser, cell.RightLowerFurther, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightLowerFurther, cell.LeftUpperFurther, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.RightUpperFurther, cell.LeftLowerFurther, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftLowerFurther, cell.LeftUpperCloser, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperFurther, cell.LeftLowerCloser, _ConnectionTypeRhombusSurface); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftLowerCloser, cell.RightLowerFurther, _ConnectionTypeRhombusLonger); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftLowerFurther, cell.RightLowerCloser, _ConnectionTypeRhombusShorter); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperCloser, cell.RightUpperFurther, _ConnectionTypeRhombusLonger); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+	if err := cell.makeConnection(cell.LeftUpperFurther, cell.RightUpperCloser, _ConnectionTypeRhombusShorter); err != nil {
+		outputformat.GetPrint().PrintlnError(err.Error())
+		return
+	}
+}
+
+func (cell *Cell) makeConnection(mon1, mon2 *datatypes.Monomer, connectionType datatypes.ConnectionType) error {
+	decimalsAfterDot := 1e8
+	connType := datatypes.ConnectionType{
+		Number: connectionType.Number,
+		Length: float64(int64(base.EcludianDistanceF(mon1.Coords(), mon2.Coords())*decimalsAfterDot)) / decimalsAfterDot,
+	}
+	return datatypes.MakeConnection(mon1, mon2, connType)
 }
 
 func (cell *Cell) MakeCell(leftLowerCloser *datatypes.Monomer, field datatypes.IField, lateralDirection base.Vector3DF, stepLengthInStick, stepLengthInAmorphousPart float64) {
