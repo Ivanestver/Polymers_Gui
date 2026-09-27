@@ -55,7 +55,7 @@ var ConnectionTypeCrosslinks = ConnectionType{Number: 2, Length: 1.0}
 var ConnectionTypeCrossLinear = ConnectionType{Number: 3, Length: 1.0}
 var ConnectionTypeCrossSurface = ConnectionType{Number: 4, Length: 1.0}
 var ConnectionTypeCrossSpacial = ConnectionType{Number: 5, Length: 1.0}
-var ConnectionTypeCount = ConnectionType{Number: ConnectionTypeCrossSpacial.Number, Length: -1.0}
+var ConnectionTypeCount = ConnectionType{Number: ConnectionTypeCrossSpacial.Number + 1, Length: -1.0}
 
 func GetConnectionTypeLength(connType ConnectionType) float64 {
 	return connType.Length
