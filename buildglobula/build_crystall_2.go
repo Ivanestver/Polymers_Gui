@@ -4,6 +4,7 @@ import (
 	"math"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/outputformat"
 	"polymers/views"
 )
 
@@ -17,10 +18,23 @@ type Crystall2InputDataBuilder struct {
 }
 
 func (builder Crystall2InputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
-	return Crystall2InputData{}, nil
+	return Crystall2InputData{
+		StepLength:          0.5,
+		MonomersNumberInRow: 5,
+		LamelaeCount:        2,
+		HorCount:            1,
+		VerCount:            1,
+		Harden:              true,
+	}, nil
 }
 
 type Crystall2InputData struct {
+	StepLength          float64
+	MonomersNumberInRow int
+	LamelaeCount        int
+	HorCount            int
+	VerCount            int
+	Harden              bool
 }
 
 func (inputData Crystall2InputData) GetGlobulaType() views.GlobulaProperty {
@@ -68,7 +82,7 @@ func (alg *Crystall2CalcAlg) createCircle(plate *Plate, currCircleNumber int) {
 		math.Cos(math.Pi / 3),
 		math.Sin(math.Pi / 3),
 	}
-	stepLength := 1.0
+	stepLength := alg.inputData.StepLength
 	currPoint = base.AddVecF(currPoint, base.MultiplyByConstantF(direction, stepLength))
 	*plate = append(*plate, currPoint)
 	direction = base.RotateVector(direction, -2*math.Pi/3, base.AxisZVec)
@@ -84,7 +98,7 @@ func (alg *Crystall2CalcAlg) createCircle(plate *Plate, currCircleNumber int) {
 func (alg *Crystall2CalcAlg) multiplyStartingPlate(startingPlate Plate) []Plate {
 	plates := []Plate{startingPlate}
 	direction := base.AxisZVec
-	stepLength := 1.0
+	stepLength := alg.inputData.StepLength
 	for range 23 {
 		prevPlate := plates[len(plates)-1]
 		plate := make(Plate, len(startingPlate))
@@ -147,7 +161,7 @@ func (alg *Crystall2CalcAlg) createV2() []datatypes.IPolymer {
 }
 
 func (alg *Crystall2CalcAlg) getPlatesCount() int {
-	return 5
+	return alg.inputData.LamelaeCount
 }
 
 func (alg *Crystall2CalcAlg) getWholeNumberOfPoints() int {
@@ -156,13 +170,13 @@ func (alg *Crystall2CalcAlg) getWholeNumberOfPoints() int {
 }
 
 func (alg *Crystall2CalcAlg) getMonomersInAmorphousLoop() (horCount, verCount int) {
-	horCount = 1
-	verCount = 1
+	horCount = alg.inputData.HorCount
+	verCount = alg.inputData.VerCount
 	return
 }
 
 func (alg *Crystall2CalcAlg) getMonomersNumberInRow() int {
-	return 10
+	return alg.inputData.MonomersNumberInRow
 }
 
 func (alg *Crystall2CalcAlg) addMonomer(point base.Vector3DF, polymer datatypes.IPolymer, monomerType base.MendeleevTableElement) {
@@ -193,14 +207,14 @@ func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer data
 	direction := alg.getDirectionOfZ()
 	for range alg.getPlatesCount() {
 		alg.addCrystallMonomer(*currPoint, polymer)
-		moveForward(currPoint, direction)
+		moveForward(currPoint, base.MultiplyByConstantF(direction, alg.inputData.StepLength))
 	}
 }
 
 func (alg *Crystall2CalcAlg) createAmorphousPart(currPoint *base.Vector3DF, monomersCount int, polymer datatypes.IPolymer, direction base.Vector3DF) {
 	for range monomersCount - 1 {
 		alg.addAmorphousMonomer(*currPoint, polymer)
-		moveForward(currPoint, direction)
+		moveForward(currPoint, base.MultiplyByConstantF(direction, alg.inputData.StepLength))
 	}
 	alg.addAmorphousMonomer(*currPoint, polymer)
 }
@@ -212,12 +226,13 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 
 	// Make the turn to the horizontal part
 	direction := alg.getDirectionForLoops()
+	turnLength := alg.getTurnLength()
 	angle := math.Asin(baseDirection[base.AxisY])
 	if !alongX && !base.CompareFloat(angle, 0.0) {
 		angle += math.Pi
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
-	moveForward(currPoint, direction)
+	moveForward(currPoint, base.MultiplyByConstantF(direction, turnLength))
 	nMon1 := polymer.Len() - 1
 	nMon2 := nMon1 + 1
 
@@ -236,7 +251,7 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 		angle += math.Pi
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
-	moveForward(currPoint, direction)
+	moveForward(currPoint, base.MultiplyByConstantF(direction, turnLength))
 	nMon1 = polymer.Len() - 1
 	nMon2 = nMon1 + 1
 
@@ -247,7 +262,11 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 		polymer.GetMonomerByIdx(nMon2),
 		_ConnectionTypeAmorphous,
 	)
-	moveForward(currPoint, alg.getDirectionOfZ())
+	moveForward(currPoint, base.MultiplyByConstantF(alg.getDirectionOfZ(), alg.inputData.StepLength))
+}
+
+func (alg *Crystall2CalcAlg) getTurnLength() float64 {
+	return alg.inputData.StepLength * math.Sqrt(2.0)
 }
 
 func (alg *Crystall2CalcAlg) getAmorphousLoopLength() float64 {
@@ -259,7 +278,7 @@ func (alg *Crystall2CalcAlg) getAmorphousLoopLength() float64 {
 	alongX = prevAlongX
 	alongZ = prevAlongZ
 	angle := base.GetAngleInRad(direction, base.AxisXVec)
-	length := 1.0 * math.Cos(angle)
+	length := alg.getTurnLength() * math.Cos(angle)
 	length *= 2
 	horCount, _ := alg.getMonomersInAmorphousLoop()
 	length += float64(horCount - 1)
@@ -337,7 +356,9 @@ func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
 	}
 	alg.createRow(&currPoint, polymer)
 
-	alg.hardenPolymer(polymer)
+	if alg.inputData.Harden {
+		alg.hardenPolymer(polymer)
+	}
 	return []datatypes.IPolymer{polymer}
 }
 
@@ -468,7 +489,7 @@ func (alg *Crystall2CalcAlg) hardenPolymer(polymer datatypes.IPolymer) {
 	alongZ = true
 
 	stepLengthInAmorphousPart := alg.getAmorphousLoopLength()
-	stepLengthInStick := 1.0
+	stepLengthInStick := alg.inputData.StepLength
 
 	for range alg.getMonomersNumberInRow() - 1 { // The width
 		for j := range alg.getMonomersNumberInRow() - 1 { // The row
