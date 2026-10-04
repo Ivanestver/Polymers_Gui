@@ -347,11 +347,12 @@ func (alg *Crystall2CalcAlg) getLateralDirection() base.Vector3DF {
 }
 
 func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
+	spaceDimention := globaldata.GetGlobalData().SpaceDimention
 	field := datatypes.NewRealField(
 		[3][2]float64{
-			{-100.0, 100.0},
-			{-100.0, 100.0},
-			{-100.0, 100.0},
+			{spaceDimention[base.AxisX].Lower, spaceDimention[base.AxisX].Higher},
+			{spaceDimention[base.AxisY].Lower, spaceDimention[base.AxisY].Higher},
+			{spaceDimention[base.AxisZ].Lower, spaceDimention[base.AxisZ].Higher},
 		})
 	polymer := datatypes.NewIPolymer(datatypes.FieldTypeReal, field, int64(0))
 	currPoint := base.IdentityVectorF()
