@@ -27,19 +27,19 @@ type _RealFieldStorage struct {
 }
 
 func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
-	if leftX, _, isExact := realField.find(coords[base.AxisX], realField.Nodes); isExact {
+	if leftX, isExact := realField.find(coords[base.AxisX], realField.Nodes); isExact {
 		subnodes := realField.Nodes[leftX].Subnodes
-		if leftY, _, isExact := realField.find(coords[base.AxisY], subnodes); isExact {
+		if leftY, isExact := realField.find(coords[base.AxisY], subnodes); isExact {
 			subnodes := subnodes[leftY].Subnodes
-			if leftZ, _, isExact := realField.find(coords[base.AxisZ], subnodes); isExact {
+			if leftZ, isExact := realField.find(coords[base.AxisZ], subnodes); isExact {
 				return subnodes[leftZ].Monomer
 			} else {
 				newMonomer := NewMonomer(coords, base.C)
-				realField.Nodes[leftX].Subnodes[leftY].Subnodes = append(realField.Nodes[leftX].Subnodes[leftY].Subnodes, _Node{
+				realField.insert(_Node{
 					Coordinate: coords[base.AxisZ],
 					Monomer:    newMonomer,
-				})
-				slices.SortFunc(realField.Nodes[leftX].Subnodes[leftY].Subnodes, func(left, right _Node) int {
+				}, leftZ, &realField.Nodes[leftX].Subnodes[leftY].Subnodes)
+				if !slices.IsSortedFunc(realField.Nodes[leftX].Subnodes[leftY].Subnodes, func(left, right _Node) int {
 					if left.Coordinate < right.Coordinate {
 						return -1
 					} else if left.Coordinate > right.Coordinate {
@@ -47,12 +47,14 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 					} else {
 						return 0
 					}
-				})
+				}) {
+					panic("Not sorted")
+				}
 				return newMonomer
 			}
 		} else {
 			newMonomer := NewMonomer(coords, base.C)
-			realField.Nodes[leftY].Subnodes = append(realField.Nodes[leftY].Subnodes, _Node{
+			realField.insert(_Node{
 				Coordinate: coords[base.AxisY],
 				Subnodes: []_Node{
 					{
@@ -60,8 +62,9 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 						Monomer:    newMonomer,
 					},
 				},
-			})
-			slices.SortFunc(realField.Nodes[leftY].Subnodes, func(left, right _Node) int {
+			}, leftY, &realField.Nodes[leftY].Subnodes)
+
+			if !slices.IsSortedFunc(realField.Nodes[leftX].Subnodes, func(left, right _Node) int {
 				if left.Coordinate < right.Coordinate {
 					return -1
 				} else if left.Coordinate > right.Coordinate {
@@ -69,12 +72,14 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 				} else {
 					return 0
 				}
-			})
+			}) {
+				panic("Not sorted")
+			}
 			return newMonomer
 		}
 	} else {
 		newMonomer := NewMonomer(coords, base.C)
-		realField.Nodes = append(realField.Nodes, _Node{
+		realField.insert(_Node{
 			Coordinate: coords[base.AxisX],
 			Subnodes: []_Node{
 				{
@@ -87,8 +92,9 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 					},
 				},
 			},
-		})
-		slices.SortFunc(realField.Nodes, func(left, right _Node) int {
+		}, leftX, &realField.Nodes)
+
+		if !slices.IsSortedFunc(realField.Nodes, func(left, right _Node) int {
 			if left.Coordinate < right.Coordinate {
 				return -1
 			} else if left.Coordinate > right.Coordinate {
@@ -96,40 +102,73 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 			} else {
 				return 0
 			}
-		})
+		}) {
+			panic("Not sorted")
+		}
 		return newMonomer
 	}
 }
 
-func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (left, right int, isExact bool) {
-	left = 0
-	right = len(nodes) - 1
+func (realField *_RealFieldStorage) insert(what _Node, after int, where *[]_Node) {
+	if after >= len(*where) {
+		*where = append(*where, what)
+	} else if after == -1 {
+		*where = append([]_Node{what}, (*where)...)
+	} else {
+		*where = append((*where)[:after+1], append([]_Node{what}, (*where)[after+1:]...)...)
+	}
+}
+
+func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (index int, isExact bool) {
+	index = -1
+	left := 0
+	right := len(nodes) - 1
 	isExact = false
 	if len(nodes) == 0 {
 		return
 	}
 	if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+		index = left
 		isExact = true
 		return
 	}
 	if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
-		left = right
+		index = right
 		isExact = true
 		return
 	}
-	for left+1 < right {
+	for left < right {
+		if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+			index = left
+			isExact = true
+			return
+		}
+		if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
+			index = right
+			isExact = true
+			return
+		}
 		m := (left + right) / 2
 		middle := nodes[m].Coordinate
 		if base.CompareFloatWithE(value, middle, 0.001) {
-			left = m
-			right = m
+			index = m
 			isExact = true
 			return
 		} else if value < middle {
-			right = m
+			right = m - 1
 		} else {
-			left = m
+			left = m + 1
 		}
+	}
+	isExact = (base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001))
+	if value > nodes[left].Coordinate {
+		index = left
+		return
+	}
+	left -= 1
+	if left >= 0 && value > nodes[left].Coordinate {
+		index = left
+		return
 	}
 	return
 }
