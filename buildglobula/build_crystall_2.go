@@ -4,6 +4,7 @@ import (
 	"math"
 	"polymers/base"
 	"polymers/datatypes"
+	"polymers/globaldata"
 	"polymers/outputformat"
 	"polymers/views"
 )
@@ -217,14 +218,14 @@ func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer data
 	direction := alg.getDirectionOfZ()
 	for range alg.getPlatesCount() {
 		alg.addCrystallMonomer(*currPoint, polymer)
-		moveForward(currPoint, base.MultiplyByConstantF(direction, alg.inputData.StepLength))
+		moveForward(currPoint, direction)
 	}
 }
 
 func (alg *Crystall2CalcAlg) createAmorphousPart(currPoint *base.Vector3DF, monomersCount int, polymer datatypes.IPolymer, direction base.Vector3DF) {
 	for range monomersCount - 1 {
 		alg.addAmorphousMonomer(*currPoint, polymer)
-		moveForward(currPoint, base.MultiplyByConstantF(direction, alg.inputData.StepLength))
+		moveForward(currPoint, direction)
 	}
 	alg.addAmorphousMonomer(*currPoint, polymer)
 }
@@ -243,16 +244,16 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
 	moveForward(currPoint, base.MultiplyByConstantF(direction, turnLength))
-	nMon1 := polymer.Len() - 1
-	nMon2 := nMon1 + 1
+	// nMon1 := polymer.Len() - 1
+	// nMon2 := nMon1 + 1
 
 	// Make the horizontal part
 	alg.createAmorphousPart(currPoint, horCount, polymer, baseDirection)
-	datatypes.SetConnectionType(
-		polymer.GetMonomerByIdx(nMon1),
-		polymer.GetMonomerByIdx(nMon2),
-		_ConnectionTypeAmorphous,
-	)
+	// datatypes.SetConnectionType(
+	// 	polymer.GetMonomerByIdx(nMon1),
+	// 	polymer.GetMonomerByIdx(nMon2),
+	// 	_ConnectionTypeAmorphous,
+	// )
 	alongZ = !alongZ
 	// Make the turn to the vertical part
 	direction = alg.getDirectionForLoops()
@@ -262,17 +263,17 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 	}
 	direction = base.RotateVector(direction, angle, base.AxisZVec)
 	moveForward(currPoint, base.MultiplyByConstantF(direction, turnLength))
-	nMon1 = polymer.Len() - 1
-	nMon2 = nMon1 + 1
+	// nMon1 = polymer.Len() - 1
+	// nMon2 = nMon1 + 1
 
 	// Make the second vertical part
 	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
-	datatypes.SetConnectionType(
-		polymer.GetMonomerByIdx(nMon1),
-		polymer.GetMonomerByIdx(nMon2),
-		_ConnectionTypeAmorphous,
-	)
-	moveForward(currPoint, base.MultiplyByConstantF(alg.getDirectionOfZ(), alg.inputData.StepLength))
+	// datatypes.SetConnectionType(
+	// 	polymer.GetMonomerByIdx(nMon1),
+	// 	polymer.GetMonomerByIdx(nMon2),
+	// 	_ConnectionTypeAmorphous,
+	// )
+	moveForward(currPoint, alg.getDirectionOfZ())
 }
 
 func (alg *Crystall2CalcAlg) getTurnLength() float64 {
@@ -316,7 +317,7 @@ func (alg *Crystall2CalcAlg) getDirectionOfZ() base.Vector3DF {
 	directionsOfZ := make(map[AlongZ]base.Vector3DF)
 	directionsOfZ[true] = base.AxisZVec
 	directionsOfZ[false] = base.AxisZVecReversed
-	return directionsOfZ[alongZ]
+	return base.MultiplyByConstantF(directionsOfZ[alongZ], alg.inputData.StepLength)
 }
 
 func (alg *Crystall2CalcAlg) getDirectionOfX() base.Vector3DF {
