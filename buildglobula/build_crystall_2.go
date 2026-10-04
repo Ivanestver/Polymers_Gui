@@ -20,9 +20,9 @@ type Crystall2InputDataBuilder struct {
 
 func (builder Crystall2InputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
 	return Crystall2InputData{
-		StepLength:          0.5,
-		MonomersNumberInRow: 5,
-		LamelaeCount:        2,
+		StepLength:          0.3,
+		MonomersNumberInRow: 3,
+		LamelaeCount:        3,
 		HorCount:            1,
 		VerCount:            1,
 		Harden:              true,
