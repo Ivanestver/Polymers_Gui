@@ -186,6 +186,10 @@ func (alg *Crystall2CalcAlg) getMonomersNumberInRow() int {
 func (alg *Crystall2CalcAlg) addMonomer(point base.Vector3DF, polymer datatypes.IPolymer, monomerType base.MendeleevTableElement) {
 	field := polymer.GetField()
 	monomer := field.GetMonomerByCoords(point)
+	if monomer == nil {
+		outputformat.GetPrint().PrintflnError("точка находится вне заданного пространства: %v", point)
+		return
+	}
 	monomer.MonomerType = monomerType
 	if polymer.Len() > 0 {
 		polymer.AddMonomerWithConnection(monomer, datatypes.ConnectionType{
