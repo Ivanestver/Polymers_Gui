@@ -253,10 +253,10 @@ func moveForward(currPoint *base.Vector3DF, direction base.Vector3DF) {
 
 func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer datatypes.IPolymer) {
 	direction := alg.getDirectionOfZ()
-	for range alg.getPlatesCount() {
-		alg.addCrystallMonomer(*currPoint, polymer)
+	for range alg.getPlatesCount() - 1 {
 		moveForward(currPoint, direction)
 	}
+	alg.addCrystallMonomer(*currPoint, polymer)
 }
 
 func (alg *Crystall2CalcAlg) createAmorphousPart(currPoint *base.Vector3DF, monomersCount int, polymer datatypes.IPolymer, direction base.Vector3DF) {
@@ -270,7 +270,7 @@ func (alg *Crystall2CalcAlg) createAmorphousPart(currPoint *base.Vector3DF, mono
 func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, polymer datatypes.IPolymer, baseDirection base.Vector3DF) {
 	// Create the first vertical part
 	horCount, verCount := alg.getMonomersInAmorphousLoop()
-	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
+	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZOrigin())
 
 	// Make the turn to the horizontal part
 	direction := alg.getDirectionForLoops()
@@ -304,13 +304,13 @@ func (alg *Crystall2CalcAlg) createAmorphousLoop(currPoint *base.Vector3DF, poly
 	// nMon2 = nMon1 + 1
 
 	// Make the second vertical part
-	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZ())
+	alg.createAmorphousPart(currPoint, verCount, polymer, alg.getDirectionOfZOrigin())
 	// datatypes.SetConnectionType(
 	// 	polymer.GetMonomerByIdx(nMon1),
 	// 	polymer.GetMonomerByIdx(nMon2),
 	// 	_ConnectionTypeAmorphous,
 	// )
-	moveForward(currPoint, alg.getDirectionOfZ())
+	moveForward(currPoint, alg.getDirectionOfZOrigin())
 }
 
 func (alg *Crystall2CalcAlg) getTurnLength() float64 {
@@ -350,11 +350,15 @@ func (alg *Crystall2CalcAlg) getDirectionForLoops() base.Vector3DF {
 	return directionsForLoops[alongX][alongZ]
 }
 
-func (alg *Crystall2CalcAlg) getDirectionOfZ() base.Vector3DF {
+func (alg *Crystall2CalcAlg) getDirectionOfZOrigin() base.Vector3DF {
 	directionsOfZ := make(map[AlongZ]base.Vector3DF)
 	directionsOfZ[true] = base.AxisZVec
 	directionsOfZ[false] = base.AxisZVecReversed
-	return base.MultiplyByConstantF(directionsOfZ[alongZ], alg.inputData.StepLength)
+	return directionsOfZ[alongZ]
+}
+
+func (alg *Crystall2CalcAlg) getDirectionOfZ() base.Vector3DF {
+	return base.MultiplyByConstantF(alg.getDirectionOfZOrigin(), alg.inputData.StepLength)
 }
 
 func (alg *Crystall2CalcAlg) getDirectionOfX() base.Vector3DF {
@@ -370,6 +374,8 @@ func (alg *Crystall2CalcAlg) createRow(currPoint *base.Vector3DF, polymer dataty
 		// Create a stick
 		alg.createStick(currPoint, polymer)
 
+		// Between crystall and amorphous parts the length of a connection must be equal to 1.0
+		moveForward(currPoint, base.MultiplyByConstantF(alg.getDirectionOfZOrigin(), 1.0))
 		// Create an amorphous part
 		alg.createAmorphousLoop(currPoint, polymer, base.IdentityVectorF())
 	}
