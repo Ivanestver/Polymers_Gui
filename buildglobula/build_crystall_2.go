@@ -1,12 +1,14 @@
 package buildglobula
 
 import (
+	"errors"
 	"math"
 	"polymers/base"
 	"polymers/datatypes"
 	"polymers/globaldata"
 	"polymers/outputformat"
 	"polymers/views"
+	"strconv"
 )
 
 var _ConnectionTypeRhombusShorter = datatypes.ConnectionType{Number: datatypes.ConnectionTypeCount.Number, Length: 1.56798}
@@ -19,14 +21,50 @@ type Crystall2InputDataBuilder struct {
 }
 
 func (builder Crystall2InputDataBuilder) CreateInputData(defaultParams []string) (ICalcAlgInputData, error) {
-	return Crystall2InputData{
-		StepLength:          0.3,
-		MonomersNumberInRow: 3,
-		LamelaeCount:        3,
-		HorCount:            1,
-		VerCount:            1,
-		Harden:              true,
-	}, nil
+	if len(defaultParams) != 6 {
+		return nil, errors.New("входное количество параметров должно быть 6")
+	}
+	inputData := Crystall2InputData{}
+	if stepLength, err := strconv.ParseFloat(defaultParams[0], 64); err == nil {
+		inputData.StepLength = stepLength
+	} else {
+		return nil, err
+	}
+
+	if monNumberInRow, err := strconv.Atoi(defaultParams[1]); err == nil {
+		inputData.MonomersNumberInRow = monNumberInRow
+	} else {
+		return nil, err
+	}
+
+	if lamelaeCount, err := strconv.Atoi(defaultParams[2]); err == nil {
+		inputData.LamelaeCount = lamelaeCount
+	} else {
+		return nil, err
+	}
+
+	if horCount, err := strconv.Atoi(defaultParams[3]); err == nil {
+		inputData.HorCount = horCount
+	} else {
+		return nil, err
+	}
+
+	if verCount, err := strconv.Atoi(defaultParams[4]); err == nil {
+		inputData.VerCount = verCount
+	} else {
+		return nil, err
+	}
+
+	switch defaultParams[5] {
+	case "true":
+		inputData.Harden = true
+	case "false":
+		inputData.Harden = false
+	default:
+		return nil, errors.New("параметр для придания жёсткости должен быть true или false")
+	}
+
+	return inputData, nil
 }
 
 type Crystall2InputData struct {
