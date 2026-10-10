@@ -247,13 +247,8 @@ func (alg *Crystall2CalcAlg) addAmorphousMonomer(point base.Vector3DF, polymer d
 	alg.addMonomer(point, polymer, base.N)
 }
 
-func getNextPoint(point, direction base.Vector3DF) base.Vector3DF {
-	stepLength := 1.0
-	return base.AddVecF(point, base.MultiplyByConstantF(direction, stepLength))
-}
-
 func moveForward(currPoint *base.Vector3DF, direction base.Vector3DF) {
-	*currPoint = getNextPoint(*currPoint, direction)
+	*currPoint = base.AddVecF(*currPoint, direction)
 }
 
 func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer datatypes.IPolymer) {
