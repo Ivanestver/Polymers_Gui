@@ -254,6 +254,7 @@ func moveForward(currPoint *base.Vector3DF, direction base.Vector3DF) {
 func (alg *Crystall2CalcAlg) createStick(currPoint *base.Vector3DF, polymer datatypes.IPolymer) {
 	direction := alg.getDirectionOfZ()
 	for range alg.getPlatesCount() - 1 {
+		alg.addCrystallMonomer(*currPoint, polymer)
 		moveForward(currPoint, direction)
 	}
 	alg.addCrystallMonomer(*currPoint, polymer)
@@ -405,6 +406,8 @@ func (alg *Crystall2CalcAlg) createV3() []datatypes.IPolymer {
 		// Create a row
 		alg.createRow(&currPoint, polymer)
 		// Now move to the next row
+		// Between crystall and amorphous parts the length of a connection must be equal to 1.0
+		moveForward(&currPoint, base.MultiplyByConstantF(alg.getDirectionOfZOrigin(), 1.0))
 		direction := alg.getLateralDirection()
 		alg.createAmorphousLoop(&currPoint, polymer, direction)
 		alongX = !alongX
