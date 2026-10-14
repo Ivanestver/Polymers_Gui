@@ -468,6 +468,8 @@ func DoAgingCrystall1(globula *views.GlobulaView, groupsCount int, crystallElem 
 			if mon.MonomerType == crystallElem {
 				mon.MonomerType = vynilElement
 				crystallizedMonomers = append(crystallizedMonomers, mon)
+			} else {
+				mon.MonomerType = unagedElement
 			}
 		}
 	}
