@@ -405,6 +405,14 @@ func age() (Command, any) {
 		m["ncross"] = ncross
 	}
 
+	if !finished() && ageAlgType == 5 {
+		elem, err := getNextToken()
+		if err != nil {
+			return CommandUndefined, err
+		}
+		m["crystallized_element"] = elem
+	}
+
 	m["count"] = groupCount
 	m["make_crosslinks"] = (doCrosslinks == "true")
 	m["alg_type"] = ageAlgType
