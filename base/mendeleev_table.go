@@ -96,6 +96,20 @@ func GetMendeleevTableReversed() map[MendeleevTableElement]int {
 	return m
 }
 
+func longestCommonPrefix(s1, s2 string) string {
+	minLength := min(len(s1), len(s2))
+	for i := 0; i < minLength; i++ {
+		if s1[i] != s2[i] {
+			return s1[:i]
+		}
+	}
+	if len(s1) < len(s2) {
+		return s1
+	} else {
+		return s2
+	}
+}
+
 func RecognizeElement(str string) MendeleevTableElement {
 	s := ""
 	if len(str) == 0 {
@@ -106,11 +120,31 @@ func RecognizeElement(str string) MendeleevTableElement {
 		s = str[:2]
 	}
 	s = strings.ToUpper(s)
+	candidates := make([]MendeleevTableElement, 0)
 	for _, elem := range GetMendeleevTable() {
 		elemUpper := elem
 		if elemUpper != MendeleevTableElementUndefined && strings.HasPrefix(s, strings.ToUpper(string(elemUpper))) {
-			return elem
+			if string(elemUpper) == s {
+				return elem
+			} else {
+				candidates = append(candidates, elem)
+			}
 		}
 	}
-	return MendeleevTableElementUndefined
+	if len(candidates) == 0 {
+		return MendeleevTableElementUndefined
+	} else if len(candidates) == 1 {
+		return candidates[0]
+	} else {
+		longestPrefix := ""
+		elem := MendeleevTableElementUndefined
+		for _, candidate := range candidates {
+			prefix := longestCommonPrefix(str, string(candidate))
+			if len(prefix) > len(longestPrefix) {
+				longestPrefix = string(candidate)
+				elem = candidate
+			}
+		}
+		return elem
+	}
 }
