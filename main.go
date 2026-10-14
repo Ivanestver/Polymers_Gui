@@ -225,6 +225,13 @@ func main() {
 				case 4:
 					age.DoAgingSurface(globula, ncut, nOContaining, ncross)
 				}
+			} else if algType == 5 {
+				elemStr := data["crystallized_element"].(string)
+				elem := base.RecognizeElement(elemStr)
+				if elem == base.MendeleevTableElementUndefined {
+					printer.PrintflnError("%s не является химическим элементом", elemStr)
+				}
+				age.DoAgingCrystall1(globula, groupsCount, elem, false)
 			}
 
 		case interp.CommandReset:
