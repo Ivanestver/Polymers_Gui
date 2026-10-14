@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"polymers/base"
-	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/outputformat"
 	"polymers/views"
@@ -97,7 +96,6 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 }
 
 func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool) {
-
 	alg := _NewAgeAlg(globula)
 	// 1. Break connections
 	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), vynilElement)
@@ -270,6 +268,10 @@ func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 	}
 }
 
+/*
+DoAging3 does not consider relation between cuts cout, O-containing groups count and crosslinks count.
+Places them independently.
+*/
 func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) error {
 	if ncut < OcontainingCount {
 		return errors.New("ncut is less that the O-containing monomers count")
@@ -458,7 +460,7 @@ Although the function has the doCrosslinks parameter, it is unused until the cro
 is formulated entirely
 */
 func DoAgingCrystall1(globula *views.GlobulaView, groupsCount int, crystallElem base.MendeleevTableElement, doCrosslinks bool) {
-	crystallizedMonomers := make([]*datatypes.Monomer, 0)
+	crystallizedMonomers := make([]*dt.Monomer, 0)
 	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
 		polymer := globula.GetPolymerByIdx(polNumber)
 		for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
