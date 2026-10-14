@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"polymers/base"
+	"polymers/datatypes"
 	dt "polymers/datatypes"
 	"polymers/outputformat"
 	"polymers/views"
@@ -448,5 +449,28 @@ func (alg *_AgeAlg) prepareGlobulaForAging() {
 		for monNumber := range polymer.Len() {
 			polymer.GetMonomerByIdx(monNumber).MonomerType = unagedElement
 		}
+	}
+}
+
+/*
+DoAgingCrystall1 is used for crystallized globulas. It uses DoAging2 but only for the amorphous part.
+Although the function has the doCrosslinks parameter, it is unused until the crosslinks mechanism
+is formulated entirely
+*/
+func DoAgingCrystall1(globula *views.GlobulaView, groupsCount int, crystallElem base.MendeleevTableElement, doCrosslinks bool) {
+	crystallizedMonomers := make([]*datatypes.Monomer, 0)
+	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
+		polymer := globula.GetPolymerByIdx(polNumber)
+		for monNumber := 0; monNumber < polymer.Len(); monNumber++ {
+			mon := polymer.GetMonomerByIdx(monNumber)
+			if mon.MonomerType == crystallElem {
+				mon.MonomerType = vynilElement
+				crystallizedMonomers = append(crystallizedMonomers, mon)
+			}
+		}
+	}
+	DoAging2(globula, groupsCount, false)
+	for _, mon := range crystallizedMonomers {
+		mon.MonomerType = crystallElem
 	}
 }
