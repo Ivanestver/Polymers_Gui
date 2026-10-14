@@ -25,11 +25,13 @@ type _AgeAlg struct {
 	globula *views.GlobulaView
 }
 
-func _NewAgeAlg(globula *views.GlobulaView) *_AgeAlg {
+func _NewAgeAlg(globula *views.GlobulaView, globulaNeedsPreparing bool) *_AgeAlg {
 	alg := &_AgeAlg{
 		globula: globula,
 	}
-	alg.prepareGlobulaForAging()
+	if globulaNeedsPreparing {
+		alg.prepareGlobulaForAging()
+	}
 	return alg
 }
 
@@ -77,7 +79,7 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	// }
 	// =================DEBUG=================
 
-	alg := _NewAgeAlg(globula)
+	alg := _NewAgeAlg(globula, true)
 
 	// 1. Break connections
 	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), oxygenContainingElement)
@@ -95,8 +97,8 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	alg.globula.SetProperty(views.GlobulaAged)
 }
 
-func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool) {
-	alg := _NewAgeAlg(globula)
+func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool, globulaNeedsPreparing bool) {
+	alg := _NewAgeAlg(globula, globulaNeedsPreparing)
 	// 1. Break connections
 	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), vynilElement)
 
@@ -125,12 +127,12 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 			continue
 		}
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
-		nextMonomerNumber := chosenMonomerNumber + 1
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType != unagedElement {
 			triesNumber++
 			continue
 		}
+		nextMonomerNumber := chosenMonomerNumber + 1
 		nextMonomer := poly.GetMonomerByIdx(nextMonomerNumber)
 		if nextMonomer.MonomerType != unagedElement {
 			triesNumber++
@@ -277,7 +279,7 @@ func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) er
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
 
-	alg := _NewAgeAlg(globula)
+	alg := _NewAgeAlg(globula, true)
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	// if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
@@ -428,7 +430,7 @@ func DoAgingSurface(globula *views.GlobulaView, ncut, nOContaining, ncross int) 
 		return errors.New("ncut is less that the O-containing monomers count")
 	}
 
-	alg := _NewAgeAlg(globula)
+	alg := _NewAgeAlg(globula, true)
 	printer := outputformat.GetPrint()
 	// First, distribute O containing monomers
 	alg.breakConnections(nOContaining, vynilElement)
@@ -473,7 +475,7 @@ func DoAgingCrystall1(globula *views.GlobulaView, groupsCount int, crystallElem 
 			}
 		}
 	}
-	DoAging2(globula, groupsCount, false)
+	DoAging2(globula, groupsCount, false, false)
 	for _, mon := range crystallizedMonomers {
 		mon.MonomerType = crystallElem
 	}

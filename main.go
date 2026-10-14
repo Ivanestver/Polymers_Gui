@@ -204,7 +204,7 @@ func main() {
 			if algType == 1 {
 				age.DoAging1(globula, groupsCount)
 			} else if algType == 2 {
-				age.DoAging2(globula, groupsCount, doCrosslinks)
+				age.DoAging2(globula, groupsCount, doCrosslinks, true)
 			} else if algType == 3 || algType == 4 {
 				ncut, err := strconv.Atoi(data["ncut"].(string))
 				if err != nil {
