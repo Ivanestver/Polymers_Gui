@@ -52,6 +52,9 @@ func parseFromJSON(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.
 	if err != nil {
 		return nil, err
 	}
+	if err = setupBonds(jsonStruct, field); err != nil {
+		return nil, err
+	}
 	globula := views.NewGlobulaView(polymers, views.GlobulaThreadType)
 	return globula, nil
 }
@@ -93,7 +96,13 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		atom2 := lammpsStruct.Atoms[bond.Ends[1]-1]
 		mon1 := field.GetMonomerByCoords(base.Vector3DF{atom1.X, atom1.Y, atom1.Z})
 		mon2 := field.GetMonomerByCoords(base.Vector3DF{atom2.X, atom2.Y, atom2.Z})
-		if err := datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionTypeOne); err != nil {
+		if err := datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionType{
+			Number: bond.ConnectionType,
+			Length: base.EcludianDistanceF(
+				mon1.Coords(),
+				mon2.Coords(),
+			),
+		}); err != nil {
 			return nil, err
 		}
 	}
@@ -115,4 +124,32 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		polymers[i] = polymer
 	}
 	return polymers, nil
+}
+
+func setupBonds(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IField) error {
+	for _, bond := range lammpsStruct.Bonds {
+		lammpsMon1 := lammpsStruct.Atoms[bond.Ends[0]-1]
+		lammpsMon2 := lammpsStruct.Atoms[bond.Ends[1]-1]
+		mon1 := field.GetMonomerByCoords(base.Vector3DF{
+			lammpsMon1.X,
+			lammpsMon1.Y,
+			lammpsMon1.Z,
+		})
+		mon2 := field.GetMonomerByCoords(base.Vector3DF{
+			lammpsMon2.X,
+			lammpsMon2.Y,
+			lammpsMon2.Z,
+		})
+		side := mon1.GetSideOfSibling(mon2)
+		if side == datatypes.SideUndefined {
+			datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionType{
+				Number: bond.ConnectionType,
+				Length: base.EcludianDistanceF(
+					mon1.Coords(),
+					mon2.Coords(),
+				),
+			})
+		}
+	}
+	return nil
 }
