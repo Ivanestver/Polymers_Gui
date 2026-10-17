@@ -3,15 +3,9 @@ package views
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"maps"
-	"math"
 	"polymers/base"
 	dt "polymers/datatypes"
-	"polymers/outputformat"
-	"slices"
-	"strconv"
-	"strings"
 )
 
 type GlobulaProperty int
@@ -383,191 +377,12 @@ func (globula *GlobulaView) trunkAllPolymers(newSize int) error {
 	return nil
 }
 
-func (globula *GlobulaView) GetStatistics() string {
-	builder := strings.Builder{}
-	builder.WriteString(globula.showNumberOfParticles())
-	builder.WriteString(globula.showNumberOfChains())
-	builder.WriteString(globula.showTheoreticalAgeStatistics())
-	builder.WriteString(globula.showActualAgeStatistics())
-	builder.WriteString(globula.showMeanLengthOfChains())
-	builder.WriteString(globula.showLengthDistribution())
-	return builder.String()
-}
-
-func (globula *GlobulaView) showNumberOfParticles() string {
-	builder := strings.Builder{}
-	builder.WriteString("1. Число частиц: ")
-	builder.WriteString(strconv.Itoa(globula.GetAtomsCount()))
-	builder.WriteString("\n")
-	return builder.String()
-}
-
 func (globula *GlobulaView) GetAtomsCount() int {
 	atomsCount := 0
 	for _, pol := range globula.polymers {
 		atomsCount += pol.Len()
 	}
 	return atomsCount
-}
-
-func (globula *GlobulaView) showNumberOfChains() string {
-	builder := strings.Builder{}
-	builder.WriteString("2. Исходное число цепей ")
-	builder.WriteString(strconv.Itoa(globula.Len()))
-	builder.WriteString("\n")
-	return builder.String()
-}
-
-func (globula *GlobulaView) showTheoreticalAgeStatistics() string {
-	outputformat.GetPrint().Println("Please, specify the theoretical age ratio in percents")
-	ageRatioPercent := 25
-	ageRatio := float64(ageRatioPercent) * 0.01
-	atomsCount := globula.GetAtomsCount()
-	//outputformat.GetPrint().Readln(&ageRatioPercent)
-	builder := strings.Builder{}
-
-	builder.WriteString("3. Ожидаемая степень старения: ")
-	builder.WriteString(strconv.Itoa(int(float64(atomsCount) * ageRatio)))
-	builder.WriteString(" (")
-	builder.WriteString(strconv.Itoa(ageRatioPercent))
-	builder.WriteString("%)\n")
-
-	agedParticlesCount := math.Ceil(float64(atomsCount) * ageRatio)
-	cutsCount := int(math.Ceil(agedParticlesCount * 0.44))
-	crossCount := int(agedParticlesCount * 0.25)
-
-	builder.WriteString("4. Ожидаемое количество разрывов: ")
-	builder.WriteString(strconv.Itoa(cutsCount))
-	builder.WriteString("\n")
-
-	builder.WriteString("   Ожидаемое количество сшивок: ")
-	builder.WriteString(strconv.Itoa(crossCount))
-	builder.WriteString("\n")
-
-	CCount := int(agedParticlesCount * 0.59)
-	NCount := int(agedParticlesCount) - CCount
-	HCount := crossCount * 2
-
-	builder.WriteString("5. Ожидаемое распределение по состаренным группам:\n")
-	builder.WriteString("   C: ")
-	builder.WriteString(strconv.Itoa(CCount))
-	builder.WriteString("\n")
-	builder.WriteString("   N: ")
-	builder.WriteString(strconv.Itoa(NCount))
-	builder.WriteString("\n")
-	builder.WriteString("   H: ")
-	builder.WriteString(strconv.Itoa(HCount))
-	builder.WriteString("\n")
-	return builder.String()
-}
-
-func (globula *GlobulaView) showActualAgeStatistics() string {
-	NCount := 0
-	CCount := 0
-	cutsCount := 0
-	crossCount := make(map[int64]int)
-	for _, pol := range globula.polymers {
-		for monNumber := range pol.Len() {
-			mon := pol.GetMonomerByIdx(monNumber)
-			if mon.NextMonomer != nil &&
-				((mon.MonomerType == base.N || mon.MonomerType == base.O) &&
-					(mon.NextMonomer.MonomerType == base.N ||
-						mon.NextMonomer.MonomerType == base.O)) {
-				cutsCount++
-			}
-			if mon.MonomerType == base.N {
-				CCount++
-			} else if mon.MonomerType == base.O {
-				NCount++
-			} else if _, ok := crossCount[mon.Number]; !ok && mon.MonomerType == base.H {
-				crossCount[mon.Number] = 1
-				for _, side := range dt.GetMovementSides() {
-					connectionType := mon.GetTypeOfConnectionWithSide(side)
-					if connectionType == dt.ConnectionTypeCrosslinks {
-						crossMon, _ := mon.GetSibling(side)
-						crossCount[crossMon.Number] = 1
-					}
-				}
-			}
-		}
-	}
-
-	builder := strings.Builder{}
-	ageGroupsCount := float64(NCount + CCount)
-	builder.WriteString("6. Фактическое количество разрывов: ")
-	builder.WriteString(strconv.Itoa(cutsCount))
-	builder.WriteString("\n")
-	builder.WriteString("   Фактическое количество сшивок: ")
-	builder.WriteString(strconv.Itoa(len(crossCount) / 2))
-	builder.WriteString("\n")
-	builder.WriteString("7. Фактическое распределение по состаренным группам:\n")
-	builder.WriteString("   C: ")
-	builder.WriteString(strconv.Itoa(CCount))
-	builder.WriteString(" (")
-	if ageGroupsCount != 0 {
-		builder.WriteString(strconv.FormatFloat(float64(CCount)/ageGroupsCount*100, 'f', 2, 64))
-	} else {
-		builder.WriteString("0")
-	}
-	builder.WriteString("%)")
-	builder.WriteString("\n")
-	builder.WriteString("   N: ")
-	builder.WriteString(strconv.Itoa(NCount))
-	builder.WriteString(" (")
-	if ageGroupsCount != 0 {
-		builder.WriteString(strconv.FormatFloat(float64(NCount)/ageGroupsCount*100, 'f', 2, 64))
-	} else {
-		builder.WriteString("0")
-	}
-	builder.WriteString("%)")
-	builder.WriteString("\n")
-	builder.WriteString("   H: ")
-	builder.WriteString(strconv.Itoa(len(crossCount)))
-	builder.WriteString("\n")
-	builder.WriteString("   Фактическая степень старения: ")
-	builder.WriteString(strconv.FormatFloat(ageGroupsCount/float64(globula.GetAtomsCount())*100.0, 'f', 2, 64))
-	builder.WriteString("%\n")
-	return builder.String()
-}
-
-func (globula *GlobulaView) showMeanLengthOfChains() string {
-	builder := strings.Builder{}
-	builder.WriteString("8. Средняя длина цепи: ")
-	atomsCount := globula.GetAtomsCount()
-	builder.WriteString(strconv.FormatFloat(float64(atomsCount)/float64(globula.Len()), 'f', 2, 64))
-	builder.WriteString("\n")
-	return builder.String()
-}
-
-func (globula *GlobulaView) showLengthDistribution() string {
-	builder := strings.Builder{}
-	distribution := make(map[int]int) // [length]count_of_such_chains
-	for _, polymer := range globula.polymers {
-		currChainLength := 0
-		for monNumber := range polymer.Len() {
-			currMon := polymer.GetMonomerByIdx(monNumber)
-			currChainLength++
-			if currMon.NextMonomer == nil {
-				distribution[currChainLength]++
-				currChainLength = 0
-			}
-		}
-	}
-	lengths := make([]int, len(distribution))
-	i := 0
-	for length := range distribution {
-		lengths[i] = length
-		i++
-	}
-	slices.Sort(lengths)
-	builder.WriteString("9. Распределение по длинам цепей\n")
-	builder.WriteString("Длина: Количество\n")
-	for _, length := range lengths {
-		count := distribution[length]
-		fmt.Fprintf(&builder, "%d: %d\n", length, count)
-	}
-	builder.WriteString("\n")
-	return builder.String()
 }
 
 func (globula *GlobulaView) DeepCopy() *GlobulaView {
