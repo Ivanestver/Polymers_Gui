@@ -4,15 +4,13 @@ import (
 	"polymers/base"
 	dt "polymers/datatypes"
 	"polymers/views"
-	"strconv"
-	"strings"
 )
 
-func ShowActualAgeStatistics(globula *views.GlobulaView) string {
-	NCount := 0
-	CCount := 0
-	cutsCount := 0
-	crossCount := make(map[int64]int)
+func CalculateActualAgeStatistics(globula *views.GlobulaView) (NCount, CCount, cutsCount int, crossCount map[int64]int) {
+	NCount = 0
+	CCount = 0
+	cutsCount = 0
+	crossCount = make(map[int64]int)
 	for polNumber := range globula.Len() {
 		pol := globula.GetPolymerByIdx(polNumber)
 		for monNumber := range pol.Len() {
@@ -40,40 +38,5 @@ func ShowActualAgeStatistics(globula *views.GlobulaView) string {
 		}
 	}
 
-	builder := strings.Builder{}
-	ageGroupsCount := float64(NCount + CCount)
-	builder.WriteString("6. Фактическое количество разрывов: ")
-	builder.WriteString(strconv.Itoa(cutsCount))
-	builder.WriteString("\n")
-	builder.WriteString("   Фактическое количество сшивок: ")
-	builder.WriteString(strconv.Itoa(len(crossCount) / 2))
-	builder.WriteString("\n")
-	builder.WriteString("7. Фактическое распределение по состаренным группам:\n")
-	builder.WriteString("   C: ")
-	builder.WriteString(strconv.Itoa(CCount))
-	builder.WriteString(" (")
-	if ageGroupsCount != 0 {
-		builder.WriteString(strconv.FormatFloat(float64(CCount)/ageGroupsCount*100, 'f', 2, 64))
-	} else {
-		builder.WriteString("0")
-	}
-	builder.WriteString("%)")
-	builder.WriteString("\n")
-	builder.WriteString("   N: ")
-	builder.WriteString(strconv.Itoa(NCount))
-	builder.WriteString(" (")
-	if ageGroupsCount != 0 {
-		builder.WriteString(strconv.FormatFloat(float64(NCount)/ageGroupsCount*100, 'f', 2, 64))
-	} else {
-		builder.WriteString("0")
-	}
-	builder.WriteString("%)")
-	builder.WriteString("\n")
-	builder.WriteString("   H: ")
-	builder.WriteString(strconv.Itoa(len(crossCount)))
-	builder.WriteString("\n")
-	builder.WriteString("   Фактическая степень старения: ")
-	builder.WriteString(strconv.FormatFloat(ageGroupsCount/float64(globula.GetAtomsCount())*100.0, 'f', 2, 64))
-	builder.WriteString("%\n")
-	return builder.String()
+	return
 }

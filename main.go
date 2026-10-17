@@ -22,6 +22,7 @@ import (
 	"polymers/outputformat"
 	"polymers/patternlib"
 	"polymers/savers"
+	"polymers/statistics"
 	"polymers/trajectories"
 	"polymers/views"
 	"strconv"
@@ -293,7 +294,7 @@ func main() {
 				continue
 			}
 			data := data.(map[string]string)
-			text := globula.GetStatistics()
+			text := statistics.GetCommonStatistics(globula)
 			f, err := os.Create(data["filename"])
 			if err != nil {
 				printer.PrintlnError(err.Error())
