@@ -52,9 +52,6 @@ func parseFromJSON(jsonStruct *lammps_structs.LammpsStruct, fieldType datatypes.
 	if err != nil {
 		return nil, err
 	}
-	if err = setupBonds(jsonStruct, field); err != nil {
-		return nil, err
-	}
 	globula := views.NewGlobulaView(polymers, views.GlobulaThreadType)
 	return globula, nil
 }
@@ -91,20 +88,8 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 		polymer.AddMonomerNoConnection(a)
 	}
 
-	for _, bond := range lammpsStruct.Bonds {
-		atom1 := lammpsStruct.Atoms[bond.Ends[0]-1]
-		atom2 := lammpsStruct.Atoms[bond.Ends[1]-1]
-		mon1 := field.GetMonomerByCoords(base.Vector3DF{atom1.X, atom1.Y, atom1.Z})
-		mon2 := field.GetMonomerByCoords(base.Vector3DF{atom2.X, atom2.Y, atom2.Z})
-		if err := datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionType{
-			Number: bond.ConnectionType,
-			Length: base.EcludianDistanceF(
-				mon1.Coords(),
-				mon2.Coords(),
-			),
-		}); err != nil {
-			return nil, err
-		}
+	if err := setupBonds(lammpsStruct, field); err != nil {
+		return nil, err
 	}
 
 	polymers := make([]datatypes.IPolymer, len(polymersMap))
