@@ -116,9 +116,6 @@ func makePolymers(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFi
 			if side != datatypes.SideUndefined {
 				mon1.NextMonomer = mon2
 				mon2.PrevMonomer = mon1
-			} else {
-				a := 1
-				a = a
 			}
 		}
 		polymers[i] = polymer
