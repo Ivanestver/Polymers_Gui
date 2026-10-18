@@ -62,7 +62,7 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 						Monomer:    newMonomer,
 					},
 				},
-			}, leftY, &realField.Nodes[leftY].Subnodes)
+			}, leftY, &realField.Nodes[leftX].Subnodes)
 
 			if !slices.IsSortedFunc(realField.Nodes[leftX].Subnodes, func(left, right _Node) int {
 				if left.Coordinate < right.Coordinate {
