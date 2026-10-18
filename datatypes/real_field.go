@@ -137,7 +137,7 @@ func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (index in
 		isExact = true
 		return
 	}
-	for left < right {
+	for left+1 < right {
 		if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
 			index = left
 			isExact = true
@@ -155,20 +155,26 @@ func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (index in
 			isExact = true
 			return
 		} else if value < middle {
-			right = m - 1
+			right = m
 		} else {
-			left = m + 1
+			left = m
 		}
 	}
-	isExact = (base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001))
-	if value > nodes[left].Coordinate {
+	if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+		isExact = true
 		index = left
-		return
-	}
-	left -= 1
-	if left >= 0 && value > nodes[left].Coordinate {
-		index = left
-		return
+	} else if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
+		isExact = true
+		index = right
+	} else {
+		isExact = false
+		if value < nodes[0].Coordinate {
+			index = -1
+		} else if value > nodes[len(nodes)-1].Coordinate {
+			index = len(nodes) - 1
+		} else {
+			index = left
+		}
 	}
 	return
 }
