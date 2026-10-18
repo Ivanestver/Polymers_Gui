@@ -11,9 +11,8 @@ func CalculateMeanChainLength(globula *views.GlobulaView) float64 {
 		length := 0.0
 		for monNumber := range pol.Len() {
 			mon := pol.GetMonomerByIdx(monNumber)
-			if mon.NextMonomer != nil {
-				length += 1.0
-			} else {
+			length += 1.0
+			if mon.NextMonomer == nil {
 				lengths = append(lengths, length)
 				length = 0.0
 			}
