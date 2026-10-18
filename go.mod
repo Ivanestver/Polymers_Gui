@@ -1,6 +1,6 @@
 module polymers
 
-go 1.26.0
+go 1.26.5
 
 replace github.com/Ivanestver/lammps-file-parser => /home/ivan/projects/lammps-file-parser
 
