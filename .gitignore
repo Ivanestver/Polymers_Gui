@@ -26,4 +26,5 @@ polymers_tool
 *.xsd
 *.opj* 
 *.ovito
-trajectories_samples/
+*.rar
+
