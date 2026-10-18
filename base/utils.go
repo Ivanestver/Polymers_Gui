@@ -179,8 +179,10 @@ func Sum[T Summable](container []T) T {
 	return sum
 }
 
+const Epsilon = 0.00001
+
 func CompareFloat(left, right float64) bool {
-	return math.Abs(left-right) <= 0.001
+	return math.Abs(left-right) <= Epsilon
 }
 
 func CompareFloatWithE(left, right, e float64) bool {
