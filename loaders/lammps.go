@@ -124,13 +124,15 @@ func setupBonds(lammpsStruct *lammps_structs.LammpsStruct, field datatypes.IFiel
 		})
 		side := mon1.GetSideOfSibling(mon2)
 		if side == datatypes.SideUndefined {
-			datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionType{
+			if err := datatypes.MakeConnection(mon1, mon2, datatypes.ConnectionType{
 				Number: bond.ConnectionType,
 				Length: base.EcludianDistanceF(
 					mon1.Coords(),
 					mon2.Coords(),
 				),
-			})
+			}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
