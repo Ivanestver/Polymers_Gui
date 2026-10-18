@@ -127,30 +127,30 @@ func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (index in
 	if len(nodes) == 0 {
 		return
 	}
-	if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+	if base.CompareFloatWithE(value, nodes[left].Coordinate, base.Epsilon) {
 		index = left
 		isExact = true
 		return
 	}
-	if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
+	if base.CompareFloatWithE(value, nodes[right].Coordinate, base.Epsilon) {
 		index = right
 		isExact = true
 		return
 	}
 	for left+1 < right {
-		if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+		if base.CompareFloatWithE(value, nodes[left].Coordinate, base.Epsilon) {
 			index = left
 			isExact = true
 			return
 		}
-		if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
+		if base.CompareFloatWithE(value, nodes[right].Coordinate, base.Epsilon) {
 			index = right
 			isExact = true
 			return
 		}
 		m := (left + right) / 2
 		middle := nodes[m].Coordinate
-		if base.CompareFloatWithE(value, middle, 0.001) {
+		if base.CompareFloatWithE(value, middle, base.Epsilon) {
 			index = m
 			isExact = true
 			return
@@ -160,10 +160,10 @@ func (realField *_RealFieldStorage) find(value float64, nodes []_Node) (index in
 			left = m
 		}
 	}
-	if base.CompareFloatWithE(value, nodes[left].Coordinate, 0.001) {
+	if base.CompareFloatWithE(value, nodes[left].Coordinate, base.Epsilon) {
 		isExact = true
 		index = left
-	} else if base.CompareFloatWithE(value, nodes[right].Coordinate, 0.001) {
+	} else if base.CompareFloatWithE(value, nodes[right].Coordinate, base.Epsilon) {
 		isExact = true
 		index = right
 	} else {
