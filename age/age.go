@@ -138,8 +138,12 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 			triesNumber++
 			continue
 		}
-		triesNumber = 0
 		side := chosenMonomer.GetSideOfSibling(nextMonomer)
+		if side == dt.SideUndefined {
+			triesNumber++
+			continue
+		}
+		triesNumber = 0
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
 			chosenMonomer.MonomerType = oxygenContainingElement
