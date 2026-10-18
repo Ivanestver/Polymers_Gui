@@ -110,7 +110,7 @@ func (realField *_RealFieldStorage) GetMonomer(coords base.Vector3DF) *Monomer {
 }
 
 func (realField *_RealFieldStorage) insert(what _Node, after int, where *[]_Node) {
-	if after >= len(*where) {
+	if after >= len(*where)-1 {
 		*where = append(*where, what)
 	} else if after == -1 {
 		*where = append([]_Node{what}, (*where)...)
