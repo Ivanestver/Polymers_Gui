@@ -4,7 +4,7 @@ import (
 	"polymers/views"
 )
 
-func CalculateMeanLengthOfChains(globula *views.GlobulaView) float64 {
+func CalculateMeanChainLength(globula *views.GlobulaView) float64 {
 	lengths := make([]float64, 0)
 	for polNumber := range globula.Len() {
 		pol := globula.GetPolymerByIdx(polNumber)

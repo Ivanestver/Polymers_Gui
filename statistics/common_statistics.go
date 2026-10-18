@@ -122,7 +122,7 @@ func showActualAgeStatistics(globula *views.GlobulaView) string {
 }
 
 func showMeanLengthOfChains(globula *views.GlobulaView) string {
-	meanLengthOfChaings := CalculateMeanLengthOfChains(globula)
+	meanLengthOfChaings := CalculateMeanChainLength(globula)
 	builder := strings.Builder{}
 	builder.WriteString("8. Средняя длина цепи: ")
 	builder.WriteString(strconv.FormatFloat(meanLengthOfChaings, 'f', 2, 64))
