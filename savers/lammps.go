@@ -194,7 +194,7 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
 	bondID := 1
 	bondTypes := base.NewDictionary[dt.ConnectionType, lammps_structs.BondType](func(left, right dt.ConnectionType) bool {
-		return left.Number == right.Number && base.CompareFloatWithE(left.Length, right.Length, 1e-4)
+		return left.Number == right.Number // && base.CompareFloatWithE(left.Length, right.Length, 1e-4)
 	})
 	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, &bondID)
 	usedPairs := make(map[[2]int]bool)
@@ -249,9 +249,9 @@ func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes 
 
 		if !bondTypes.ContainsKey(connectionType) {
 			value := lammps_structs.BondType{
-				BondID: bondTypes.Len() + 1,
-				Sth1:   100.0,
-				Sth2:   datatypes.GetConnectionTypeLength(connectionType),
+				BondID:   bondTypes.Len() + 1,
+				Strength: 100.0,
+				Length:   datatypes.GetConnectionTypeLength(connectionType),
 			}
 			bondTypes.AddValue(connectionType, value)
 		}
