@@ -191,7 +191,7 @@ func (field *Field) CopyFieldOnly() IField {
 func (field *Field) Waterize() {
 	for _, mon := range field.monomers {
 		if mon.IsTypeOf(base.MendeleevTableElementUndefined) {
-			mon.MonomerType = base.N
+			mon.MonomerType = base.W
 		}
 	}
 }
