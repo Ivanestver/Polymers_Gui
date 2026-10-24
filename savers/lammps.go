@@ -192,11 +192,10 @@ func createUpdateAtomsInfo(lammpsStruct *lammps_structs.LammpsStruct, atomsTypes
 }
 
 func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsStruct) {
-	bondID := 1
 	bondTypes := base.NewDictionary[dt.ConnectionType, lammps_structs.BondType](func(left, right dt.ConnectionType) bool {
 		return left.Number == right.Number // && base.CompareFloatWithE(left.Length, right.Length, 1e-4)
 	})
-	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes, &bondID)
+	updateBondInfo := createUpdateBondsInfo(lammpsStruct, bondTypes)
 	usedPairs := make(map[[2]int]bool)
 	for polNumber := 0; polNumber < globula.Len(); polNumber++ {
 		polymer := globula.GetPolymerByIdx(polNumber)
@@ -236,7 +235,7 @@ func writeBonds(globula *views.GlobulaView, lammpsStruct *lammps_structs.LammpsS
 	})
 }
 
-func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes *base.Dictionary[dt.ConnectionType, lammps_structs.BondType], bondID *int) func(*dt.Monomer, *dt.Monomer) {
+func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes *base.Dictionary[dt.ConnectionType, lammps_structs.BondType]) func(*dt.Monomer, *dt.Monomer) {
 	return func(mon1, mon2 *dt.Monomer) {
 		side := mon1.GetSideOfSibling(mon2)
 		if side == dt.SideUndefined {
@@ -248,18 +247,18 @@ func createUpdateBondsInfo(lammpsStruct *lammps_structs.LammpsStruct, bondTypes 
 		}
 
 		if !bondTypes.ContainsKey(connectionType) {
-			value := lammps_structs.BondType{
+			newBondType := lammps_structs.BondType{
 				BondID:   bondTypes.Len() + 1,
 				Strength: 100.0,
 				Length:   datatypes.GetConnectionTypeLength(connectionType),
 			}
-			bondTypes.AddValue(connectionType, value)
+			bondTypes.AddValue(connectionType, newBondType)
 		}
 
-		value := bondTypes.GetValue(connectionType)
+		bondType := bondTypes.GetValue(connectionType)
 		lammpsStruct.Bonds = append(lammpsStruct.Bonds, lammps_structs.Bond{
-			BondID:         *bondID,
-			ConnectionType: value.BondID,
+			BondID:         len(lammpsStruct.Bonds) + 1,
+			ConnectionType: bondType.BondID,
 			Ends:           [2]int{int(mon1.Number), int(mon2.Number)},
 		})
 	}
