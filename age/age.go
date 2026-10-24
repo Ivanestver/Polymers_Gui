@@ -271,7 +271,7 @@ func (alg *_AgeAlg) createCrosslinks2(crosslinksCount int) {
 }
 
 /*
-DoAging3 does not consider relation between cuts cout, O-containing groups count and crosslinks count.
+DoAging3 does not consider relation between cuts count, O-containing groups count and crosslinks count.
 Places them independently.
 */
 func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) error {
@@ -281,25 +281,10 @@ func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) er
 
 	alg := _NewAgeAlg(globula, true)
 	printer := outputformat.GetPrint()
-	// First, distribute O containing monomers
-	// if warning, err := globula.aging3DistributeCutMonomers(OcontainingCount,
-	// 	dt.MONOMER_TYPE_O_CONTAINING,
-	// 	dt.MONOMER_TYPE_VYNIL); warning != nil {
-	// 	printer.PrintlnWarning(warning.Error())
-	// } else if err != nil {
-	// 	return err
-	// }
-	alg.breakConnections(OcontainingCount, vynilElement)
 
-	// Then, distribute what's left
-	// if warning, err := globula.aging3DistributeCutMonomers(ncut-OcontainingCount,
-	// 	dt.MONOMER_TYPE_VYNIL,
-	// 	dt.MONOMER_TYPE_VYNIL); warning != nil {
-	// 	printer.PrintlnWarning(warning.Error())
-	// } else if err != nil {
-	// 	return err
-	// }
-	alg.turnRandomBinsIntoC(ncut - OcontainingCount)
+	alg.breakConnections(ncut, vynilElement)
+
+	alg.turnRandomBinsIntoC(OcontainingCount)
 
 	// At the end, distribute crosslinks
 	if warning, err := alg.aging3DistributeCrosslinks(ncross); warning != nil {
@@ -308,33 +293,6 @@ func DoAging3(globula *views.GlobulaView, ncut, OcontainingCount, ncross int) er
 		return err
 	}
 	return nil
-}
-
-func (alg *_AgeAlg) aging3DistributeCutMonomers(OcontainingCount int, typePrev, typeNext base.MendeleevTableElement) (warning, err error) {
-	warning = nil
-	err = nil
-	trialsCount := 0
-	for OcontainingCount > 0 && trialsCount < 10 {
-		chosenPolymerNumber := rand.Intn(alg.globula.Len())
-		chosenPolymer := alg.globula.GetPolymerByIdx(chosenPolymerNumber)
-		chosenMonomerNumber := rand.Intn(chosenPolymer.Len()-2) + 1
-		chosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber)
-		nextChosenMonomer := chosenPolymer.GetMonomerByIdx(chosenMonomerNumber + 1)
-		if chosenMonomer.MonomerType != unagedElement ||
-			nextChosenMonomer.MonomerType != unagedElement {
-			trialsCount++
-			continue
-		}
-		dt.BreakConnection(chosenMonomer, nextChosenMonomer)
-		chosenMonomer.MonomerType = typePrev
-		nextChosenMonomer.MonomerType = typeNext
-		OcontainingCount--
-		trialsCount = 0
-	}
-	if trialsCount != 0 {
-		return fmt.Errorf("%d O containing monomers weren't distributed", OcontainingCount), nil
-	}
-	return nil, nil
 }
 
 func (alg *_AgeAlg) aging3DistributeCrosslinks(ncross int) (warning, err error) {
