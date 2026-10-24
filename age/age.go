@@ -83,10 +83,10 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	alg := _NewAgeAlg(globula, true)
 
 	// 1. Break connections
-	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), carboxylElement)
+	carboxyls := alg.breakConnections(int(float64(groupsCount)*0.26), carboxylElement)
 
 	// 2. Turn some Bs into C
-	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), vynilElement)
+	turnIntoAnotherGroup(&carboxyls, int(float64(groupsCount)*0.03), vynilElement)
 
 	// 3. Turn random bins into Cs (excluding Bs)
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -94,17 +94,17 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 
 	// 4. Create connections
-	alg.createCrosslinks1(int(float64(groupsCount)*0.59), &Cs_)
+	alg.createCrosslinks1(int(float64(groupsCount)*0.59), &carboxyls)
 	alg.globula.SetProperty(views.GlobulaAged)
 }
 
 func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool, globulaNeedsPreparing bool) {
 	alg := _NewAgeAlg(globula, globulaNeedsPreparing)
 	// 1. Break connections
-	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), vynilElement)
+	carboxyls := alg.breakConnections(int(float64(groupsCount)*0.44), carboxylElement)
 
 	// 2. Turn some carboxyls into vynils
-	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), vynilElement)
+	turnIntoAnotherGroup(&carboxyls, int(float64(groupsCount)*0.15), vynilElement)
 
 	// 3. Turn random bins into acids (excluding carboxyls and vynils)
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
