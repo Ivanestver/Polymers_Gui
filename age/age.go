@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	unagedElement           = base.O
-	vynilElement            = base.C
-	oxygenContainingElement = base.N
-	crosslinkedElement      = base.S
+	unagedElement      = base.O
+	vynilElement       = base.C
+	carboxylElement    = base.N
+	acidElement        = base.S
+	crosslinkedElement = base.H
 )
 
 const crosslinksCount = 0.5
@@ -82,7 +83,7 @@ func DoAging1(globula *views.GlobulaView, groupsCount int) {
 	alg := _NewAgeAlg(globula, true)
 
 	// 1. Break connections
-	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), oxygenContainingElement)
+	Cs_ := alg.breakConnections(int(float64(groupsCount)*0.26), carboxylElement)
 
 	// 2. Turn some Bs into C
 	turnIntoAnotherGroup(&Cs_, int(float64(groupsCount)*0.03), vynilElement)
@@ -102,10 +103,10 @@ func DoAging2(globula *views.GlobulaView, groupsCount int, doCrosslinks bool, gl
 	// 1. Break connections
 	Bs_ := alg.breakConnections(int(float64(groupsCount)*0.44), vynilElement)
 
-	// 2. Turn some Bs into C
+	// 2. Turn some carboxyls into vynils
 	turnIntoAnotherGroup(&Bs_, int(float64(groupsCount)*0.15), vynilElement)
 
-	// 3. Turn random bins into Cs (excluding Bs)
+	// 3. Turn random bins into acids (excluding carboxyls and vynils)
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
 	// Do it twice
 	alg.turnRandomBinsIntoC(int(float64(groupsCount) * 0.06))
@@ -146,16 +147,16 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 		triesNumber = 0
 		dt.TierConnection(chosenMonomer, nextMonomer, side)
 		if rand.Intn(2) == 0 {
-			chosenMonomer.MonomerType = oxygenContainingElement
+			chosenMonomer.MonomerType = carboxylElement
 			nextMonomer.MonomerType = vynilElement
-			if monomerTypeToGather == oxygenContainingElement {
+			if monomerTypeToGather == carboxylElement {
 				Bs = append(Bs, chosenMonomer)
 			} else {
 				Bs = append(Bs, nextMonomer)
 			}
 		} else {
 			chosenMonomer.MonomerType = vynilElement
-			nextMonomer.MonomerType = oxygenContainingElement
+			nextMonomer.MonomerType = carboxylElement
 			if monomerTypeToGather == vynilElement {
 				Bs = append(Bs, chosenMonomer)
 			} else {
@@ -200,7 +201,7 @@ func (alg *_AgeAlg) turnRandomBinsIntoC(groupsCount int) {
 		chosenMonomerNumber := rand.Intn(poly.Len() - 1) // Take a random monomer in it
 		chosenMonomer := poly.GetMonomerByIdx(chosenMonomerNumber)
 		if chosenMonomer.MonomerType == unagedElement {
-			chosenMonomer.MonomerType = vynilElement
+			chosenMonomer.MonomerType = acidElement
 			i++
 			triesNumber = 0
 		} else {
@@ -225,8 +226,8 @@ func (alg *_AgeAlg) createCrosslinks1(groupsCount int, Bs *[]*dt.Monomer) {
 			nextMonomer, err := chosenMonomer.GetSibling(chosenSide)
 			if err == nil && nextMonomer != nil && nextMonomer.MonomerType == unagedElement {
 				dt.MakeConnection(chosenMonomer, nextMonomer, dt.ConnectionTypeCrosslinks)
-				chosenMonomer.MonomerType = oxygenContainingElement
-				nextMonomer.MonomerType = oxygenContainingElement
+				chosenMonomer.MonomerType = carboxylElement
+				nextMonomer.MonomerType = carboxylElement
 				*Bs = append(*Bs, chosenMonomer, nextMonomer)
 				break
 			}
