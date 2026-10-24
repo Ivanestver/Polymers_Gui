@@ -149,19 +149,14 @@ func (alg *_AgeAlg) breakConnections(groupsCount int, monomerTypeToGather base.M
 		if rand.Intn(2) == 0 {
 			chosenMonomer.MonomerType = carboxylElement
 			nextMonomer.MonomerType = vynilElement
-			if monomerTypeToGather == carboxylElement {
-				Bs = append(Bs, chosenMonomer)
-			} else {
-				Bs = append(Bs, nextMonomer)
-			}
 		} else {
 			chosenMonomer.MonomerType = vynilElement
 			nextMonomer.MonomerType = carboxylElement
-			if monomerTypeToGather == vynilElement {
-				Bs = append(Bs, chosenMonomer)
-			} else {
-				Bs = append(Bs, nextMonomer)
-			}
+		}
+		if chosenMonomer.MonomerType == monomerTypeToGather {
+			Bs = append(Bs, chosenMonomer)
+		} else if nextMonomer.MonomerType == monomerTypeToGather {
+			Bs = append(Bs, nextMonomer)
 		}
 	}
 
