@@ -17,6 +17,11 @@ var _ConnectionTypeRhombusEdge = datatypes.ConnectionType{Number: _ConnectionTyp
 var _ConnectionTypeRhombusSurface = datatypes.ConnectionType{Number: _ConnectionTypeRhombusEdge.Number + 1, Length: 1.73205}
 var _ConnectionTypeAmorphous = datatypes.ConnectionType{Number: _ConnectionTypeRhombusSurface.Number + 1, Length: 1.41421}
 
+const (
+	crystallMonomerType  = base.Cr
+	amorphousMonomerType = base.O
+)
+
 type Crystall2InputDataBuilder struct {
 }
 
