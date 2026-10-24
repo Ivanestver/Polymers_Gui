@@ -245,11 +245,11 @@ func (alg *Crystall2CalcAlg) addMonomer(point base.Vector3DF, polymer datatypes.
 }
 
 func (alg *Crystall2CalcAlg) addCrystallMonomer(point base.Vector3DF, polymer datatypes.IPolymer) {
-	alg.addMonomer(point, polymer, base.Ne)
+	alg.addMonomer(point, polymer, crystallMonomerType)
 }
 
 func (alg *Crystall2CalcAlg) addAmorphousMonomer(point base.Vector3DF, polymer datatypes.IPolymer) {
-	alg.addMonomer(point, polymer, base.Na)
+	alg.addMonomer(point, polymer, amorphousMonomerType)
 }
 
 func moveForward(currPoint *base.Vector3DF, direction base.Vector3DF) {
